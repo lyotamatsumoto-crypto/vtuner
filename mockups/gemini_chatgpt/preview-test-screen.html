@@ -1,0 +1,1414 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VTuner - Preview / Test</title>
+  <style>
+    :root {
+      --bg: #f6f7fb;
+      --panel: #ffffff;
+      --line: #e5e7eb;
+      --line-strong: #d6dae3;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --primary: #5b6cff;
+      --primary-soft: #eef2ff;
+      --shadow: 0 10px 30px rgba(17, 24, 39, 0.08);
+      --radius: 18px;
+      --ok: #10b981;
+      --warn: #f59e0b;
+      --danger: #ef4444;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: "Yu Gothic UI", "Hiragino Sans", "Noto Sans JP", system-ui, sans-serif;
+    }
+
+    button, input, textarea, select {
+      font: inherit;
+    }
+
+    .app {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .topbar {
+      height: 68px;
+      background: rgba(255,255,255,0.94);
+      backdrop-filter: blur(8px);
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 22px;
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      gap: 16px;
+    }
+
+    .brand-wrap {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      min-width: 0;
+      flex-wrap: wrap;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+    }
+
+    .brand h1 {
+      margin: 0;
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--primary);
+      letter-spacing: -0.02em;
+      white-space: nowrap;
+    }
+
+    .vtuner-name {
+      padding: 7px 12px;
+      border-radius: 999px;
+      border: 1px solid #dbe4ff;
+      background: var(--primary-soft);
+      color: var(--primary);
+      font-weight: 800;
+      font-size: 13px;
+      white-space: nowrap;
+    }
+
+    .nav {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .nav button {
+      border: 0;
+      background: transparent;
+      color: var(--muted);
+      font-weight: 700;
+      padding: 10px 14px;
+      border-radius: 12px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    .nav button.active {
+      background: var(--primary-soft);
+      color: var(--primary);
+    }
+
+    .top-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .btn {
+      border: 1px solid var(--line);
+      background: #fff;
+      color: var(--text);
+      padding: 10px 14px;
+      border-radius: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      font-size: 14px;
+      white-space: nowrap;
+    }
+
+    .btn.primary {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: #fff;
+    }
+
+    .btn.ghost {
+      background: #fff;
+      color: var(--primary);
+      border-color: #dbe4ff;
+    }
+
+    .btn.danger {
+      color: #b91c1c;
+      border-color: #fecaca;
+      background: #fff;
+    }
+
+    .page {
+      max-width: 1540px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 18px;
+      display: grid;
+      gap: 16px;
+    }
+
+    .top-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1.55fr) minmax(340px, 0.82fr);
+      gap: 16px;
+      align-items: stretch;
+    }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      min-width: 0;
+    }
+
+    .card-header {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      background: #fcfcff;
+    }
+
+    .card-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .card-title .bar {
+      width: 4px;
+      height: 20px;
+      border-radius: 999px;
+      background: var(--primary);
+      flex: 0 0 auto;
+    }
+
+    .card-title h2 {
+      margin: 0;
+      font-size: 16px;
+      font-weight: 800;
+    }
+
+    .toolbar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .preview-stage-wrap {
+      padding: 14px;
+      background: #f8f9fd;
+    }
+
+    .preview-stage {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      min-height: 420px;
+      border-radius: 18px;
+      overflow: hidden;
+      border: 1px solid var(--line-strong);
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.03), rgba(0,0,0,0.05)),
+        radial-gradient(circle at 20% 20%, rgba(255,255,255,0.18), transparent 30%),
+        linear-gradient(180deg, #d7defd 0%, #b7c6f3 45%, #c6d3ff 100%);
+    }
+
+    .preview-bg {
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.06), rgba(0,0,0,0.02)),
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1200' height='675' viewBox='0 0 1200 675'%3E%3Cg fill='none' stroke='%23ffffff' stroke-opacity='.28'%3E%3Cpath d='M80 520h260l80-120h220l90-160h400'/%3E%3Cpath d='M0 560h320l70-90h210l100-140h500'/%3E%3C/g%3E%3Cg fill='%2397a8ec' fill-opacity='.35'%3E%3Ccircle cx='230' cy='170' r='80'/%3E%3Ccircle cx='1010' cy='120' r='60'/%3E%3C/g%3E%3C/svg%3E") center / cover no-repeat;
+    }
+
+    .subtitle-chip {
+      position: absolute;
+      left: 14px;
+      top: 14px;
+      z-index: 3;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.92);
+      border: 1px solid rgba(255,255,255,0.7);
+      font-size: 12px;
+      font-weight: 800;
+      color: var(--primary);
+    }
+
+    .bg-inline-ui {
+      position: absolute;
+      left: 14px;
+      bottom: 14px;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      z-index: 8;
+      flex-wrap: wrap;
+    }
+
+    .mini-chip {
+      border: 1px solid rgba(255,255,255,0.85);
+      background: rgba(255,255,255,0.96);
+      color: var(--text);
+      border-radius: 999px;
+      padding: 6px 10px;
+      font-size: 11px;
+      font-weight: 800;
+      cursor: pointer;
+      line-height: 1;
+      white-space: nowrap;
+    }
+
+    .mini-chip.active {
+      color: var(--primary);
+      border-color: #dbe4ff;
+      background: var(--primary-soft);
+    }
+
+    .mini-file {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border: 1px solid rgba(255,255,255,0.85);
+      background: rgba(255,255,255,0.96);
+      color: var(--text);
+      border-radius: 999px;
+      padding: 6px 10px;
+      font-size: 11px;
+      font-weight: 800;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .mini-file input {
+      display: none;
+    }
+
+    .vtuner-box {
+      position: absolute;
+      right: 4%;
+      bottom: 8%;
+      width: 28%;
+      min-width: 190px;
+      max-width: 300px;
+      aspect-ratio: 0.78 / 1;
+      z-index: 6;
+      cursor: move;
+      user-select: none;
+    }
+
+    .vtuner-inline-ui {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 0;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      align-items: center;
+      z-index: 8;
+    }
+
+    .vtuner-frame {
+      position: absolute;
+      inset: 34px 0 0 0;
+      border: 1px solid rgba(255,255,255,0.72);
+      background: rgba(255,255,255,0.06);
+      border-radius: 18px;
+      backdrop-filter: blur(1px);
+    }
+
+    .resize-corner {
+      position: absolute;
+      right: -1px;
+      bottom: -1px;
+      width: 18px;
+      height: 18px;
+      border-right: 2px solid rgba(255,255,255,0.85);
+      border-bottom: 2px solid rgba(255,255,255,0.85);
+      cursor: nwse-resize;
+      z-index: 9;
+    }
+
+    .vtuner {
+      position: absolute;
+      left: 8%;
+      top: 12%;
+      width: 84%;
+      height: 82%;
+      z-index: 7;
+      pointer-events: none;
+    }
+
+    .vtuner-body {
+      position: absolute;
+      inset: 0;
+      filter: drop-shadow(0 16px 26px rgba(17,24,39,0.18));
+    }
+
+    .hair-back {
+      position: absolute;
+      inset: 9% 16% 8% 18%;
+      background: linear-gradient(180deg, #ffe9d7 0%, #f7c29e 50%, #e88f83 100%);
+      border-radius: 42% 38% 28% 26%;
+      transform: rotate(-2deg);
+    }
+
+    .ponytail {
+      position: absolute;
+      right: 4%;
+      top: 18%;
+      width: 36%;
+      height: 52%;
+      background: linear-gradient(180deg, #ffe6d1 0%, #f3b495 55%, #dd8b7f 100%);
+      border-radius: 50% 42% 44% 54%;
+      transform: rotate(10deg);
+    }
+
+    .face {
+      position: absolute;
+      left: 36%;
+      top: 22%;
+      width: 30%;
+      height: 26%;
+      background: linear-gradient(180deg, #fff1e6 0%, #ffe4d4 100%);
+      border-radius: 48% 48% 52% 52%;
+      z-index: 3;
+    }
+
+    .bang-left, .bang-right, .body, .collar, .ribbon-dot, .ribbon, .hair-band, .eye, .mouth {
+      position: absolute;
+      z-index: 4;
+    }
+
+    .bang-left {
+      left: 28%;
+      top: 15%;
+      width: 30%;
+      height: 23%;
+      background: linear-gradient(180deg, #fff0dc 0%, #f7ca9f 100%);
+      border-radius: 62% 34% 48% 50%;
+      transform: rotate(-12deg);
+    }
+
+    .bang-right {
+      left: 46%;
+      top: 14%;
+      width: 25%;
+      height: 24%;
+      background: linear-gradient(180deg, #fff0dc 0%, #f7c5a0 100%);
+      border-radius: 32% 62% 42% 58%;
+      transform: rotate(12deg);
+    }
+
+    .hair-band {
+      left: 50%;
+      top: 13%;
+      width: 18%;
+      height: 3.5%;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #7ddf5a, #ff5a9c);
+      transform: rotate(14deg);
+    }
+
+    .eye {
+      top: 33%;
+      width: 6%;
+      height: 5.5%;
+      background: radial-gradient(circle at 45% 35%, #ffffff 0 14%, #b99fff 20%, #7c5cf6 60%, #5b21b6 100%);
+      border-radius: 48% 52% 52% 48%;
+    }
+
+    .eye.left { left: 44%; }
+    .eye.right { left: 56%; }
+
+    .mouth {
+      left: 51%;
+      top: 42%;
+      width: 7%;
+      height: 3%;
+      border-bottom: 2px solid #d67b76;
+      border-radius: 0 0 999px 999px;
+    }
+
+    .body {
+      left: 28%;
+      top: 45%;
+      width: 42%;
+      height: 38%;
+      background: linear-gradient(180deg, #ea5854 0%, #c63d3a 100%);
+      border-radius: 18% 18% 10% 10%;
+      z-index: 2;
+    }
+
+    .collar {
+      left: 39%;
+      top: 49%;
+      width: 20%;
+      height: 10%;
+      background: #fff;
+      clip-path: polygon(0 0, 50% 100%, 100% 0);
+    }
+
+    .ribbon {
+      left: 57%;
+      top: 36%;
+      width: 12%;
+      height: 8%;
+      background: linear-gradient(90deg, #f97316 0%, #ef4444 100%);
+      clip-path: polygon(0 50%, 24% 0, 50% 40%, 76% 0, 100% 50%, 76% 100%, 50% 60%, 24% 100%);
+    }
+
+    .ribbon-dot {
+      left: 61%;
+      top: 36%;
+      width: 5%;
+      height: 5%;
+      background: #3b82f6;
+      border-radius: 999px;
+    }
+
+    .bubble-box {
+      position: absolute;
+      left: 8%;
+      bottom: 18%;
+      width: 38%;
+      min-width: 260px;
+      max-width: 440px;
+      min-height: 120px;
+      z-index: 5;
+      cursor: move;
+      user-select: none;
+    }
+
+    .bubble-frame {
+      position: absolute;
+      inset: 0;
+      border: 1px solid rgba(255,255,255,0.72);
+      background: rgba(255,255,255,0.06);
+      border-radius: 18px;
+    }
+
+    .bubble {
+      position: absolute;
+      left: 10px;
+      right: 10px;
+      top: 10px;
+      bottom: 10px;
+      padding: 18px 18px 16px;
+      border-radius: 20px;
+      background: rgba(255,255,255,0.98);
+      border: 1px solid #dbe4ff;
+      box-shadow: 0 10px 24px rgba(17,24,39,0.08);
+      line-height: 1.7;
+      font-size: 15px;
+      color: #111827;
+      overflow: hidden;
+    }
+
+    .bubble::after {
+      content: "";
+      position: absolute;
+      left: 34px;
+      bottom: -10px;
+      width: 18px;
+      height: 18px;
+      transform: rotate(45deg);
+      background: #fff;
+      border-right: 1px solid #dbe4ff;
+      border-bottom: 1px solid #dbe4ff;
+    }
+
+    .bubble-handle {
+      position: absolute;
+      right: 10px;
+      top: 10px;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--muted);
+      border: 1px solid var(--line);
+      background: #f8fafc;
+      border-radius: 999px;
+      padding: 4px 8px;
+      cursor: grab;
+      user-select: none;
+      z-index: 6;
+    }
+
+    .bubble-handle:active {
+      cursor: grabbing;
+    }
+
+    .subtitle-bar {
+      position: absolute;
+      left: 50%;
+      bottom: 3.5%;
+      transform: translateX(-50%);
+      max-width: 72%;
+      min-width: 260px;
+      padding: 10px 14px;
+      border-radius: 12px;
+      background: rgba(17,24,39,0.86);
+      color: #fff;
+      font-size: 14px;
+      line-height: 1.55;
+      text-align: center;
+      z-index: 4;
+    }
+
+    .history-card {
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+    }
+
+    .history-body {
+      padding: 14px;
+      display: grid;
+      gap: 14px;
+      min-height: 0;
+      height: 100%;
+      grid-template-rows: minmax(220px, 1fr) auto;
+    }
+
+    .history-stream {
+      min-height: 240px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: #fff;
+      overflow: auto;
+      display: grid;
+      gap: 0;
+    }
+
+    .history-item {
+      padding: 14px;
+      border-bottom: 1px solid #f1f5f9;
+      display: grid;
+      gap: 7px;
+    }
+
+    .history-item:last-child {
+      border-bottom: 0;
+    }
+
+    .history-meta {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      font-size: 12px;
+    }
+
+    .history-badge {
+      padding: 5px 9px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: #fff;
+      color: #374151;
+      font-weight: 800;
+      font-size: 11px;
+    }
+
+    .history-badge.reply {
+      background: var(--primary-soft);
+      border-color: #dbe4ff;
+      color: var(--primary);
+    }
+
+    .history-badge.event {
+      background: #f9fafb;
+      color: #475569;
+    }
+
+    .history-name {
+      font-size: 13px;
+      font-weight: 800;
+      color: #15803d;
+    }
+
+    .history-text {
+      font-size: 14px;
+      line-height: 1.6;
+      color: var(--text);
+      word-break: break-word;
+    }
+
+    .history-empty {
+      padding: 28px 18px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.7;
+    }
+
+    .input-box {
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 14px;
+      background: #fafbff;
+      display: grid;
+      gap: 10px;
+    }
+
+    .input-grid {
+      display: grid;
+      grid-template-columns: 130px minmax(0, 1fr);
+      gap: 10px;
+    }
+
+    .input-grid input,
+    .input-grid textarea,
+    .input-grid select {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 10px 12px;
+      background: #fff;
+      color: var(--text);
+    }
+
+    .input-grid textarea {
+      min-height: 84px;
+      resize: vertical;
+      grid-column: 1 / -1;
+      line-height: 1.65;
+    }
+
+    .label {
+      font-size: 12px;
+      font-weight: 800;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+    }
+
+    .bottom-card .card-header {
+      padding-bottom: 12px;
+    }
+
+    .bottom-body {
+      padding: 14px;
+      display: grid;
+      gap: 12px;
+    }
+
+    .preset-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .preset-list {
+      display: grid;
+      gap: 12px;
+    }
+
+    .preset-row {
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      overflow: hidden;
+      background: #fff;
+    }
+
+    .preset-top {
+      padding: 14px 14px 10px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .preset-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .preset-head-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      min-width: 0;
+    }
+
+    .preset-name {
+      font-size: 14px;
+      font-weight: 800;
+      color: var(--text);
+    }
+
+    .preset-form {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .field {
+      display: grid;
+      gap: 6px;
+    }
+
+    .field label {
+      font-size: 11px;
+      font-weight: 800;
+      color: var(--muted);
+    }
+
+    .field input,
+    .field select {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 10px 11px;
+      background: #fff;
+      color: var(--text);
+      min-width: 0;
+    }
+
+    .preset-bottom {
+      padding: 12px 14px;
+      border-top: 1px solid var(--line);
+      background: #fafbff;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .result-inline {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      font-size: 13px;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: #fff;
+      font-size: 12px;
+      font-weight: 800;
+      color: #374151;
+      white-space: nowrap;
+    }
+
+    .pill.ok {
+      color: #047857;
+      background: #ecfdf5;
+      border-color: #bbf7d0;
+    }
+
+    .pill.warn {
+      color: #b45309;
+      background: #fff7ed;
+      border-color: #fed7aa;
+    }
+
+    .pill.info {
+      color: var(--primary);
+      background: var(--primary-soft);
+      border-color: #dbe4ff;
+    }
+
+    .muted {
+      color: var(--muted);
+    }
+
+    @media (max-width: 1320px) {
+      .top-layout {
+        grid-template-columns: 1fr;
+      }
+
+      .preview-stage {
+        min-height: 360px;
+      }
+
+      .preset-form {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 900px) {
+      .topbar {
+        height: auto;
+        padding: 14px;
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .brand-wrap {
+        justify-content: space-between;
+      }
+
+      .preview-stage {
+        min-height: 300px;
+      }
+
+      .bubble-box {
+        width: 48%;
+        left: 4%;
+      }
+
+      .subtitle-bar {
+        max-width: 86%;
+      }
+
+      .preset-form {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .input-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .page {
+        padding: 12px;
+      }
+
+      .preview-stage-wrap,
+      .history-body,
+      .bottom-body {
+        padding: 10px;
+      }
+
+      .preview-stage {
+        min-height: 240px;
+      }
+
+      .bubble-box {
+        min-width: 0;
+        width: calc(100% - 28px);
+        left: 14px;
+        bottom: 18%;
+      }
+
+      .preset-form {
+        grid-template-columns: 1fr;
+      }
+
+      .vtuner-box {
+        width: 38%;
+        min-width: 150px;
+      }
+
+      .vtuner-inline-ui {
+        gap: 4px;
+      }
+
+      .mini-chip, .mini-file {
+        font-size: 10px;
+        padding: 5px 8px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div class="brand-wrap">
+        <div class="brand">
+          <h1>VTuner</h1>
+          <span class="vtuner-name">ヴィヴィ</span>
+        </div>
+        <nav class="nav">
+          <button class="active">プレビュー / テスト</button>
+          <button>基本設定</button>
+          <button>配信後レビュー</button>
+          <button>詳細設定</button>
+        </nav>
+      </div>
+
+      <div class="top-actions">
+        <button class="btn ghost">音声テスト</button>
+        <button class="btn danger">プリセットに戻す</button>
+      </div>
+    </header>
+
+    <main class="page">
+      <section class="top-layout">
+        <section class="card preview-card">
+          <div class="card-header">
+            <div class="card-title">
+              <span class="bar"></span>
+              <h2>Main Preview</h2>
+            </div>
+          </div>
+
+          <div class="preview-stage-wrap">
+            <div class="preview-stage" id="previewStage">
+              <div class="preview-bg"></div>
+              <div class="subtitle-chip">YouTube風プレビュー</div>
+
+              <div class="bg-inline-ui">
+                <label class="mini-file">
+                  背景 +
+                  <input type="file" accept=".jpg,.jpeg,.png" />
+                </label>
+                <button class="mini-chip">背景クリア</button>
+              </div>
+
+              <div class="bubble-box" id="bubbleBox">
+                <div class="bubble-frame"></div>
+                <div class="bubble-handle">移動</div>
+                <div class="bubble">
+                  こんにちは。いまの位置とサイズを見ながら、実配信時の見え方を確認できます。
+                </div>
+                <div class="resize-corner" id="bubbleResize"></div>
+              </div>
+
+              <div class="vtuner-box" id="vtunerBox">
+                <div class="vtuner-inline-ui">
+                  <button class="mini-chip active">front</button>
+                  <button class="mini-chip">side</button>
+                  <button class="mini-chip">mirror</button>
+                  <label class="mini-file">
+                    立ち絵 +
+                    <input type="file" accept=".jpg,.jpeg,.png" />
+                  </label>
+                </div>
+
+                <div class="vtuner-frame"></div>
+                <div class="vtuner">
+                  <div class="vtuner-body">
+                    <div class="hair-back"></div>
+                    <div class="ponytail"></div>
+                    <div class="body"></div>
+                    <div class="collar"></div>
+                    <div class="face"></div>
+                    <div class="bang-left"></div>
+                    <div class="bang-right"></div>
+                    <div class="hair-band"></div>
+                    <div class="eye left"></div>
+                    <div class="eye right"></div>
+                    <div class="mouth"></div>
+                    <div class="ribbon"></div>
+                    <div class="ribbon-dot"></div>
+                  </div>
+                </div>
+                <div class="resize-corner" id="vtunerResize"></div>
+              </div>
+
+              <div class="subtitle-bar">
+                配信中の字幕プレビュー。コメント読上げ時は side、配信者向け発言時は front などの挙動確認をここで行う想定です。
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <aside class="card history-card">
+          <div class="card-header">
+            <div class="card-title">
+              <span class="bar"></span>
+              <h2>Comment / Test History</h2>
+            </div>
+          </div>
+
+          <div class="history-body">
+            <div class="history-stream">
+              <div class="history-empty">
+                ダミーコメントは表示しません。<br>
+                ここには、この画面で実行したコメント・イベント・返答履歴だけが並びます。
+              </div>
+
+              <div class="history-item">
+                <div class="history-meta">
+                  <span class="history-badge">コメント</span>
+                  <span class="history-name">Sora_77</span>
+                </div>
+                <div class="history-text">こんばんは。今日の雰囲気、少し静かで好きです。</div>
+              </div>
+
+              <div class="history-item">
+                <div class="history-meta">
+                  <span class="history-badge reply">VTuner返答</span>
+                </div>
+                <div class="history-text">こんばんは。ありがとうございます。今日は少し落ち着いた空気で進めようと思っていました。</div>
+              </div>
+
+              <div class="history-item">
+                <div class="history-meta">
+                  <span class="history-badge event">イベント</span>
+                </div>
+                <div class="history-text">無言イベントテストを実行</div>
+              </div>
+            </div>
+
+            <div class="input-box">
+              <div class="input-grid">
+                <div class="label">投稿者名</div>
+                <input type="text" value="Sora_77" />
+
+                <div class="label">コメント入力</div>
+                <textarea>こんばんは。今日の雰囲気、少し静かで好きです。</textarea>
+
+                <div class="label">単発サンプル</div>
+                <select>
+                  <option selected>褒めコメント</option>
+                  <option>挨拶</option>
+                  <option>初見コメント</option>
+                  <option>質問コメント</option>
+                  <option>応援コメント</option>
+                  <option>NGワードコメント</option>
+                </select>
+              </div>
+
+              <div class="toolbar">
+                <button class="btn primary">送信</button>
+                <button class="btn ghost">単発サンプル実行</button>
+              </div>
+            </div>
+          </div>
+        </aside>
+      </section>
+
+      <section class="card bottom-card">
+        <div class="card-header">
+          <div class="card-title">
+            <span class="bar"></span>
+            <h2>Bottom Test Area</h2>
+          </div>
+
+          <div class="preset-actions">
+            <button class="btn">新規作成</button>
+            <button class="btn ghost">保存</button>
+            <button class="btn ghost">複製</button>
+            <button class="btn ghost">削除</button>
+          </div>
+        </div>
+
+        <div class="bottom-body">
+          <div class="preset-list">
+            <div class="preset-row">
+              <div class="preset-top">
+                <div class="preset-head">
+                  <div class="preset-head-left">
+                    <span class="pill info">テストプリセット</span>
+                    <span class="preset-name">無コメント120秒 → 話題振り</span>
+                  </div>
+                </div>
+
+                <div class="preset-form">
+                  <div class="field">
+                    <label>条件種別</label>
+                    <select>
+                      <option selected>無コメント</option>
+                      <option>連投</option>
+                      <option>コメント条件</option>
+                      <option>条件イベント</option>
+                    </select>
+                  </div>
+
+                  <div class="field">
+                    <label>条件値</label>
+                    <input type="number" value="120" />
+                  </div>
+
+                  <div class="field">
+                    <label>単位</label>
+                    <select>
+                      <option selected>秒</option>
+                      <option>件</option>
+                    </select>
+                  </div>
+
+                  <div class="field">
+                    <label>オプション</label>
+                    <select>
+                      <option selected>5秒前カウント ON</option>
+                      <option>5秒前カウント OFF</option>
+                    </select>
+                  </div>
+
+                  <div class="field">
+                    <label>確認対象</label>
+                    <select>
+                      <option selected>使用反応名</option>
+                      <option>実行結果</option>
+                      <option>理由ラベル</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              <div class="preset-bottom">
+                <div class="result-inline">
+                  <span class="pill ok">発火</span>
+                  <span class="muted">理由:</span>
+                  <span class="pill">無コメント条件成立</span>
+                  <span class="muted">使用反応名:</span>
+                  <span class="pill">無言時の話題振り</span>
+                </div>
+
+                <button class="btn primary">▶ 実行</button>
+              </div>
+            </div>
+
+            <div class="preset-row">
+              <div class="preset-top">
+                <div class="preset-head">
+                  <div class="preset-head-left">
+                    <span class="pill info">テストプリセット</span>
+                    <span class="preset-name">NGワード入力時の無視</span>
+                  </div>
+                </div>
+
+                <div class="preset-form">
+                  <div class="field">
+                    <label>条件種別</label>
+                    <select>
+                      <option>無コメント</option>
+                      <option>連投</option>
+                      <option selected>コメント条件</option>
+                      <option>条件イベント</option>
+                    </select>
+                  </div>
+
+                  <div class="field">
+                    <label>条件値</label>
+                    <select>
+                      <option selected>NGワード含有</option>
+                      <option>センシティブ除外</option>
+                      <option>読みにくい名前</option>
+                      <option>長すぎる名前</option>
+                    </select>
+                  </div>
+
+                  <div class="field">
+                    <label>入力例</label>
+                    <input type="text" value="NGワード入りコメント" />
+                  </div>
+
+                  <div class="field">
+                    <label>オプション</label>
+                    <select>
+                      <option selected>無視理由を確認</option>
+                      <option>反応名のみ確認</option>
+                    </select>
+                  </div>
+
+                  <div class="field">
+                    <label>確認対象</label>
+                    <select>
+                      <option>使用反応名</option>
+                      <option selected>実行結果 + 理由</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              <div class="preset-bottom">
+                <div class="result-inline">
+                  <span class="pill warn">無視</span>
+                  <span class="muted">理由:</span>
+                  <span class="pill">NGワード一致</span>
+                </div>
+
+                <button class="btn primary">▶ 実行</button>
+              </div>
+            </div>
+
+            <div class="preset-row">
+              <div class="preset-top">
+                <div class="preset-head">
+                  <div class="preset-head-left">
+                    <span class="pill info">テストプリセット</span>
+                    <span class="preset-name">連投時の取捨選択</span>
+                  </div>
+                </div>
+
+                <div class="preset-form">
+                  <div class="field">
+                    <label>条件種別</label>
+                    <select>
+                      <option>無コメント</option>
+                      <option selected>連投</option>
+                      <option>コメント条件</option>
+                      <option>条件イベント</option>
+                    </select>
+                  </div>
+
+                  <div class="field">
+                    <label>条件値</label>
+                    <input type="number" value="5" />
+                  </div>
+
+                  <div class="field">
+                    <label>ユーザー条件</label>
+                    <select>
+                      <option selected>同一ユーザー</option>
+                      <option>複数ユーザー</option>
+                    </select>
+                  </div>
+
+                  <div class="field">
+                    <label>間隔</label>
+                    <select>
+                      <option selected>高速</option>
+                      <option>通常</option>
+                    </select>
+                  </div>
+
+                  <div class="field">
+                    <label>確認対象</label>
+                    <select>
+                      <option selected>採用 / 不採用 / 反応名</option>
+                      <option>理由ラベル</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              <div class="preset-bottom">
+                <div class="result-inline">
+                  <span class="pill">保留</span>
+                  <span class="muted">理由:</span>
+                  <span class="pill">連投抑制</span>
+                  <span class="muted">使用反応名:</span>
+                  <span class="pill">未実行</span>
+                </div>
+
+                <button class="btn primary">▶ 実行</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    function makeBoxDraggable(target, container, ignoreSelector) {
+      let dragging = false;
+      let startX = 0;
+      let startY = 0;
+      let startLeft = 0;
+      let startTop = 0;
+
+      target.addEventListener("mousedown", (e) => {
+        if (ignoreSelector && e.target.closest(ignoreSelector)) return;
+
+        const containerRect = container.getBoundingClientRect();
+        const targetRect = target.getBoundingClientRect();
+
+        dragging = true;
+        startX = e.clientX;
+        startY = e.clientY;
+        startLeft = targetRect.left - containerRect.left;
+        startTop = targetRect.top - containerRect.top;
+
+        e.preventDefault();
+      });
+
+      document.addEventListener("mousemove", (e) => {
+        if (!dragging) return;
+
+        const containerRect = container.getBoundingClientRect();
+        const targetRect = target.getBoundingClientRect();
+
+        let nextLeft = startLeft + (e.clientX - startX);
+        let nextTop = startTop + (e.clientY - startY);
+
+        const maxLeft = containerRect.width - targetRect.width;
+        const maxTop = containerRect.height - targetRect.height;
+
+        nextLeft = Math.max(0, Math.min(nextLeft, maxLeft));
+        nextTop = Math.max(0, Math.min(nextTop, maxTop));
+
+        target.style.left = nextLeft + "px";
+        target.style.top = nextTop + "px";
+        target.style.right = "auto";
+        target.style.bottom = "auto";
+      });
+
+      document.addEventListener("mouseup", () => {
+        dragging = false;
+      });
+    }
+
+    function makeResizable(box, handle, container, minWidth, minHeight) {
+      let resizing = false;
+      let startX = 0;
+      let startY = 0;
+      let startWidth = 0;
+      let startHeight = 0;
+
+      handle.addEventListener("mousedown", (e) => {
+        resizing = true;
+        startX = e.clientX;
+        startY = e.clientY;
+        startWidth = box.offsetWidth;
+        startHeight = box.offsetHeight;
+        e.stopPropagation();
+        e.preventDefault();
+      });
+
+      document.addEventListener("mousemove", (e) => {
+        if (!resizing) return;
+
+        const containerRect = container.getBoundingClientRect();
+        const boxRect = box.getBoundingClientRect();
+        const boxLeft = boxRect.left - containerRect.left;
+        const boxTop = boxRect.top - containerRect.top;
+
+        let nextWidth = startWidth + (e.clientX - startX);
+        let nextHeight = startHeight + (e.clientY - startY);
+
+        nextWidth = Math.max(minWidth, nextWidth);
+        nextHeight = Math.max(minHeight, nextHeight);
+
+        nextWidth = Math.min(nextWidth, containerRect.width - boxLeft);
+        nextHeight = Math.min(nextHeight, containerRect.height - boxTop);
+
+        box.style.width = nextWidth + "px";
+        box.style.height = nextHeight + "px";
+      });
+
+      document.addEventListener("mouseup", () => {
+        resizing = false;
+      });
+    }
+
+    const previewStage = document.getElementById("previewStage");
+    const vtunerBox = document.getElementById("vtunerBox");
+    const bubbleBox = document.getElementById("bubbleBox");
+    const vtunerResize = document.getElementById("vtunerResize");
+    const bubbleResize = document.getElementById("bubbleResize");
+
+    makeBoxDraggable(vtunerBox, previewStage, ".resize-corner, .mini-chip, .mini-file, input");
+    makeBoxDraggable(bubbleBox, previewStage, ".resize-corner, .bubble-handle");
+    makeResizable(vtunerBox, vtunerResize, previewStage, 150, 180);
+    makeResizable(bubbleBox, bubbleResize, previewStage, 220, 110);
+  </script>
+</body>
+</html>

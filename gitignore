@@ -1,0 +1,71 @@
+# OS / Editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Logs
+*.log
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Node / package managers
+node_modules/
+.pnpm-store/
+.npm/
+.yarn/
+.yarn/cache/
+.yarn/unplugged/
+.yarn/build-state.yml
+.yarn/install-state.gz
+
+# Build outputs
+dist/
+build/
+coverage/
+.next/
+out/
+
+# TypeScript
+*.tsbuildinfo
+
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+venv/
+
+# Test / temporary artifacts
+tmp/
+temp/
+*.tmp
+
+# Runtime / local data
+data/
+runtime/
+.cache/
+
+# Frontend generated assets
+frontend/dist/
+backend/dist/
+
+# Local screenshots / exports
+screenshots/
+exports/
+
+# Zipped / packaged artifacts
+*.zip
+*.tar
+*.gz
+
+# Keep repository clean
+!.gitkeep

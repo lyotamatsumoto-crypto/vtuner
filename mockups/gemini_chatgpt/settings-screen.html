@@ -1,0 +1,1335 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VTuner - Basic Settings</title>
+  <style>
+    :root {
+      --bg: #f6f7fb;
+      --panel: #ffffff;
+      --line: #e5e7eb;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --primary: #5b6cff;
+      --primary-soft: #eef2ff;
+      --shadow: 0 10px 30px rgba(17, 24, 39, 0.08);
+      --radius: 18px;
+      --ok: #10b981;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: "Yu Gothic UI", "Hiragino Sans", "Noto Sans JP", system-ui, sans-serif;
+    }
+
+    .app {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .topbar {
+      height: 64px;
+      background: rgba(255,255,255,0.92);
+      backdrop-filter: blur(8px);
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      flex-wrap: wrap;
+    }
+
+    .brand h1 {
+      margin: 0;
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--primary);
+      letter-spacing: -0.02em;
+    }
+
+    .nav {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .nav button {
+      border: 0;
+      background: transparent;
+      color: var(--muted);
+      font-weight: 700;
+      padding: 10px 14px;
+      border-radius: 12px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    .nav button.active {
+      background: var(--primary-soft);
+      color: var(--primary);
+    }
+
+    .top-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      border: 1px solid var(--line);
+      background: #fff;
+      color: var(--text);
+      padding: 10px 14px;
+      border-radius: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    .btn.primary {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: white;
+    }
+
+    .btn.ghost {
+      background: #fff;
+      color: var(--primary);
+      border-color: #dbe4ff;
+    }
+
+    .layout {
+      max-width: 1500px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 24px;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 390px;
+      gap: 24px;
+      align-items: start;
+    }
+
+    .left-column {
+      min-width: 0;
+    }
+
+    .right-column {
+      position: sticky;
+      top: 88px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .section {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      margin-bottom: 20px;
+    }
+
+    .section-header {
+      padding: 18px 20px;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      background: #fcfcff;
+    }
+
+    .section-title {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .section-title .bar {
+      width: 4px;
+      height: 22px;
+      border-radius: 999px;
+      background: var(--primary);
+    }
+
+    .section-title h2 {
+      margin: 0;
+      font-size: 17px;
+      font-weight: 800;
+    }
+
+    .section-body {
+      padding: 20px;
+    }
+
+    .subnote {
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.65;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .field label {
+      font-size: 13px;
+      font-weight: 700;
+      color: #374151;
+    }
+
+    .field input[type="text"],
+    .field select,
+    .field textarea {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 10px 12px;
+      font: inherit;
+      background: #fff;
+      color: var(--text);
+    }
+
+    .field textarea {
+      min-height: 92px;
+      resize: vertical;
+    }
+
+    .choice-card-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .choice-card {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 14px;
+      background: #fff;
+      cursor: pointer;
+      transition: 0.15s ease;
+    }
+
+    .choice-card.active {
+      border-color: #cdd7ff;
+      background: var(--primary-soft);
+    }
+
+    .choice-card strong {
+      display: block;
+      font-size: 14px;
+      margin-bottom: 6px;
+    }
+
+    .choice-card span {
+      display: block;
+      font-size: 12px;
+      line-height: 1.55;
+      color: var(--muted);
+    }
+
+    .linked-note {
+      margin-top: 14px;
+      border: 1px solid #e5e7eb;
+      border-radius: 14px;
+      background: #fafafa;
+      padding: 14px;
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .linked-note .txt {
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .profile-note-box {
+      border: 1px dashed #d1d5db;
+      border-radius: 14px;
+      background: #fafafa;
+      padding: 14px;
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.65;
+    }
+
+    .asset-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .asset-box {
+      border: 1px dashed #cbd5e1;
+      border-radius: 16px;
+      background: #fafbff;
+      padding: 16px;
+      min-height: 240px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .asset-box strong {
+      font-size: 14px;
+    }
+
+    .asset-drop {
+      flex: 1;
+      border: 2px dashed #c7d2fe;
+      border-radius: 16px;
+      background: linear-gradient(180deg, #f8faff, #f3f6ff);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 10px;
+      color: var(--primary);
+      min-height: 120px;
+    }
+
+    .asset-drop .plus {
+      width: 48px;
+      height: 48px;
+      border-radius: 999px;
+      background: #fff;
+      border: 1px solid #dbe4ff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      font-weight: 300;
+      box-shadow: 0 4px 10px rgba(91,108,255,0.08);
+    }
+
+    .asset-drop small {
+      color: var(--muted);
+      font-size: 12px;
+      text-align: center;
+      line-height: 1.5;
+    }
+
+    .toggle-card-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .toggle-card {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: #fff;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      min-height: 92px;
+    }
+
+    .toggle-card strong {
+      font-size: 14px;
+    }
+
+    .toggle-card .desc {
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    .toggle-status {
+      align-self: flex-start;
+      font-size: 12px;
+      font-weight: 700;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: #f3f4f6;
+      color: #374151;
+      border: 1px solid var(--line);
+    }
+
+    .toggle-status.on {
+      background: var(--primary-soft);
+      color: var(--primary);
+      border-color: #dbe4ff;
+    }
+
+    .bubble-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .bubble-preview-wrap {
+      display: grid;
+      gap: 12px;
+    }
+
+    .bubble-preview {
+      min-height: 180px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: #fafbff;
+      padding: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .bubble-resizable {
+      width: 260px;
+      min-height: 90px;
+      background: #ffffff;
+      color: #111827;
+      border: 1px solid #dbe4ff;
+      border-radius: 18px;
+      padding: 14px 16px;
+      line-height: 1.6;
+      font-size: 15px;
+      position: relative;
+      box-shadow: 0 8px 18px rgba(17,24,39,0.04);
+    }
+
+    .bubble-resizable::after {
+      content: "";
+      position: absolute;
+      left: 22px;
+      bottom: -10px;
+      width: 18px;
+      height: 18px;
+      background: #fff;
+      border-right: 1px solid #dbe4ff;
+      border-bottom: 1px solid #dbe4ff;
+      transform: rotate(45deg);
+    }
+
+    .resize-handle {
+      position: absolute;
+      right: 8px;
+      bottom: 8px;
+      width: 14px;
+      height: 14px;
+      border-right: 2px solid #94a3b8;
+      border-bottom: 2px solid #94a3b8;
+      opacity: 0.9;
+    }
+
+    .palette-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .palette-label {
+      font-size: 13px;
+      font-weight: 700;
+      color: #374151;
+    }
+
+    .palette-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .swatch {
+      width: 28px;
+      height: 28px;
+      border-radius: 999px;
+      border: 2px solid #e5e7eb;
+      cursor: pointer;
+      position: relative;
+      box-shadow: inset 0 0 0 1px rgba(0,0,0,0.03);
+    }
+
+    .swatch.active {
+      border-color: #5b6cff;
+      box-shadow: 0 0 0 3px rgba(91,108,255,0.12);
+    }
+
+    .swatch.dark {
+      border-color: #cbd5e1;
+    }
+
+    .voice-box {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: #fafbff;
+      padding: 14px;
+    }
+
+    .voice-box strong {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 14px;
+    }
+
+    .slider-row {
+      display: grid;
+      gap: 8px;
+    }
+
+    .slider-labels {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    input[type="range"] {
+      width: 100%;
+      accent-color: var(--primary);
+      cursor: pointer;
+    }
+
+    .font-drop {
+      border: 2px dashed #c7d2fe;
+      border-radius: 14px;
+      background: linear-gradient(180deg, #f8faff, #f3f6ff);
+      padding: 18px;
+      margin-top: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 8px;
+      color: var(--primary);
+      text-align: center;
+    }
+
+    .font-drop .plus {
+      width: 42px;
+      height: 42px;
+      border-radius: 999px;
+      background: #fff;
+      border: 1px solid #dbe4ff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      font-weight: 300;
+    }
+
+    .side-card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 18px;
+    }
+
+    .side-card h3 {
+      margin: 0 0 12px;
+      font-size: 14px;
+      color: var(--muted);
+      letter-spacing: 0.03em;
+    }
+
+    .character-preview {
+      border-radius: 18px;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      background: linear-gradient(180deg, #fbfcff 0%, #f3f6ff 100%);
+      padding: 18px;
+    }
+
+    .character-stage {
+      aspect-ratio: 3 / 4;
+      border-radius: 16px;
+      border: 1px dashed #cbd5e1;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.95), rgba(238,242,255,0.9)),
+        repeating-linear-gradient(
+          45deg,
+          rgba(99,102,241,0.03),
+          rgba(99,102,241,0.03) 10px,
+          rgba(99,102,241,0.06) 10px,
+          rgba(99,102,241,0.06) 20px
+        );
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      margin-bottom: 14px;
+    }
+
+    .character-silhouette {
+      width: 58%;
+      height: 68%;
+      border-radius: 24px 24px 16px 16px;
+      background: rgba(91,108,255,0.16);
+      border: 2px solid rgba(91,108,255,0.55);
+      position: relative;
+    }
+
+    .character-silhouette::before {
+      content: "";
+      position: absolute;
+      top: -38px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 70px;
+      height: 70px;
+      border-radius: 999px;
+      background: rgba(91,108,255,0.16);
+      border: 2px solid rgba(91,108,255,0.55);
+    }
+
+    .character-mode {
+      position: absolute;
+      bottom: 10px;
+      right: 10px;
+      background: rgba(255,255,255,0.92);
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 6px 10px;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--primary);
+    }
+
+    .summary-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .summary-item {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 10px 0;
+      border-bottom: 1px solid #f1f5f9;
+      font-size: 13px;
+    }
+
+    .summary-item:last-child {
+      border-bottom: 0;
+      padding-bottom: 0;
+    }
+
+    .summary-item .k {
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    .summary-item .v {
+      text-align: right;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .next-step-box {
+      border: 1px solid #e5e7eb;
+      background: #fafafa;
+      border-radius: 14px;
+      padding: 14px;
+    }
+
+    .next-step-box strong {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 14px;
+    }
+
+    .next-step-box p {
+      margin: 0;
+      font-size: 12px;
+      line-height: 1.65;
+      color: var(--muted);
+    }
+
+    @media (max-width: 1180px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+
+      .right-column {
+        position: static;
+      }
+    }
+
+    @media (max-width: 860px) {
+      .grid-2,
+      .grid-3,
+      .choice-card-grid,
+      .asset-grid,
+      .bubble-grid,
+      .toggle-card-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .topbar {
+        height: auto;
+        padding: 14px;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+      }
+
+      .brand {
+        justify-content: space-between;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div class="brand">
+        <h1>VTuner</h1>
+        <nav class="nav">
+          <button>プレビュー / テスト</button>
+          <button class="active">基本設定</button>
+          <button>配信後レビュー</button>
+          <button>詳細設定</button>
+        </nav>
+      </div>
+      <div class="top-actions">
+        <button class="btn">変更を破棄</button>
+        <button class="btn primary">設定を保存して適用</button>
+      </div>
+    </header>
+
+    <main class="layout">
+      <section class="left-column">
+
+        <div class="section">
+          <div class="section-header">
+            <div class="section-title">
+              <span class="bar"></span>
+              <h2>基本プロフィール</h2>
+            </div>
+          </div>
+          <div class="section-body">
+            <div class="grid-2">
+              <div class="field">
+                <label>VTuner名</label>
+                <input type="text" value="ヴィヴィ" />
+              </div>
+              <div class="field">
+                <label>一人称</label>
+                <input type="text" value="私" />
+              </div>
+              <div class="field">
+                <label>視聴者の呼び方</label>
+                <input type="text" value="皆さん" />
+              </div>
+              <div class="field">
+                <label>配信者の呼び方</label>
+                <input type="text" value="マスター" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-header">
+            <div class="section-title">
+              <span class="bar"></span>
+              <h2>キャラプロフィール</h2>
+            </div>
+          </div>
+          <div class="section-body">
+            <div class="grid-3">
+              <div class="field">
+                <label>年齢</label>
+                <input type="text" value="不詳（見た目は20代前半）" />
+              </div>
+              <div class="field">
+                <label>身長</label>
+                <input type="text" value="158cm" />
+              </div>
+              <div class="field">
+                <label>体重</label>
+                <input type="text" value="ひみつ" />
+              </div>
+            </div>
+
+            <div style="height: 16px;"></div>
+
+            <div class="grid-2">
+              <div class="field">
+                <label>好きなもの</label>
+                <input type="text" value="紅茶、観察、静かな配信" />
+              </div>
+              <div class="field">
+                <label>苦手なもの</label>
+                <input type="text" value="大きすぎる音、失礼な言い方" />
+              </div>
+            </div>
+
+            <div style="height: 16px;"></div>
+
+            <div class="grid-2">
+              <div class="field">
+                <label>備考</label>
+                <textarea>少し落ち着いた雰囲気。視聴者には丁寧、配信者にはやや身内っぽく接する。</textarea>
+              </div>
+              <div class="field">
+                <label>非公開メモ</label>
+                <textarea>体重や年齢など、踏み込みすぎた質問にはそのまま答えず、詳細設定側で返答ルールを決める。</textarea>
+              </div>
+            </div>
+
+            <div style="height: 14px;"></div>
+            <div class="profile-note-box">
+              ここはキャラの素材を置く場所です。<br>
+              ここで設定したことをそのまま毎回話すわけではありません。<br>
+              どう答えるかの細かいルールは「詳細設定」で扱います。
+            </div>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-header">
+            <div class="section-title">
+              <span class="bar"></span>
+              <h2>キャラ方針</h2>
+            </div>
+          </div>
+          <div class="section-body">
+            <div class="field" style="margin-bottom: 16px;">
+              <label>性格タイプ</label>
+              <div class="choice-card-grid">
+                <div class="choice-card active">
+                  <strong>丁寧な案内役</strong>
+                  <span>落ち着いて案内し、空気を乱さずに補助する。</span>
+                </div>
+                <div class="choice-card">
+                  <strong>やわらかい相棒</strong>
+                  <span>親しみやすく、視聴者にも配信者にも寄り添う。</span>
+                </div>
+                <div class="choice-card">
+                  <strong>観察者タイプ</strong>
+                  <span>少し引いた位置から状況を整理して伝える。</span>
+                </div>
+                <div class="choice-card">
+                  <strong>少し毒舌な補佐役</strong>
+                  <span>やや辛口だが、基本は配信者の味方でいる。</span>
+                </div>
+                <div class="choice-card">
+                  <strong>元気な盛り上げ役</strong>
+                  <span>テンポよく場を温め、空気を前向きに動かす。</span>
+                </div>
+                <div class="choice-card">
+                  <strong>クールな秘書役</strong>
+                  <span>情報整理を優先し、無駄なく静かに支える。</span>
+                </div>
+                <div class="choice-card">
+                  <strong>世話焼きなお姉さん役</strong>
+                  <span>少し面倒見がよく、配信者にも視聴者にも気を配る。</span>
+                </div>
+                <div class="choice-card">
+                  <strong>いたずらっぽい相棒</strong>
+                  <span>軽い茶化しを交えつつ、場を和ませる。</span>
+                </div>
+                <div class="choice-card">
+                  <strong>上品なお嬢様風</strong>
+                  <span>少し上品で距離感を保ちながら話す。</span>
+                </div>
+                <div class="choice-card">
+                  <strong>中性的で静かな補助役</strong>
+                  <span>感情を出しすぎず、やわらかく状況を支える。</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="grid-2">
+              <div class="field">
+                <label>視聴者向け方針</label>
+                <select>
+                  <option>礼儀正しく、常連には少しやわらかく接する</option>
+                  <option>親しみやすく、距離を近めにする</option>
+                  <option>少し観察者寄りに、落ち着いて接する</option>
+                </select>
+              </div>
+              <div class="field">
+                <label>配信者向け方針</label>
+                <select>
+                  <option>困っているときは助け舟を出す</option>
+                  <option>邪魔しない範囲で静かに補助する</option>
+                  <option>少し甘めに支える</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="linked-note">
+              <div class="txt">
+                新しい性格タイプの追加は「詳細設定」で行います。<br>
+                追加済みの定義は、ここで選べるようになります。
+              </div>
+              <button class="btn ghost">詳細設定を開く</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-header">
+            <div class="section-title">
+              <span class="bar"></span>
+              <h2>話し方</h2>
+            </div>
+          </div>
+          <div class="section-body">
+            <div class="grid-2">
+              <div class="field">
+                <label>口調タイプ</label>
+                <select>
+                  <option>丁寧で落ち着いた口調</option>
+                  <option>やわらかく親しみやすい口調</option>
+                  <option>知的で淡々とした口調</option>
+                  <option>少し皮肉っぽい口調</option>
+                </select>
+              </div>
+              <div class="field">
+                <label>語尾タイプ</label>
+                <select>
+                  <option>〜ですね / 〜ですよ</option>
+                  <option>〜だね / 〜だよ</option>
+                  <option>〜かしら / 〜ですね</option>
+                  <option>特に固定しない</option>
+                </select>
+              </div>
+              <div class="field">
+                <label>好きな言い回し</label>
+                <select>
+                  <option>承知しました / 興味深いですね / なるほどです</option>
+                  <option>いいですね / たしかに / それはありです</option>
+                  <option>静かな言い回しを優先する</option>
+                </select>
+              </div>
+              <div class="field">
+                <label>避けたい言い回し</label>
+                <select>
+                  <option>過度に馴れ馴れしい表現</option>
+                  <option>強すぎる断定表現</option>
+                  <option>冷たすぎる言い回し</option>
+                </select>
+              </div>
+              <div class="field" style="grid-column: 1 / -1;">
+                <label>禁止表現</label>
+                <input type="text" value="暴言、差別的表現、過度に攻撃的な言い回し" />
+              </div>
+            </div>
+
+            <div class="linked-note">
+              <div class="txt">
+                新しい口調タイプや語尾タイプの追加は「詳細設定」で行います。<br>
+                追加後、この選択肢に反映されます。
+              </div>
+              <button class="btn ghost">詳細設定を開く</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-header">
+            <div class="section-title">
+              <span class="bar"></span>
+              <h2>音声</h2>
+            </div>
+          </div>
+          <div class="section-body">
+            <div class="grid-2">
+              <div class="field">
+                <label>音声を使う</label>
+                <select>
+                  <option>使う</option>
+                  <option>使わない</option>
+                </select>
+              </div>
+              <div class="field">
+                <label>声の種類</label>
+                <select>
+                  <option>やわらかい女性声</option>
+                  <option>落ち着いた女性声</option>
+                  <option>中性的な声</option>
+                  <option>低めの落ち着いた声</option>
+                </select>
+              </div>
+              <div class="field">
+                <label>話すスピード</label>
+                <select>
+                  <option>とてもゆっくり</option>
+                  <option>ゆっくり</option>
+                  <option selected>標準</option>
+                  <option>やや速い</option>
+                  <option>速い</option>
+                </select>
+              </div>
+            </div>
+
+            <div style="height: 16px;"></div>
+
+            <div class="voice-box">
+              <strong>音量</strong>
+              <div class="slider-row">
+                <input type="range" min="0" max="100" value="68" />
+                <div class="slider-labels">
+                  <span>小</span>
+                  <span>68%</span>
+                  <span>大</span>
+                </div>
+              </div>
+            </div>
+
+            <div style="height: 16px;"></div>
+
+            <div class="voice-box">
+              <strong>音声テスト</strong>
+              <div class="subnote" style="margin-bottom: 10px;">
+                現在の声・話速・音量でテスト再生します。
+              </div>
+              <button class="btn ghost">テスト再生</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-header">
+            <div class="section-title">
+              <span class="bar"></span>
+              <h2>見た目と画像</h2>
+            </div>
+          </div>
+          <div class="section-body">
+            <div class="asset-grid">
+              <div class="asset-box">
+                <div>
+                  <strong>front画像</strong>
+                  <div class="subnote">正面表示に使う画像</div>
+                </div>
+                <div class="asset-drop">
+                  <div class="plus">＋</div>
+                  <div>画像をインポート</div>
+                  <small>ドラッグ＆ドロップ<br>またはクリックで選択</small>
+                </div>
+              </div>
+
+              <div class="asset-box">
+                <div>
+                  <strong>side画像</strong>
+                  <div class="subnote">横向き表示に使う画像</div>
+                </div>
+                <div class="asset-drop">
+                  <div class="plus">＋</div>
+                  <div>画像をインポート</div>
+                  <small>ドラッグ＆ドロップ<br>またはクリックで選択</small>
+                </div>
+              </div>
+            </div>
+
+            <div style="height: 16px;"></div>
+
+            <div class="grid-3">
+              <div class="field">
+                <label>初期表示位置</label>
+                <select>
+                  <option selected>右下</option>
+                  <option>左下</option>
+                  <option>右上</option>
+                  <option>左上</option>
+                </select>
+              </div>
+              <div class="field">
+                <label>反転の扱い</label>
+                <select>
+                  <option selected>side画像を左右反転して使う</option>
+                  <option>自動反転しない</option>
+                </select>
+              </div>
+              <div class="field">
+                <label>表示サイズ</label>
+                <select>
+                  <option>小さめ</option>
+                  <option selected>標準</option>
+                  <option>やや大きめ</option>
+                </select>
+              </div>
+            </div>
+
+            <div style="height: 14px;"></div>
+            <div class="subnote">
+              ここでは正式な画像を登録します。<br>
+              プレビュー / テストでは、見ながら一時的に差し替えて確認できます。
+            </div>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-header">
+            <div class="section-title">
+              <span class="bar"></span>
+              <h2>吹き出しと文字</h2>
+            </div>
+          </div>
+          <div class="section-body">
+            <div class="bubble-grid">
+              <div class="field">
+                <label>吹き出しを使う</label>
+                <select>
+                  <option>使う</option>
+                  <option>使わない</option>
+                </select>
+              </div>
+              <div class="field">
+                <label>吹き出しの形</label>
+                <select>
+                  <option selected>角丸</option>
+                  <option>丸み強め</option>
+                  <option>四角寄り</option>
+                </select>
+              </div>
+              <div class="field">
+                <label>フォント</label>
+                <select>
+                  <option selected>読みやすいゴシック体</option>
+                  <option>やわらかい丸ゴシック</option>
+                  <option>少し上品な明朝寄り</option>
+                </select>
+              </div>
+              <div class="field">
+                <label>文字サイズ</label>
+                <select>
+                  <option>小</option>
+                  <option>やや小</option>
+                  <option selected>標準</option>
+                  <option>やや大</option>
+                  <option>大</option>
+                </select>
+              </div>
+              <div class="field">
+                <label>枠線</label>
+                <select>
+                  <option selected>あり</option>
+                  <option>なし</option>
+                </select>
+              </div>
+            </div>
+
+            <div style="height: 16px;"></div>
+
+            <div class="bubble-grid">
+              <div class="palette-group">
+                <div class="palette-label">文字色</div>
+                <div class="palette-row">
+                  <button class="swatch active dark" style="background:#111827;" aria-label="黒"></button>
+                  <button class="swatch dark" style="background:#374151;" aria-label="濃いグレー"></button>
+                  <button class="swatch" style="background:#ffffff;" aria-label="白"></button>
+                  <button class="swatch dark" style="background:#1e3a8a;" aria-label="紺"></button>
+                </div>
+              </div>
+
+              <div class="palette-group">
+                <div class="palette-label">背景色</div>
+                <div class="palette-row">
+                  <button class="swatch active" style="background:#ffffff;" aria-label="白"></button>
+                  <button class="swatch" style="background:#f3f4f6;" aria-label="淡いグレー"></button>
+                  <button class="swatch" style="background:#eff6ff;" aria-label="淡い青"></button>
+                  <button class="swatch" style="background:#fdf2f8;" aria-label="淡いピンク"></button>
+                  <button class="swatch" style="background:#fff7ed;" aria-label="クリーム"></button>
+                </div>
+              </div>
+            </div>
+
+            <div class="font-drop">
+              <div class="plus">＋</div>
+              <div style="font-weight:700;">フォントを追加</div>
+              <div class="subnote" style="margin:0;">
+                ローカル用フォントをインポートして、この画面の選択肢に追加します。
+              </div>
+            </div>
+
+            <div style="height: 16px;"></div>
+
+            <div class="bubble-preview-wrap">
+              <div class="subnote">
+                吹き出しサイズはここで直接調整します。右下の角を掴んで大きさを変える想定です。
+              </div>
+              <div class="bubble-preview">
+                <div class="bubble-resizable">
+                  こんにちは。今日も来てくれてありがとうございます。
+                  <div class="resize-handle"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-header">
+            <div class="section-title">
+              <span class="bar"></span>
+              <h2>反応カテゴリ</h2>
+            </div>
+          </div>
+          <div class="section-body">
+            <div class="toggle-card-grid">
+              <div class="toggle-card">
+                <strong>挨拶</strong>
+                <div class="desc">こんにちは、初動の受け入れ</div>
+                <span class="toggle-status on">有効</span>
+              </div>
+              <div class="toggle-card">
+                <strong>褒め</strong>
+                <div class="desc">称賛や好意的なコメント</div>
+                <span class="toggle-status on">有効</span>
+              </div>
+              <div class="toggle-card">
+                <strong>質問</strong>
+                <div class="desc">質問や確認のコメント</div>
+                <span class="toggle-status on">有効</span>
+              </div>
+              <div class="toggle-card">
+                <strong>応援</strong>
+                <div class="desc">がんばれ、応援してる等</div>
+                <span class="toggle-status on">有効</span>
+              </div>
+              <div class="toggle-card">
+                <strong>共感</strong>
+                <div class="desc">わかる、たしかに等</div>
+                <span class="toggle-status on">有効</span>
+              </div>
+              <div class="toggle-card">
+                <strong>笑い</strong>
+                <div class="desc">草、笑った、ｗ 等</div>
+                <span class="toggle-status">無効</span>
+              </div>
+              <div class="toggle-card">
+                <strong>話題振り</strong>
+                <div class="desc">場をつなぐ補助的な反応</div>
+                <span class="toggle-status on">有効</span>
+              </div>
+              <div class="toggle-card">
+                <strong>初見反応</strong>
+                <div class="desc">初めて来た人への歓迎</div>
+                <span class="toggle-status on">有効</span>
+              </div>
+              <div class="toggle-card">
+                <strong>常連反応</strong>
+                <div class="desc">よく来る人への反応</div>
+                <span class="toggle-status on">有効</span>
+              </div>
+              <div class="toggle-card">
+                <strong>未分類</strong>
+                <div class="desc">うまく分類できないコメント</div>
+                <span class="toggle-status on">保留</span>
+              </div>
+            </div>
+
+            <div class="linked-note">
+              <div class="txt">
+                新しい反応カテゴリの追加は「詳細設定」で行います。<br>
+                追加済みカテゴリは、ここに反映されます。
+              </div>
+              <button class="btn ghost">詳細設定を開く</button>
+            </div>
+          </div>
+        </div>
+
+      </section>
+
+      <aside class="right-column">
+        <div class="side-card">
+          <h3>現在のキャラクター表示</h3>
+          <div class="character-preview">
+            <div class="character-stage">
+              <div class="character-silhouette"></div>
+              <div class="character-mode">front 表示</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="side-card">
+          <h3>現在の設定要約</h3>
+          <div class="summary-list">
+            <div class="summary-item">
+              <span class="k">VTuner名</span>
+              <span class="v">ヴィヴィ</span>
+            </div>
+            <div class="summary-item">
+              <span class="k">一人称</span>
+              <span class="v">私</span>
+            </div>
+            <div class="summary-item">
+              <span class="k">視聴者の呼び方</span>
+              <span class="v">皆さん</span>
+            </div>
+            <div class="summary-item">
+              <span class="k">配信者の呼び方</span>
+              <span class="v">マスター</span>
+            </div>
+            <div class="summary-item">
+              <span class="k">性格タイプ</span>
+              <span class="v">丁寧な案内役</span>
+            </div>
+            <div class="summary-item">
+              <span class="k">口調</span>
+              <span class="v">丁寧で落ち着いた口調</span>
+            </div>
+            <div class="summary-item">
+              <span class="k">音声</span>
+              <span class="v">落ち着いた女性声 / 標準速度</span>
+            </div>
+            <div class="summary-item">
+              <span class="k">吹き出し</span>
+              <span class="v">角丸 / ゴシック / 白背景</span>
+            </div>
+            <div class="summary-item">
+              <span class="k">有効カテゴリ</span>
+              <span class="v">挨拶 / 褒め / 質問 / 応援 / 共感 / 話題振り</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="side-card">
+          <h3>次に触る場所</h3>
+          <div class="next-step-box">
+            <strong>詳細設定</strong>
+            <p>
+              「いつ、誰に、何を話すか」と、新しい定義の追加は「詳細設定」で行います。<br>
+              ここではキャラの土台と、全体に共通する見た目・音声・反応カテゴリだけを決める構成です。
+            </p>
+          </div>
+        </div>
+      </aside>
+    </main>
+  </div>
+</body>
+</html>
