@@ -2,202 +2,256 @@
 
 ## Purpose
 
-このファイルは、VTuner リポジトリ内で作業する IDE agent / Codex 向けの行動ルールを定義する。
-目的は、作業範囲を明確にし、仕様と実装のズレ、不要な変更、リポジトリ外への逸脱を防ぐことにある。
+本書は、このプロジェクトにおいて VS Code 上の AI が従うべき行動原則、作業範囲、禁止事項、停止条件、読込順、報告ルールを定義する中核文書である。  
+実装、修正、読込、提案は、常に本書および `docs/` 内文書に従って行うこと。
 
 ---
 
-## Repository Boundary
+## Project-specific Core Understanding
 
-### Absolute Rule
-- 作業対象は **このリポジトリ配下のみ** とする。
-- リポジトリのルートは `C:\WORK\Projects\vtuner` である。
-- **`C:\WORK\Projects\vtuner` の外にファイルやフォルダを作成・変更・削除しないこと。**
-- 親ディレクトリ、兄弟ディレクトリ、他プロジェクト、ユーザー環境の既存ファイルには触れないこと。
-- 一時ファイル、ログ、キャッシュ、生成物も原則としてリポジトリ配下に閉じること。
+このプロジェクトは VTuner である。
 
-### Do Not
-- リポジトリ外へ移動して作業しない
-- 他プロジェクトの設定を流用しない
-- 上位ディレクトリに設定ファイルを作らない
-- 勝手にグローバルな設定変更をしない
+VTuner は、主にリスナーコメントへ反応する仲介キャラクターを、ルールベースで運用、調整、改善するための配信補助アプリである。
 
----
+本プロジェクトの正式な画面構成は次の 5 画面である。
 
-## Current Human / Agent Role Split
+1. Preview / Test
+2. Basic Settings
+3. Review
+4. Detailed Rules
+5. AI / JSON Studio
 
-### Codex / Agent Does
-- ファイル作成
-- コード修正
-- 文書修正
-- 構造整理
-- 必要最小限のテストコード追加
-- 指定範囲内での差分作成
+この 5 画面構成を、明示許可なく変更しないこと。
 
-### User Does
-- 差分確認
-- `git add`
-- `git commit`
-- `pytest` などの実行確認
-- 最終動作確認
-- `git push`
-- GitHub 側の作業
+また、本プロジェクトでは次を厳守すること。
 
-### Important Rule
-- **agent は `git add` / `git commit` / `git push` を行わないこと。**
-- **agent はテスト実行の最終責任を持たない。**
-- 実行系の確認はユーザーが行う前提で作業すること。
+- アプリ内部に AI は存在しない
+- VTuner 本体はルールベースで動く
+- 外部ブラウザ AI は設定生成や定義生成のためにのみ使う
+- 外部 AI 返却 JSON は検証成功なら基本本採用である
+- エラー時は再修正プロンプトを生成する
 
 ---
 
-## Document Priority
+## Priority Order
 
-仕様が競合した場合は、次の順で優先する。
+判断に迷った場合は、次の順で参照すること。
 
-1. `docs/00_PROJECT_CHARTER.md`
-2. `docs/03_ARCHITECTURE_DECISIONS.md`
-3. `docs/12_EVENT_PROTOCOL.md`
-4. `docs/13_CONFIG_SCHEMA.md`
-5. `docs/10_FRONTEND_SPEC.md`
-6. `docs/11_BACKEND_SPEC.md`
-7. `docs/14_REVIEW_AND_PATCH_FLOW.md`
-8. `docs/16_ACCEPTANCE_CRITERIA.md`
-9. この `AGENTS.md`
+1. `AGENTS.md`
+2. `docs/PROJECT_OVERVIEW.md`
+3. `docs/PHASES.md`
+4. `docs/CHECKPOINTS.md`
+5. `docs/COMPLETION_CRITERIA.md`
+6. `docs/UI_SPEC.md`
+7. `docs/CONFIG_SCHEMA.md`
+8. `docs/EVENT_PROTOCOL.md`
+9. `docs/REVIEW_FLOW.md`
+10. `docs/AI_JSON_STUDIO_SPEC.md`
+11. `docs/IMPLEMENTATION_GUIDE.md`
+12. ユーザーの直近の明示指示
 
-補足:
-- `AGENTS.md` は作業ルール文書であり、上位仕様を上書きしない。
-- 仕様に不足があれば、勝手に最終決定せず TODO / Open Question として残す。
-
----
-
-## Working Principles
-
-### 1. Change Only What Is Necessary
-- 1回の作業で触る責務はできるだけ小さくする。
-- 指定されていない大規模リファクタはしない。
-- 無関係なファイルまで巻き込まない。
-
-### 2. Do Not Invent Hidden Scope
-- 頼まれていない機能を足さない。
-- 便利そうでも、仕様未確定の挙動を勝手に実装しない。
-- UI文言やカテゴリを勝手に増やしすぎない。
-
-### 3. Respect Current Architecture Direction
-- 配信中コア挙動はルールベース優先
-- AIは設定生成補助・レビュー補助
-- frontend は表示・操作中心
-- backend は分類・決定・状態管理中心
-- 設定はブロック分割
-- patch は差分として扱う
-
-### 4. Prefer Explicitness
-- 入力、出力、制約を明示する。
-- 曖昧な「いい感じ」実装にしない。
-- 必要ならコメントや TODO を残す。
+衝突がある場合は、勝手に解釈せず停止して報告すること。
 
 ---
 
-## Initial Repository Areas
+## Scope of Work
 
-### Main Directories
-- `frontend/`
-- `backend/`
-- `docs/`
-- `schemas/`
-- `assets/`
-- `tools/`
+AI が行ってよい作業は、原則として以下に限る。
 
-### Expected Use
-- `frontend/`: UI、表示、操作、音声再生
-- `backend/`: コメント処理、分類、発話決定、イベント送信
-- `docs/`: 仕様文書
-- `schemas/`: JSON schema / Zod / 型契約
-- `assets/`: キャラクター画像やUI素材
-- `tools/`: 補助スクリプト
+- 現在のワークスペース内のフォルダ作成
+- 現在のワークスペース内のコード作成
+- 現在のワークスペース内の既存コード修正
+- docs 内文書を参照した実装、修正、整備
+- 指定 Phase に対応する作業
+- 必要最小限のリファクタ
+- 文書と実装の整合を取るための局所修正
+- 変更内容、影響範囲、未解決事項の報告
+
+AI は、常に現在のワークスペースをプロジェクトルートとして扱うこと。
 
 ---
 
-## Before Making Changes
+## Out of Scope
 
-作業前に、少なくとも次を確認すること。
+AI は以下を行ってはならない。
 
-1. 変更対象に対応する仕様文書を読む
-2. その変更が frontend 側か backend 側か schema 側かを明確にする
-3. 変更がリポジトリ外へ影響しないことを確認する
-4. 変更対象以外を不用意に触らない方針を取る
-
----
-
-## File Creation Rules
-
-- 新しいファイルやフォルダは、本当に必要な場合だけ作る
-- 作成場所はリポジトリ配下に限定する
-- 文書ファイルを増やす場合は、既存の番号体系や役割を崩さない
-- 生成物を出す場合は、後でユーザーが理解できる名前にする
-
----
-
-## Code Change Rules
-
-- 変更単位は小さく保つ
-- 既存命名を尊重する
-- 型や schema を追加した場合、関連文書も必要に応じて更新候補を示す
-- 破壊的変更をする場合は、理由が明確でない限り避ける
-- frontend / backend の責務を混ぜない
+- ワークスペース外のファイル変更
+- Git / GitHub の実操作
+- pytest の実行
+- add / commit / push
+- 認証操作
+- 外部サービスへの登録や設定変更
+- 未承認の大規模設計変更
+- 指定されていない Phase の先行実装
+- docs にない仕様を勝手に確定すること
+- アプリ内部に AI を組み込むこと
+- 配信中の主制御を外部 AI に任せること
+- 5 画面の責務を勝手に混線させること
 
 ---
 
-## Documentation Rules
+## User Responsibilities
 
-- 文書は実装判断の基準として扱う
-- 仕様未確定のものは断定しない
-- TODO / Open Areas / Notes を活用する
-- 文書とコードの責務境界を一致させる
+以下はユーザー担当である。
 
----
-
-## UI Language Policy
-
-- 初期段階では、**UI 表示は日本語固定** を前提とする
-- 多言語対応は現時点では主目的ではない
-- 文言追加時も、まずは日本語で整理する
-
----
-
-## Current Implementation Direction
-
-現時点では、次の流れで進める。
-
-1. 文書基盤を固める
-2. event / config 契約を固める
-3. UIラフや画面仕様を整理する
-4. その後に小さい実装単位で frontend / backend を進める
-
-### Important
-- いきなり全面実装をしない
-- 大きな単位で一気に完成を狙わない
-- 本仕様に残る形で段階的に積み上げる
+- md ファイルの保存
+- md ファイルの配置
+- VS Code でのプロジェクトオープン
+- pytest 実行
+- git add / commit / push
+- GitHub リポジトリ作成と接続
+- 実装継続の最終判断
+- 破壊的変更の承認
+- 曖昧仕様に対する最終決定
 
 ---
 
-## When Unclear
+## Core Working Principles
 
-不明点がある場合は次の方針を取る。
+### 1. Document-driven development
+実装は常に docs 内文書に基づいて行う。  
+推測で仕様を補完しない。
 
-- 勝手に大きな機能追加で解決しない
-- 仕様にない前提を増やさない
-- TODO / Open Question として残す
-- 既存文書の方向性を壊さない
+### 2. Minimal change first
+変更は最小差分を原則とする。  
+全面書き換えより局所修正と局所追加を優先する。
+
+### 3. No speculative implementation
+曖昧な仕様や複数解釈がある場合、勝手に実装しない。  
+必要なら停止して報告する。
+
+### 4. Phase discipline
+現在指定されている Phase の範囲だけを扱う。  
+次 Phase の内容を先取りしない。
+
+### 5. Safe modification
+既存構造を壊す可能性がある変更は、必要性を説明して停止する。  
+大規模移動、大規模削除、全面置換は慎重に扱う。
+
+### 6. Explicit reporting
+作業後は、何を変えたか、何に影響するか、未解決事項は何かを簡潔に報告する。
+
+### 7. UI responsibility separation
+- Preview / Test は見た目確認と挙動検証
+- Basic Settings は共通土台
+- Review は配信後整理
+- Detailed Rules は正式編集
+- AI / JSON Studio は生成、検証、再修正、採用
+
+この責務分離を壊してはならない。
+
+### 8. No internal AI assumption
+本プロジェクトでは、アプリ内部に AI を持たない前提を守ること。  
+AI を使うのは外部ブラウザ AI へのプロンプト生成と JSON 取込支援に限る。
 
 ---
 
-## Summary
+## Required Reading Before Work
 
-このリポジトリで作業する agent は、
+作業開始前に、少なくとも以下を確認すること。
 
-- **`C:\WORK\Projects\vtuner` の外へ出ない**
-- **変更作成までに責務を限定する**
-- **Git操作と最終確認はユーザーが行う**
-- **仕様文書を優先し、勝手に広げない**
+- `AGENTS.md`
+- `docs/PROJECT_OVERVIEW.md`
+- `docs/PHASES.md`
+- `docs/CHECKPOINTS.md`
 
-ことを守る。
+必要に応じて以下も確認すること。
+
+- `docs/COMPLETION_CRITERIA.md`
+- `docs/UI_SPEC.md`
+- `docs/CONFIG_SCHEMA.md`
+- `docs/EVENT_PROTOCOL.md`
+- `docs/REVIEW_FLOW.md`
+- `docs/AI_JSON_STUDIO_SPEC.md`
+- `docs/IMPLEMENTATION_GUIDE.md`
+
+---
+
+## Dependency Policy
+
+AI は依存追加に慎重でなければならない。
+
+- 明示許可なしで依存を追加しない
+- 既存依存で達成できるなら新規依存を増やさない
+- 依存追加が必要なら理由を説明する
+- 小規模個人開発として維持しやすい構成を優先する
+
+---
+
+## Data and JSON Handling Policy
+
+- JSON の生成元として外部ブラウザ AI を想定する
+- JSON は `CONFIG_SCHEMA.md` に基づいて検証する
+- JSON 検証成功時は基本本採用とする
+- JSON エラー時は、エラー内容に応じた再修正プロンプトを生成する
+- JSON をユーザーが直接手で直すことを前提にしない
+- AI / JSON Studio と Detailed Rules の責務を混線させない
+
+---
+
+## Stop Conditions
+
+以下の場合、AI は無理に進めず停止すること。
+
+- docs 同士が矛盾している
+- ユーザー指示と docs が衝突している
+- 仕様が曖昧で複数解釈があり得る
+- 現在の Phase 範囲を超える必要がある
+- 大規模変更が必要である
+- ワークスペース外操作が必要になる
+- 新規依存追加が必要だが未承認である
+- UI 5 画面の責務が崩れる
+- internal AI 前提の実装が必要になっている
+- JSON 仕様や compile 意味が文書と噛み合わない
+
+停止時は、次を返すこと。
+
+- 何が不足または衝突しているか
+- 何を判断できないか
+- 次にユーザーが決めるべきこと
+- 続行するならどの選択肢があるか
+
+---
+
+## Reporting Format
+
+作業後は、簡潔に次を報告すること。
+
+### 1. Changes made
+- 変更したファイル
+- 変更内容の要約
+
+### 2. Impact
+- どこに影響するか
+- 既存機能への影響有無
+
+### 3. Open issues
+- 未解決事項
+- 追加で確認が必要なこと
+- docs 側で同期が必要な候補
+
+### 4. Next smallest step
+- 次に行うべき最小作業
+- 次に触るべき Phase または画面
+
+---
+
+## Completion Awareness
+
+AI は、次を守ること。
+
+- 一度動作しただけで完成扱いしない
+- README と主要 docs を無視して完了判定しない
+- ユーザーが後日見返して再開できる状態を重視する
+- docs と実装の整合が取れていないなら安易に done と言わない
+
+---
+
+## Final Reminder
+
+このプロジェクトでは、  
+賢そうに見えるものを先に作るのではなく、  
+壊れにくく、役割が分かれ、非プログラマでも扱いやすい土台を作ることを優先する。
+
+AI は、文書主導、最小差分、Phase 順守、停止条件順守を守り、  
+VTuner の 5 画面構成と外部 AI 連携方針を壊さないこと。

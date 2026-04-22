@@ -942,10 +942,11 @@
           <span class="vtuner-name">ヴィヴィ</span>
         </div>
         <nav class="nav">
-          <button class="active">プレビュー / テスト</button>
-          <button>基本設定</button>
-          <button>配信後レビュー</button>
-          <button>詳細設定</button>
+          <button class="active">Preview / Test</button>
+          <button>Basic Settings</button>
+          <button>Review</button>
+          <button>Detailed Rules</button>
+          <button>AI / JSON Studio</button>
         </nav>
       </div>
 
@@ -956,12 +957,27 @@
     </header>
 
     <main class="page">
+      <div class="card" style="box-shadow:none; background:#fafbff;">
+        <div class="card-header" style="background:#fafbff;">
+          <div class="card-title">
+            <span class="bar"></span>
+            <h2 style="font-size:14px;">この画面の役割</h2>
+          </div>
+          <div class="muted" style="font-size:12px; line-height:1.7;">
+            Preview / Test は、見え方確認・試験入力・条件テストの画面です。ここで正式編集や配信後仕分けは行いません。
+          </div>
+        </div>
+      </div>
+
       <section class="top-layout">
         <section class="card preview-card">
           <div class="card-header">
             <div class="card-title">
               <span class="bar"></span>
               <h2>Main Preview</h2>
+            </div>
+            <div class="muted" style="font-size:12px; line-height:1.6;">
+              実配信での見え方と、現在の設定・採用済みルールの反応をここで確認します。
             </div>
           </div>
 
@@ -1032,6 +1048,9 @@
               <span class="bar"></span>
               <h2>Comment / Test History</h2>
             </div>
+            <div class="muted" style="font-size:12px; line-height:1.6;">
+              ここには、この画面で実行したコメント・イベント・返答履歴だけを表示します。
+            </div>
           </div>
 
           <div class="history-body">
@@ -1065,6 +1084,9 @@
             </div>
 
             <div class="input-box">
+              <div class="muted" style="font-size:12px; line-height:1.7;">
+                ここは試験入力用です。正式ルールの編集は Detailed Rules、配信後の整理は Review、生成や JSON 検証は AI / JSON Studio で行います。
+              </div>
               <div class="input-grid">
                 <div class="label">投稿者名</div>
                 <input type="text" value="Sora_77" />
@@ -1096,7 +1118,10 @@
         <div class="card-header">
           <div class="card-title">
             <span class="bar"></span>
-            <h2>Bottom Test Area</h2>
+            <h2>Test Presets</h2>
+          </div>
+          <div class="muted" style="font-size:12px; line-height:1.6;">
+            条件イベントやコメント条件を、保存済みプリセットで繰り返し試験します。
           </div>
 
           <div class="preset-actions">

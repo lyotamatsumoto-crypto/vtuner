@@ -231,6 +231,29 @@
       gap: 12px;
     }
 
+    .choice-card-grid.persona-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      max-height: 520px;
+      overflow-y: auto;
+      padding-right: 6px;
+      align-content: start;
+    }
+
+    .choice-card-grid.persona-grid::-webkit-scrollbar {
+      width: 10px;
+    }
+
+    .choice-card-grid.persona-grid::-webkit-scrollbar-thumb {
+      background: #d6dcff;
+      border-radius: 999px;
+      border: 2px solid #ffffff;
+    }
+
+    .choice-card-grid.persona-grid::-webkit-scrollbar-track {
+      background: #f3f4f6;
+      border-radius: 999px;
+    }
+
     .choice-card {
       border: 1px solid var(--line);
       border-radius: 14px;
@@ -694,6 +717,13 @@
         grid-template-columns: 1fr;
       }
 
+      .choice-card-grid.persona-grid {
+        grid-template-columns: 1fr;
+        max-height: none;
+        overflow-y: visible;
+        padding-right: 0;
+      }
+
       .topbar {
         height: auto;
         padding: 14px;
@@ -714,10 +744,11 @@
       <div class="brand">
         <h1>VTuner</h1>
         <nav class="nav">
-          <button>プレビュー / テスト</button>
-          <button class="active">基本設定</button>
-          <button>配信後レビュー</button>
-          <button>詳細設定</button>
+          <button>Preview / Test</button>
+          <button class="active">Basic Settings</button>
+          <button>Review</button>
+          <button>Detailed Rules</button>
+          <button>AI / JSON Studio</button>
         </nav>
       </div>
       <div class="top-actions">
@@ -811,7 +842,7 @@
             <div class="profile-note-box">
               ここはキャラの素材を置く場所です。<br>
               ここで設定したことをそのまま毎回話すわけではありません。<br>
-              どう答えるかの細かいルールは「詳細設定」で扱います。
+              どう答えるかの細かいルールは「Detailed Rules」で扱います。
             </div>
           </div>
         </div>
@@ -824,50 +855,96 @@
             </div>
           </div>
           <div class="section-body">
+            <div class="field" style="margin-bottom: 12px;">
+              <label>人格プリセット</label>
+              <div class="subnote">
+                人格プリセットは、完成した人格そのものではなく、基本性格・対配信者態度・対視聴者態度・口調プリセットの初期束です。
+              </div>
+            </div>
+
             <div class="field" style="margin-bottom: 16px;">
-              <label>性格タイプ</label>
-              <div class="choice-card-grid">
+              <div class="choice-card-grid persona-grid">
                 <div class="choice-card active">
-                  <strong>丁寧な案内役</strong>
-                  <span>落ち着いて案内し、空気を乱さずに補助する。</span>
+                  <strong>お姉さん</strong>
+                  <span>落ち着き・面倒見・やわらかめの初期束</span>
                 </div>
                 <div class="choice-card">
-                  <strong>やわらかい相棒</strong>
-                  <span>親しみやすく、視聴者にも配信者にも寄り添う。</span>
+                  <strong>ツンデレ</strong>
+                  <span>距離感強め・反応に緩急のある初期束</span>
                 </div>
                 <div class="choice-card">
-                  <strong>観察者タイプ</strong>
-                  <span>少し引いた位置から状況を整理して伝える。</span>
+                  <strong>クーデレ</strong>
+                  <span>静かめ・控えめ・内側にやわらかさを持つ初期束</span>
                 </div>
                 <div class="choice-card">
-                  <strong>少し毒舌な補佐役</strong>
-                  <span>やや辛口だが、基本は配信者の味方でいる。</span>
+                  <strong>妹</strong>
+                  <span>親しみ・甘え・距離近めの初期束</span>
                 </div>
                 <div class="choice-card">
-                  <strong>元気な盛り上げ役</strong>
-                  <span>テンポよく場を温め、空気を前向きに動かす。</span>
+                  <strong>世話焼き</strong>
+                  <span>補助意識・気配り・助け舟寄りの初期束</span>
                 </div>
                 <div class="choice-card">
-                  <strong>クールな秘書役</strong>
-                  <span>情報整理を優先し、無駄なく静かに支える。</span>
+                  <strong>小悪魔</strong>
+                  <span>軽いからかい・遊び感・反応強めの初期束</span>
                 </div>
                 <div class="choice-card">
-                  <strong>世話焼きなお姉さん役</strong>
-                  <span>少し面倒見がよく、配信者にも視聴者にも気を配る。</span>
+                  <strong>天然</strong>
+                  <span>やわらかさ・素直さ・少しずれた可愛さの初期束</span>
                 </div>
                 <div class="choice-card">
-                  <strong>いたずらっぽい相棒</strong>
-                  <span>軽い茶化しを交えつつ、場を和ませる。</span>
+                  <strong>クール秘書</strong>
+                  <span>整理役・静かめ・無駄の少ない初期束</span>
                 </div>
                 <div class="choice-card">
-                  <strong>上品なお嬢様風</strong>
-                  <span>少し上品で距離感を保ちながら話す。</span>
+                  <strong>だる系</strong>
+                  <span>省エネ・気だるさ・反応弱めの初期束</span>
                 </div>
                 <div class="choice-card">
-                  <strong>中性的で静かな補助役</strong>
-                  <span>感情を出しすぎず、やわらかく状況を支える。</span>
+                  <strong>ボクっ娘</strong>
+                  <span>一人称寄りの個性と軽さを持つ初期束</span>
+                </div>
+                <div class="choice-card">
+                  <strong>中性的</strong>
+                  <span>性差表現を抑えた静かな初期束</span>
+                </div>
+                <div class="choice-card">
+                  <strong>お嬢様</strong>
+                  <span>上品さ・距離感・丁寧さの初期束</span>
+                </div>
+                <div class="choice-card">
+                  <strong>皮肉屋</strong>
+                  <span>少し辛口・観察寄り・言い回し強めの初期束</span>
+                </div>
+                <div class="choice-card">
+                  <strong>生意気後輩</strong>
+                  <span>距離近め・軽口・生意気さを含む初期束</span>
+                </div>
+                <div class="choice-card">
+                  <strong>無気力</strong>
+                  <span>反応抑えめ・温度低め・省エネ寄りの初期束</span>
+                </div>
+                <div class="choice-card">
+                  <strong>からかい上手</strong>
+                  <span>軽い茶化し・場回し・親しみ寄りの初期束</span>
+                </div>
+                <div class="choice-card">
+                  <strong>あざとい</strong>
+                  <span>見せ方強め・可愛げ重視の初期束</span>
+                </div>
+                <div class="choice-card">
+                  <strong>真面目委員長</strong>
+                  <span>規律感・説明力・丁寧さ重視の初期束</span>
+                </div>
+                <div class="choice-card">
+                  <strong>オタク寄り解説役</strong>
+                  <span>知識寄り・説明好き・補足多めの初期束</span>
                 </div>
               </div>
+            </div>
+
+            <div class="profile-note-box" style="margin-bottom: 16px;">
+              「ヤンデレ寄り」は初期MVPでは除外または慎重扱いとします。必要になった場合は Detailed Rules または AI / JSON Studio 側で段階的に追加します。
             </div>
 
             <div class="grid-2">
@@ -891,10 +968,13 @@
 
             <div class="linked-note">
               <div class="txt">
-                新しい性格タイプの追加は「詳細設定」で行います。<br>
-                追加済みの定義は、ここで選べるようになります。
+                新しい人格プリセットを手動で正式追加する場合は「Detailed Rules」で行います。<br>
+                外部AIで定義案を作る場合は「AI / JSON Studio」を使います。追加済みの定義は、ここで選べるようになります。
               </div>
-              <button class="btn ghost">詳細設定を開く</button>
+              <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                <button class="btn ghost">Detailed Rules を開く</button>
+                <button class="btn ghost">AI / JSON Studio を開く</button>
+              </div>
             </div>
           </div>
         </div>
@@ -950,10 +1030,13 @@
 
             <div class="linked-note">
               <div class="txt">
-                新しい口調タイプや語尾タイプの追加は「詳細設定」で行います。<br>
-                追加後、この選択肢に反映されます。
+                新しい口調タイプや語尾タイプを手動で正式追加する場合は「Detailed Rules」で行います。<br>
+                外部AIで定義案を作る場合は「AI / JSON Studio」を使います。追加後、この選択肢に反映されます。
               </div>
-              <button class="btn ghost">詳細設定を開く</button>
+              <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                <button class="btn ghost">Detailed Rules を開く</button>
+                <button class="btn ghost">AI / JSON Studio を開く</button>
+              </div>
             </div>
           </div>
         </div>
@@ -1255,10 +1338,13 @@
 
             <div class="linked-note">
               <div class="txt">
-                新しい反応カテゴリの追加は「詳細設定」で行います。<br>
-                追加済みカテゴリは、ここに反映されます。
+                ここでは採用済みカテゴリの ON / OFF を切り替えます。<br>
+                新しい反応カテゴリを手動で正式追加する場合は「Detailed Rules」、外部AIでカテゴリ案を作る場合は「AI / JSON Studio」を使います。追加済みカテゴリは、ここに反映されます。
               </div>
-              <button class="btn ghost">詳細設定を開く</button>
+              <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                <button class="btn ghost">Detailed Rules を開く</button>
+                <button class="btn ghost">AI / JSON Studio を開く</button>
+              </div>
             </div>
           </div>
         </div>
@@ -1296,8 +1382,8 @@
               <span class="v">マスター</span>
             </div>
             <div class="summary-item">
-              <span class="k">性格タイプ</span>
-              <span class="v">丁寧な案内役</span>
+              <span class="k">人格プリセット</span>
+              <span class="v">お姉さん</span>
             </div>
             <div class="summary-item">
               <span class="k">口調</span>
@@ -1320,11 +1406,16 @@
 
         <div class="side-card">
           <h3>次に触る場所</h3>
-          <div class="next-step-box">
-            <strong>詳細設定</strong>
+          <div class="next-step-box" style="margin-bottom: 12px;">
+            <strong>Detailed Rules</strong>
             <p>
-              「いつ、誰に、何を話すか」と、新しい定義の追加は「詳細設定」で行います。<br>
-              ここではキャラの土台と、全体に共通する見た目・音声・反応カテゴリだけを決める構成です。
+              「いつ、誰に、何を話すか」の正式ルール編集や、新しい定義の手動追加は Detailed Rules で行います。
+            </p>
+          </div>
+          <div class="next-step-box">
+            <strong>AI / JSON Studio</strong>
+            <p>
+              外部AI向けのプロンプト生成、JSON取込、検証、再修正、採用は AI / JSON Studio で行います。
             </p>
           </div>
         </div>

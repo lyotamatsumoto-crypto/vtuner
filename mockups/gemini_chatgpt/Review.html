@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VTuner - Review</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&family=Noto+Sans+JP:wght@400;500;700;800&display=swap');
+
+    body {
+      font-family: 'Inter', 'Noto Sans JP', sans-serif;
+      background: #f1f5f9;
+    }
+
+    .app-height {
+      height: calc(100vh - 64px);
+    }
+
+    .shadow-soft {
+      box-shadow: 0 12px 28px rgba(15, 23, 42, 0.06);
+    }
+
+    .comment-row {
+      transition: 0.15s ease;
+    }
+
+    .comment-row:hover {
+      transform: translateY(-1px);
+    }
+
+    .comment-match {
+      background: #ecfdf5;
+      border: 1px solid #a7f3d0;
+    }
+
+    .comment-ambiguous {
+      background: #fffbeb;
+      border: 1px solid #fde68a;
+    }
+
+    .comment-unknown {
+      background: #fef2f2;
+      border: 1px solid #fecaca;
+    }
+
+    .comment-ignore {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+    }
+
+    .selected-row {
+      box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.18);
+      border-color: rgba(99, 102, 241, 0.32);
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      padding: 5px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 800;
+      line-height: 1;
+      white-space: nowrap;
+    }
+
+    .pill-green {
+      background: #dcfce7;
+      color: #166534;
+      border: 1px solid #bbf7d0;
+    }
+
+    .pill-yellow {
+      background: #fef3c7;
+      color: #92400e;
+      border: 1px solid #fde68a;
+    }
+
+    .pill-red {
+      background: #fee2e2;
+      color: #991b1b;
+      border: 1px solid #fecaca;
+    }
+
+    .pill-gray {
+      background: #f1f5f9;
+      color: #475569;
+      border: 1px solid #e2e8f0;
+    }
+
+    .pill-indigo {
+      background: #eef2ff;
+      color: #4338ca;
+      border: 1px solid #c7d2fe;
+    }
+
+    .sidebar-card {
+      background: #fff;
+      border: 1px solid #e2e8f0;
+      border-radius: 18px;
+    }
+
+    .selected-stream {
+      border-color: #c7d2fe;
+      background: linear-gradient(180deg, #ffffff 0%, #f8faff 100%);
+      box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.14);
+    }
+
+    .modal-backdrop {
+      background: rgba(15, 23, 42, 0.42);
+      backdrop-filter: blur(2px);
+    }
+
+    .hide-scrollbar::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+
+    .hide-scrollbar::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 999px;
+    }
+
+    .read-only {
+      background: #f8fafc;
+      color: #475569;
+    }
+  </style>
+</head>
+<body class="text-slate-800 overflow-hidden">
+  <header class="bg-white border-b border-slate-200 h-16 flex items-center justify-between px-6 shadow-sm">
+    <div class="flex items-center gap-8 min-w-0">
+      <div class="flex items-center gap-3 min-w-0">
+        <h1 class="text-2xl font-black text-indigo-600 tracking-tighter shrink-0">VTuner</h1>
+        <span class="px-3 py-1 rounded-full bg-indigo-50 border border-indigo-100 text-indigo-600 text-xs font-extrabold">ヴィヴィ</span>
+      </div>
+
+      <nav class="flex gap-1 text-sm font-bold flex-wrap">
+        <button class="px-4 py-2 text-slate-400 hover:text-indigo-600">Preview / Test</button>
+        <button class="px-4 py-2 text-slate-400 hover:text-indigo-600">Basic Settings</button>
+        <button class="px-4 py-2 text-indigo-600 bg-indigo-50 rounded-lg">Review</button>
+        <button class="px-4 py-2 text-slate-400 hover:text-indigo-600">Detailed Rules</button>
+        <button class="px-4 py-2 text-slate-400 hover:text-indigo-600">AI / JSON Studio</button>
+      </nav>
+    </div>
+
+    <div class="text-right shrink-0">
+      <p class="text-[10px] text-slate-400 font-bold uppercase leading-none">Review</p>
+      <p class="text-xs font-bold text-slate-600">コメントを見直す</p>
+    </div>
+  </header>
+
+  <main class="app-height grid grid-cols-[280px_minmax(0,1fr)_380px] gap-0 overflow-hidden">
+    <!-- Left -->
+    <aside class="bg-white border-r border-slate-200 overflow-y-auto hide-scrollbar">
+      <div class="p-4 border-b border-slate-200">
+        <div class="flex items-start justify-between gap-3 mb-3">
+          <div>
+            <h2 class="text-sm font-black text-slate-800">配信一覧</h2>
+          </div>
+          <button
+            onclick="openAddModal()"
+            class="px-3 py-2 text-xs font-bold text-indigo-600 bg-indigo-50 border border-indigo-200 rounded-lg hover:bg-indigo-100"
+          >
+            配信を追加
+          </button>
+        </div>
+
+        <p class="text-xs text-slate-500">追加した配信をここで見直します</p>
+      </div>
+
+      <div class="p-4 space-y-3">
+        <button class="w-full text-left sidebar-card p-4 selected-stream shadow-soft">
+          <div class="flex items-center justify-between gap-2 mb-2">
+            <p class="text-sm font-black text-slate-800 truncate">雑談配信 #12</p>
+            <span class="pill pill-yellow">Review 中</span>
+          </div>
+          <p class="text-xs text-slate-500 mb-3">2024/10/24 21:00</p>
+          <div class="grid grid-cols-2 gap-2">
+            <div class="bg-slate-50 rounded-lg p-2 text-center border border-slate-200">
+              <p class="text-[10px] text-slate-400 font-bold">コメント</p>
+              <p class="text-sm font-black text-slate-700">124</p>
+            </div>
+            <div class="bg-indigo-50 rounded-lg p-2 text-center border border-indigo-100">
+              <p class="text-[10px] text-indigo-600 font-bold">候補</p>
+              <p class="text-sm font-black text-indigo-800">3</p>
+            </div>
+          </div>
+        </button>
+
+        <button class="w-full text-left sidebar-card p-4 hover:border-indigo-300 transition">
+          <div class="flex items-center justify-between gap-2 mb-2">
+            <p class="text-sm font-black text-slate-800 truncate">ゲーム配信 #11</p>
+            <span class="pill pill-indigo">見直し済み</span>
+          </div>
+          <p class="text-xs text-slate-500 mb-3">2024/10/23 20:00</p>
+          <div class="grid grid-cols-2 gap-2">
+            <div class="bg-slate-50 rounded-lg p-2 text-center border border-slate-200">
+              <p class="text-[10px] text-slate-400 font-bold">コメント</p>
+              <p class="text-sm font-black text-slate-700">88</p>
+            </div>
+            <div class="bg-indigo-50 rounded-lg p-2 text-center border border-indigo-100">
+              <p class="text-[10px] text-indigo-600 font-bold">候補</p>
+              <p class="text-sm font-black text-indigo-800">5</p>
+            </div>
+          </div>
+        </button>
+
+        <button class="w-full text-left sidebar-card p-4 hover:border-indigo-300 transition">
+          <div class="flex items-center justify-between gap-2 mb-2">
+            <p class="text-sm font-black text-slate-800 truncate">朝雑談テスト配信</p>
+            <span class="pill pill-gray">保留あり</span>
+          </div>
+          <p class="text-xs text-slate-500 mb-3">2024/10/22 09:30</p>
+          <div class="grid grid-cols-2 gap-2">
+            <div class="bg-slate-50 rounded-lg p-2 text-center border border-slate-200">
+              <p class="text-[10px] text-slate-400 font-bold">コメント</p>
+              <p class="text-sm font-black text-slate-700">46</p>
+            </div>
+            <div class="bg-indigo-50 rounded-lg p-2 text-center border border-indigo-100">
+              <p class="text-[10px] text-indigo-600 font-bold">候補</p>
+              <p class="text-sm font-black text-indigo-800">1</p>
+            </div>
+          </div>
+        </button>
+      </div>
+    </aside>
+
+    <!-- Center -->
+    <section class="overflow-hidden flex flex-col bg-slate-50">
+      <div class="bg-white border-b border-slate-200 px-5 py-4">
+        <div class="flex items-start justify-between gap-4 flex-wrap">
+          <div>
+            <h2 class="text-sm font-black text-slate-800">コメント一覧</h2>
+            <p class="text-xs text-slate-500 mt-1">コメント本文を中心に見直します</p>
+          </div>
+
+          <div class="flex items-center gap-2 flex-wrap">
+            <span class="pill pill-green">既存カテゴリに近い 56</span>
+            <span class="pill pill-yellow">あいまい 18</span>
+            <span class="pill pill-red">unknown 寄り 12</span>
+            <span class="pill pill-gray">ignore / スキップ寄り 38</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="px-5 py-3 bg-white border-b border-slate-200 flex items-center gap-2 flex-wrap">
+        <button class="px-3 py-1.5 text-xs font-bold rounded-full bg-slate-800 text-white">すべて</button>
+        <button class="px-3 py-1.5 text-xs font-bold rounded-full bg-emerald-50 text-emerald-700 border border-emerald-100">既存カテゴリに近い</button>
+        <button class="px-3 py-1.5 text-xs font-bold rounded-full bg-amber-50 text-amber-700 border border-amber-100">あいまい</button>
+        <button class="px-3 py-1.5 text-xs font-bold rounded-full bg-rose-50 text-rose-700 border border-rose-100">unknown 寄り</button>
+        <button class="px-3 py-1.5 text-xs font-bold rounded-full bg-slate-100 text-slate-600 border border-slate-200">ignore / スキップ寄り</button>
+      </div>
+
+      <div class="flex-1 overflow-y-auto hide-scrollbar p-5 space-y-3">
+        <button class="w-full text-left rounded-2xl p-4 comment-row comment-unknown selected-row shadow-soft">
+          <div class="flex items-start justify-between gap-4">
+            <div class="min-w-0">
+              <div class="flex items-center gap-2 flex-wrap mb-2">
+                <span class="pill pill-red">unknown 寄り</span>
+                <span class="text-xs font-bold text-slate-600">猫宮マメ</span>
+                <span class="text-[11px] text-slate-400">メンバー 6か月</span>
+              </div>
+              <p class="text-sm font-bold text-slate-800 leading-6">
+                今日の機材、新しくしたって言ってたやつ？
+              </p>
+              <div class="mt-3 flex items-center gap-2 flex-wrap">
+                <span class="pill pill-indigo">候補: 質問</span>
+                <span class="pill pill-red">理由: 条件が足りない</span>
+              </div>
+            </div>
+          </div>
+        </button>
+
+        <button class="w-full text-left rounded-2xl p-4 comment-ignore comment-row hover:border-indigo-300">
+          <div class="flex items-start justify-between gap-4">
+            <div class="min-w-0">
+              <div class="flex items-center gap-2 flex-wrap mb-2">
+                <span class="pill pill-gray">ignore / スキップ寄り</span>
+                <span class="text-xs font-bold text-slate-600">視聴者A</span>
+              </div>
+              <p class="text-sm font-semibold text-slate-700 leading-6">
+                wwwwwww
+              </p>
+              <div class="mt-3 flex items-center gap-2 flex-wrap">
+                <span class="pill pill-gray">候補: なし</span>
+                <span class="pill pill-gray">理由: 短すぎる / 文脈不足</span>
+              </div>
+            </div>
+          </div>
+        </button>
+
+        <button class="w-full text-left rounded-2xl p-4 comment-match comment-row hover:border-indigo-300">
+          <div class="flex items-start justify-between gap-4">
+            <div class="min-w-0">
+              <div class="flex items-center gap-2 flex-wrap mb-2">
+                <span class="pill pill-green">既存カテゴリに近い</span>
+                <span class="text-xs font-bold text-slate-600">TechUser</span>
+                <span class="text-[11px] text-slate-400">初見</span>
+              </div>
+              <p class="text-sm font-semibold text-slate-700 leading-6">
+                こんにちは！初見です
+              </p>
+              <div class="mt-3 flex items-center gap-2 flex-wrap">
+                <span class="pill pill-green">候補: 挨拶 / 初見反応</span>
+                <span class="pill pill-green">理由: 既存ルールに近い</span>
+              </div>
+            </div>
+          </div>
+        </button>
+
+        <button class="w-full text-left rounded-2xl p-4 comment-ambiguous comment-row hover:border-indigo-300">
+          <div class="flex items-start justify-between gap-4">
+            <div class="min-w-0">
+              <div class="flex items-center gap-2 flex-wrap mb-2">
+                <span class="pill pill-yellow">あいまい</span>
+                <span class="text-xs font-bold text-slate-600">匿名きぼう</span>
+              </div>
+              <p class="text-sm font-semibold text-slate-700 leading-6">
+                VTunerの動き、たまにカクつくかも？
+              </p>
+              <div class="mt-3 flex items-center gap-2 flex-wrap">
+                <span class="pill pill-yellow">候補: 指摘 / 技術系</span>
+                <span class="pill pill-yellow">理由: 候補はあるが境界が曖昧</span>
+              </div>
+            </div>
+          </div>
+        </button>
+
+        <button class="w-full text-left rounded-2xl p-4 comment-unknown comment-row hover:border-indigo-300">
+          <div class="flex items-start justify-between gap-4">
+            <div class="min-w-0">
+              <div class="flex items-center gap-2 flex-wrap mb-2">
+                <span class="pill pill-red">unknown 寄り</span>
+                <span class="text-xs font-bold text-slate-600">User-99</span>
+              </div>
+              <p class="text-sm font-semibold text-slate-700 leading-6">
+                晩御飯たべた？
+              </p>
+              <div class="mt-3 flex items-center gap-2 flex-wrap">
+                <span class="pill pill-red">候補: なし</span>
+                <span class="pill pill-red">理由: 返答方針が未定</span>
+              </div>
+            </div>
+          </div>
+        </button>
+
+        <button class="w-full text-left rounded-2xl p-4 comment-ignore comment-row hover:border-indigo-300">
+          <div class="flex items-start justify-between gap-4">
+            <div class="min-w-0">
+              <div class="flex items-center gap-2 flex-wrap mb-2">
+                <span class="pill pill-gray">ignore / スキップ寄り</span>
+                <span class="text-xs font-bold text-slate-600">匿名</span>
+              </div>
+              <p class="text-sm font-semibold text-slate-700 leading-6">
+                ○○って言って
+              </p>
+              <div class="mt-3 flex items-center gap-2 flex-wrap">
+                <span class="pill pill-gray">候補: 無視対象</span>
+                <span class="pill pill-gray">理由: 誘導 / 不採用</span>
+              </div>
+            </div>
+          </div>
+        </button>
+      </div>
+    </section>
+
+    <!-- Right -->
+    <aside class="bg-white border-l border-slate-200 overflow-y-auto hide-scrollbar">
+      <div class="p-5 space-y-5">
+        <section class="sidebar-card p-5 shadow-soft">
+          <h3 class="text-xs font-black text-slate-400 uppercase mb-4">選択中コメント</h3>
+
+          <div class="space-y-4">
+            <div class="flex items-center gap-2 flex-wrap">
+              <span class="pill pill-red">unknown 寄り</span>
+              <span class="text-[11px] font-bold text-slate-600">猫宮マメ</span>
+              <span class="text-[11px] text-slate-400">メンバー 6か月</span>
+            </div>
+
+            <div class="bg-rose-50 border border-rose-100 rounded-xl p-4">
+              <p class="text-[10px] font-black text-rose-700 uppercase mb-2">コメント本文</p>
+              <p class="text-sm font-bold text-slate-800 leading-6">
+                今日の機材、新しくしたって言ってたやつ？
+              </p>
+            </div>
+
+            <div class="grid gap-3">
+              <div>
+                <p class="text-[10px] font-black text-slate-400 uppercase mb-1">候補カテゴリ</p>
+                <div class="flex gap-2 flex-wrap">
+                  <span class="pill pill-indigo">質問</span>
+                  <span class="pill pill-yellow">技術系</span>
+                </div>
+              </div>
+
+              <div>
+                <p class="text-[10px] font-black text-slate-400 uppercase mb-1">理由ラベル</p>
+                <div class="flex gap-2 flex-wrap">
+                  <span class="pill pill-red">条件が足りない</span>
+                  <span class="pill pill-yellow">境界が曖昧</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="sidebar-card p-5">
+          <h3 class="text-xs font-black text-slate-400 uppercase mb-4">Review 操作</h3>
+          <div class="grid gap-2">
+            <button class="py-2.5 bg-white border border-slate-200 text-xs font-bold rounded-lg hover:bg-slate-50">
+              ignore にする
+            </button>
+            <button class="py-2.5 bg-indigo-600 text-white text-xs font-bold rounded-lg hover:bg-indigo-700">
+              既存カテゴリ候補にする
+            </button>
+            <button class="py-2.5 bg-white border border-indigo-200 text-indigo-600 text-xs font-bold rounded-lg hover:bg-indigo-50">
+              新カテゴリ候補として保留
+            </button>
+            <button class="py-2.5 bg-white border border-slate-200 text-xs font-bold rounded-lg hover:bg-slate-50">
+              拾いたいコメントとして残す
+            </button>
+          </div>
+        </section>
+
+        <section class="sidebar-card p-5">
+          <div class="flex items-center justify-between gap-3 mb-4">
+            <h3 class="text-xs font-black text-slate-400 uppercase">patch candidate</h3>
+            <span class="pill pill-indigo">3件</span>
+          </div>
+
+          <div class="space-y-3">
+            <div class="bg-slate-50 border border-slate-200 rounded-xl p-3">
+              <p class="text-[10px] font-black text-slate-400 uppercase mb-1">候補 1</p>
+              <p class="text-sm font-bold text-slate-700">ignore 追加候補</p>
+              <p class="mt-1 text-xs text-slate-500 leading-5">晩御飯系の軽い雑談質問を ignore 候補として保持</p>
+            </div>
+
+            <div class="bg-slate-50 border border-slate-200 rounded-xl p-3">
+              <p class="text-[10px] font-black text-slate-400 uppercase mb-1">候補 2</p>
+              <p class="text-sm font-bold text-slate-700">既存カテゴリ追加候補</p>
+              <p class="mt-1 text-xs text-slate-500 leading-5">質問カテゴリに機材トーク系の追加候補を保持</p>
+            </div>
+
+            <div class="bg-slate-50 border border-slate-200 rounded-xl p-3">
+              <p class="text-[10px] font-black text-slate-400 uppercase mb-1">候補 3</p>
+              <p class="text-sm font-bold text-slate-700">新カテゴリ候補</p>
+              <p class="mt-1 text-xs text-slate-500 leading-5">機材トークを新カテゴリ候補として保留</p>
+            </div>
+          </div>
+        </section>
+      </div>
+    </aside>
+  </main>
+
+  <!-- Modal -->
+  <div id="addModal" class="fixed inset-0 z-50 hidden">
+    <div class="absolute inset-0 modal-backdrop" onclick="closeAddModal()"></div>
+    <div class="absolute inset-0 flex items-center justify-center p-6">
+      <div class="w-full max-w-3xl bg-white rounded-3xl border border-slate-200 shadow-2xl overflow-hidden">
+        <div class="px-6 py-5 border-b border-slate-200 flex items-center justify-between gap-4">
+          <div>
+            <h2 class="text-lg font-black text-slate-800">配信を追加</h2>
+            <p class="text-sm text-slate-500 mt-1">配信URLを入れると、タイトルなどを自動で入れます</p>
+          </div>
+          <button onclick="closeAddModal()" class="px-3 py-2 text-xs font-bold text-slate-500 bg-slate-100 rounded-lg hover:bg-slate-200">
+            閉じる
+          </button>
+        </div>
+
+        <div class="p-6 grid gap-4">
+          <div>
+            <label class="block text-xs font-black text-slate-500 uppercase mb-2">配信URL</label>
+            <div class="flex gap-2">
+              <input
+                type="text"
+                value="https://www.youtube.com/live/xxxxxxxxxxx"
+                class="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white text-sm text-slate-700"
+              />
+              <button class="px-4 py-3 text-sm font-bold text-indigo-600 bg-indigo-50 border border-indigo-200 rounded-xl hover:bg-indigo-100">
+                取得
+              </button>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-black text-slate-500 uppercase mb-2">配信タイトル</label>
+              <input
+                type="text"
+                value="雑談配信 #13"
+                class="w-full px-4 py-3 rounded-xl border border-slate-200 read-only text-sm"
+                readonly
+              />
+            </div>
+
+            <div>
+              <label class="block text-xs font-black text-slate-500 uppercase mb-2">配信日時</label>
+              <input
+                type="text"
+                value="2024/10/25 21:00"
+                class="w-full px-4 py-3 rounded-xl border border-slate-200 read-only text-sm"
+                readonly
+              />
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-black text-slate-500 uppercase mb-2">コメントテキスト</label>
+            <textarea
+              class="w-full min-h-[260px] px-4 py-4 rounded-2xl border border-slate-200 bg-slate-50 text-sm text-slate-700 leading-6"
+            >猫宮マメ: 今日の機材、新しくしたって言ってたやつ？
+視聴者A: wwwwwww
+TechUser: こんにちは！初見です
+匿名きぼう: VTunerの動き、たまにカクつくかも？
+User-99: 晩御飯たべた？
+匿名: ○○って言って</textarea>
+          </div>
+
+          <div class="bg-slate-50 border border-slate-200 rounded-xl p-4">
+            <p class="text-xs text-slate-500 leading-6">
+              そのあと、コメントを貼り付けて読み込みます。
+            </p>
+          </div>
+        </div>
+
+        <div class="px-6 py-5 border-t border-slate-200 flex items-center justify-between gap-3 flex-wrap">
+          <button class="px-4 py-2.5 text-sm font-bold text-slate-600 bg-white border border-slate-200 rounded-xl hover:bg-slate-50">
+            いったん閉じる
+          </button>
+          <button class="px-4 py-2.5 text-sm font-bold text-white bg-indigo-600 rounded-xl hover:bg-indigo-700">
+            読み込む
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function openAddModal() {
+      document.getElementById('addModal').classList.remove('hidden');
+    }
+
+    function closeAddModal() {
+      document.getElementById('addModal').classList.add('hidden');
+    }
+  </script>
+</body>
+</html>

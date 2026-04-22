@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VTuner - Detailed Rules</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&family=Noto+Sans+JP:wght@400;500;700;800&display=swap');
+
+    body {
+      font-family: 'Inter', 'Noto Sans JP', sans-serif;
+      background: #f1f5f9;
+    }
+
+    .app-height {
+      height: calc(100vh - 64px);
+    }
+
+    .shadow-soft {
+      box-shadow: 0 12px 28px rgba(15, 23, 42, 0.06);
+    }
+
+    .selected-row {
+      box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.16);
+      border-color: rgba(99, 102, 241, 0.32);
+      background: linear-gradient(180deg, #ffffff 0%, #f8faff 100%);
+    }
+
+    .hide-scrollbar::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+
+    .hide-scrollbar::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 999px;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      padding: 5px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 800;
+      line-height: 1;
+      white-space: nowrap;
+      border: 1px solid transparent;
+    }
+
+    .pill-on {
+      background: #ecfdf5;
+      color: #047857;
+      border-color: #a7f3d0;
+    }
+
+    .pill-off {
+      background: #f8fafc;
+      color: #475569;
+      border-color: #e2e8f0;
+    }
+
+    .pill-rule {
+      background: #eef2ff;
+      color: #4338ca;
+      border-color: #c7d2fe;
+    }
+
+    .pill-def {
+      background: #f5f3ff;
+      color: #7c3aed;
+      border-color: #ddd6fe;
+    }
+
+    .pill-source {
+      background: #f8fafc;
+      color: #475569;
+      border-color: #e2e8f0;
+    }
+
+    .pill-target {
+      background: #fff7ed;
+      color: #c2410c;
+      border-color: #fdba74;
+    }
+
+    .pill-adopted {
+      background: #ecfeff;
+      color: #0f766e;
+      border-color: #99f6e4;
+    }
+
+    .pill-warn {
+      background: #fef3c7;
+      color: #92400e;
+      border-color: #fde68a;
+    }
+
+    .section-card {
+      background: #fff;
+      border: 1px solid #e2e8f0;
+      border-radius: 20px;
+    }
+  </style>
+</head>
+<body class="text-slate-800 overflow-hidden">
+  <header class="bg-white border-b border-slate-200 h-16 flex items-center justify-between px-6 shadow-sm">
+    <div class="flex items-center gap-8 min-w-0">
+      <div class="flex items-center gap-3 min-w-0">
+        <h1 class="text-2xl font-black text-indigo-600 tracking-tighter shrink-0">VTuner</h1>
+        <span class="px-3 py-1 rounded-full bg-indigo-50 border border-indigo-100 text-indigo-600 text-xs font-extrabold">ヴィヴィ</span>
+      </div>
+
+      <nav class="flex gap-1 text-sm font-bold flex-wrap">
+        <button class="px-4 py-2 text-slate-400 hover:text-indigo-600">Preview / Test</button>
+        <button class="px-4 py-2 text-slate-400 hover:text-indigo-600">Basic Settings</button>
+        <button class="px-4 py-2 text-slate-400 hover:text-indigo-600">Review</button>
+        <button class="px-4 py-2 text-indigo-600 bg-indigo-50 rounded-lg">Detailed Rules</button>
+        <button class="px-4 py-2 text-slate-400 hover:text-indigo-600">AI / JSON Studio</button>
+      </nav>
+    </div>
+
+    <div class="text-right shrink-0">
+      <p class="text-[10px] text-slate-400 font-bold uppercase leading-none">Detailed Rules</p>
+      <p class="text-xs font-bold text-slate-600">正式編集室</p>
+    </div>
+  </header>
+
+  <main class="app-height grid grid-cols-[320px_minmax(0,1fr)_380px] gap-0 overflow-hidden">
+    <!-- Left -->
+    <aside class="bg-white border-r border-slate-200 overflow-y-auto hide-scrollbar">
+      <div class="p-4 border-b border-slate-200">
+        <div class="flex items-start justify-between gap-3 mb-3">
+          <div>
+            <h2 class="text-sm font-black text-slate-800">ルール / 定義</h2>
+            <p class="text-xs text-slate-500 mt-1">正式に使う内容を探して開きます</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="pill pill-adopted">採用済み変更 3件</span>
+          </div>
+        </div>
+
+        <div class="grid gap-3">
+          <input
+            type="text"
+            value="ルール名 / 定義名 / 条件で検索"
+            class="w-full px-3 py-2.5 text-sm rounded-xl border border-slate-200 bg-slate-50 text-slate-500"
+          />
+
+          <div class="grid grid-cols-2 gap-2">
+            <button class="px-3 py-2 text-xs font-bold rounded-xl bg-slate-800 text-white">すべて</button>
+            <button class="px-3 py-2 text-xs font-bold rounded-xl bg-white border border-slate-200 text-slate-600">ルール</button>
+            <button class="px-3 py-2 text-xs font-bold rounded-xl bg-white border border-slate-200 text-slate-600">定義</button>
+            <button class="px-3 py-2 text-xs font-bold rounded-xl bg-white border border-slate-200 text-slate-600">Review 由来</button>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2">
+            <select class="px-3 py-2 text-xs rounded-xl border border-slate-200 bg-white text-slate-600">
+              <option>状態: すべて</option>
+              <option>有効のみ</option>
+              <option>無効のみ</option>
+            </select>
+
+            <select class="px-3 py-2 text-xs rounded-xl border border-slate-200 bg-white text-slate-600">
+              <option>発話対象: すべて</option>
+              <option>視聴者</option>
+              <option>配信者</option>
+            </select>
+
+            <select class="px-3 py-2 text-xs rounded-xl border border-slate-200 bg-white text-slate-600 col-span-2">
+              <option>source: すべて</option>
+              <option>初期プリセット</option>
+              <option>手動追加</option>
+              <option>Review由来</option>
+              <option>AI採用済み</option>
+              <option>派生編集</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="p-4 space-y-3">
+        <button class="w-full text-left section-card p-4 selected-row shadow-soft">
+          <div class="flex items-start justify-between gap-3 mb-3">
+            <div class="min-w-0">
+              <p class="text-sm font-black text-slate-800 truncate">初見歓迎ルール</p>
+              <p class="text-xs text-slate-500 mt-1">条件: 初見 / 挨拶系を優先</p>
+            </div>
+            <span class="pill pill-on">有効</span>
+          </div>
+
+          <div class="flex flex-wrap gap-2 mb-3">
+            <span class="pill pill-rule">ルール</span>
+            <span class="pill pill-source">初期プリセット</span>
+            <span class="pill pill-target">視聴者</span>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2 text-xs">
+            <div class="bg-slate-50 border border-slate-200 rounded-lg p-2">
+              <p class="text-slate-400 font-bold">候補文</p>
+              <p class="text-slate-700 font-black">4件</p>
+            </div>
+            <div class="bg-slate-50 border border-slate-200 rounded-lg p-2">
+              <p class="text-slate-400 font-bold">条件</p>
+              <p class="text-slate-700 font-black">2件</p>
+            </div>
+          </div>
+        </button>
+
+        <button class="w-full text-left section-card p-4 hover:border-indigo-300 transition">
+          <div class="flex items-start justify-between gap-3 mb-3">
+            <div class="min-w-0">
+              <p class="text-sm font-black text-slate-800 truncate">無コメント時の話題振り</p>
+              <p class="text-xs text-slate-500 mt-1">条件: 120秒無コメント</p>
+            </div>
+            <span class="pill pill-on">有効</span>
+          </div>
+
+          <div class="flex flex-wrap gap-2 mb-3">
+            <span class="pill pill-rule">ルール</span>
+            <span class="pill pill-source">派生編集</span>
+            <span class="pill pill-target">視聴者</span>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2 text-xs">
+            <div class="bg-slate-50 border border-slate-200 rounded-lg p-2">
+              <p class="text-slate-400 font-bold">候補文</p>
+              <p class="text-slate-700 font-black">3件</p>
+            </div>
+            <div class="bg-slate-50 border border-slate-200 rounded-lg p-2">
+              <p class="text-slate-400 font-bold">条件</p>
+              <p class="text-slate-700 font-black">1件</p>
+            </div>
+          </div>
+        </button>
+
+        <button class="w-full text-left section-card p-4 hover:border-indigo-300 transition">
+          <div class="flex items-start justify-between gap-3 mb-3">
+            <div class="min-w-0">
+              <p class="text-sm font-black text-slate-800 truncate">機材トーク</p>
+              <p class="text-xs text-slate-500 mt-1">条件: 機材 / マイク / カクつき</p>
+            </div>
+            <span class="pill pill-off">無効</span>
+          </div>
+
+          <div class="flex flex-wrap gap-2 mb-3">
+            <span class="pill pill-rule">ルール</span>
+            <span class="pill pill-source">Review由来</span>
+            <span class="pill pill-target">視聴者</span>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2 text-xs">
+            <div class="bg-slate-50 border border-slate-200 rounded-lg p-2">
+              <p class="text-slate-400 font-bold">候補文</p>
+              <p class="text-slate-700 font-black">2件</p>
+            </div>
+            <div class="bg-slate-50 border border-slate-200 rounded-lg p-2">
+              <p class="text-slate-400 font-bold">条件</p>
+              <p class="text-slate-700 font-black">3件</p>
+            </div>
+          </div>
+        </button>
+
+        <button class="w-full text-left section-card p-4 hover:border-indigo-300 transition">
+          <div class="flex items-start justify-between gap-3 mb-3">
+            <div class="min-w-0">
+              <p class="text-sm font-black text-slate-800 truncate">質問カテゴリ</p>
+              <p class="text-xs text-slate-500 mt-1">質問系コメントの分類用</p>
+            </div>
+            <span class="pill pill-on">有効</span>
+          </div>
+
+          <div class="flex flex-wrap gap-2 mb-3">
+            <span class="pill pill-def">定義</span>
+            <span class="pill pill-source">手動追加</span>
+            <span class="pill pill-target">視聴者</span>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2 text-xs">
+            <div class="bg-slate-50 border border-slate-200 rounded-lg p-2 col-span-2">
+              <p class="text-slate-400 font-bold">方向性</p>
+              <p class="text-slate-700 font-black">質問・確認・聞き返し</p>
+            </div>
+          </div>
+        </button>
+
+        <button class="w-full text-left section-card p-4 hover:border-indigo-300 transition">
+          <div class="flex items-start justify-between gap-3 mb-3">
+            <div class="min-w-0">
+              <p class="text-sm font-black text-slate-800 truncate">丁寧な案内役</p>
+              <p class="text-xs text-slate-500 mt-1">Basic Settings で選ぶ性格タイプ</p>
+            </div>
+            <span class="pill pill-on">有効</span>
+          </div>
+
+          <div class="flex flex-wrap gap-2 mb-3">
+            <span class="pill pill-def">定義</span>
+            <span class="pill pill-source">AI採用済み</span>
+            <span class="pill pill-target">共通</span>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2 text-xs">
+            <div class="bg-slate-50 border border-slate-200 rounded-lg p-2 col-span-2">
+              <p class="text-slate-400 font-bold">方向性</p>
+              <p class="text-slate-700 font-black">落ち着き / 補助 / 丁寧</p>
+            </div>
+          </div>
+        </button>
+      </div>
+    </aside>
+
+    <!-- Center -->
+    <section class="bg-slate-50 overflow-y-auto hide-scrollbar">
+      <div class="p-5 space-y-5">
+        <section class="section-card p-5 shadow-soft">
+          <div class="flex items-start justify-between gap-4 flex-wrap mb-5">
+            <div>
+              <h2 class="text-lg font-black text-slate-800">正式編集</h2>
+              <p class="text-sm text-slate-500 mt-1">選択中のルールまたは定義を編集します</p>
+            </div>
+
+            <div class="flex items-center gap-2 flex-wrap">
+              <span class="pill pill-adopted">compile 待ち</span>
+              <span class="pill pill-source">source: 初期プリセット</span>
+            </div>
+          </div>
+
+          <div class="grid gap-5">
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs font-black text-slate-500 uppercase mb-2">ルール名</label>
+                <input
+                  type="text"
+                  value="初見歓迎ルール"
+                  class="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white text-sm text-slate-700"
+                />
+              </div>
+
+              <div class="grid grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-xs font-black text-slate-500 uppercase mb-2">種別</label>
+                  <select class="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white text-sm text-slate-700">
+                    <option selected>ルール</option>
+                    <option>定義</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label class="block text-xs font-black text-slate-500 uppercase mb-2">有効 / 無効</label>
+                  <select class="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white text-sm text-slate-700">
+                    <option selected>有効</option>
+                    <option>無効</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-3 gap-4">
+              <div>
+                <label class="block text-xs font-black text-slate-500 uppercase mb-2">発話対象</label>
+                <select class="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white text-sm text-slate-700">
+                  <option selected>視聴者</option>
+                  <option>配信者</option>
+                  <option>共通</option>
+                </select>
+              </div>
+
+              <div>
+                <label class="block text-xs font-black text-slate-500 uppercase mb-2">使用人格レイヤー</label>
+                <select class="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white text-sm text-slate-700">
+                  <option selected>基本人格</option>
+                  <option>やわらかめ</option>
+                  <option>補助寄り</option>
+                  <option>クール寄り</option>
+                </select>
+              </div>
+
+              <div>
+                <label class="block text-xs font-black text-slate-500 uppercase mb-2">口調方向</label>
+                <select class="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white text-sm text-slate-700">
+                  <option selected>丁寧で落ち着いた口調</option>
+                  <option>やわらかい口調</option>
+                  <option>少しカジュアル</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="section-card p-4 bg-slate-50">
+              <div class="flex items-center justify-between gap-3 mb-4">
+                <div>
+                  <h3 class="text-sm font-black text-slate-800">条件編集</h3>
+                  <p class="text-xs text-slate-500 mt-1">発火条件を調整します</p>
+                </div>
+                <button class="px-3 py-2 text-xs font-bold text-indigo-600 bg-white border border-indigo-200 rounded-lg hover:bg-indigo-50">
+                  条件を追加
+                </button>
+              </div>
+
+              <div class="space-y-3">
+                <div class="bg-white border border-slate-200 rounded-xl p-4">
+                  <div class="grid grid-cols-5 gap-3">
+                    <div>
+                      <label class="block text-[10px] font-black text-slate-500 uppercase mb-2">条件種別</label>
+                      <select class="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm">
+                        <option selected>コメント条件</option>
+                        <option>無コメント条件</option>
+                        <option>連投条件</option>
+                        <option>特定ユーザー条件</option>
+                        <option>名前条件</option>
+                        <option>時間条件</option>
+                      </select>
+                    </div>
+
+                    <div class="col-span-2">
+                      <label class="block text-[10px] font-black text-slate-500 uppercase mb-2">条件内容</label>
+                      <input
+                        type="text"
+                        value="初見 / はじめまして / 初見です を含む"
+                        class="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm"
+                      />
+                    </div>
+
+                    <div>
+                      <label class="block text-[10px] font-black text-slate-500 uppercase mb-2">優先度</label>
+                      <select class="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm">
+                        <option selected>高</option>
+                        <option>中</option>
+                        <option>低</option>
+                      </select>
+                    </div>
+
+                    <div class="flex items-end">
+                      <button class="w-full px-3 py-2 text-xs font-bold text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50">
+                        削除
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="bg-white border border-slate-200 rounded-xl p-4">
+                  <div class="grid grid-cols-5 gap-3">
+                    <div>
+                      <label class="block text-[10px] font-black text-slate-500 uppercase mb-2">条件種別</label>
+                      <select class="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm">
+                        <option selected>名前条件</option>
+                        <option>コメント条件</option>
+                        <option>無コメント条件</option>
+                        <option>連投条件</option>
+                        <option>特定ユーザー条件</option>
+                        <option>時間条件</option>
+                      </select>
+                    </div>
+
+                    <div class="col-span-2">
+                      <label class="block text-[10px] font-black text-slate-500 uppercase mb-2">条件内容</label>
+                      <input
+                        type="text"
+                        value="初見バッジ / 初回ユーザー寄り"
+                        class="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm"
+                      />
+                    </div>
+
+                    <div>
+                      <label class="block text-[10px] font-black text-slate-500 uppercase mb-2">優先度</label>
+                      <select class="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm">
+                        <option selected>中</option>
+                        <option>高</option>
+                        <option>低</option>
+                      </select>
+                    </div>
+
+                    <div class="flex items-end">
+                      <button class="w-full px-3 py-2 text-xs font-bold text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50">
+                        削除
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="section-card p-4 bg-slate-50">
+              <div class="flex items-center justify-between gap-3 mb-4">
+                <div>
+                  <h3 class="text-sm font-black text-slate-800">候補文編集</h3>
+                  <p class="text-xs text-slate-500 mt-1">返答の候補文を調整します</p>
+                </div>
+                <button class="px-3 py-2 text-xs font-bold text-indigo-600 bg-white border border-indigo-200 rounded-lg hover:bg-indigo-50">
+                  候補文を追加
+                </button>
+              </div>
+
+              <div class="space-y-3">
+                <div class="bg-white border border-slate-200 rounded-xl p-4">
+                  <div class="flex items-center justify-between gap-3 mb-2">
+                    <span class="pill pill-indigo">候補文 1</span>
+                    <button class="text-xs font-bold text-slate-400 hover:text-slate-600">削除</button>
+                  </div>
+                  <textarea class="w-full min-h-[88px] px-3 py-3 rounded-lg border border-slate-200 text-sm text-slate-700">こんにちは。来てくれてありがとうございます。ゆっくりしていってくださいね。</textarea>
+                </div>
+
+                <div class="bg-white border border-slate-200 rounded-xl p-4">
+                  <div class="flex items-center justify-between gap-3 mb-2">
+                    <span class="pill pill-indigo">候補文 2</span>
+                    <button class="text-xs font-bold text-slate-400 hover:text-slate-600">削除</button>
+                  </div>
+                  <textarea class="w-full min-h-[88px] px-3 py-3 rounded-lg border border-slate-200 text-sm text-slate-700">初見さん、ありがとうございます。今日はこんな感じでやっています。</textarea>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-xs font-black text-slate-500 uppercase mb-2">補足メモ</label>
+              <textarea class="w-full min-h-[100px] px-4 py-3 rounded-xl border border-slate-200 bg-white text-sm text-slate-700">初見歓迎は強めに出す。常連向けルールより先に当てる。</textarea>
+            </div>
+
+            <div class="flex items-center justify-between gap-4 flex-wrap pt-2">
+              <div class="flex items-center gap-2 flex-wrap">
+                <button class="px-4 py-2.5 text-sm font-bold text-white bg-indigo-600 rounded-xl hover:bg-indigo-700">
+                  保存
+                </button>
+                <button class="px-4 py-2.5 text-sm font-bold text-slate-600 bg-white border border-slate-200 rounded-xl hover:bg-slate-50">
+                  複製
+                </button>
+                <button class="px-4 py-2.5 text-sm font-bold text-rose-600 bg-white border border-rose-200 rounded-xl hover:bg-rose-50">
+                  削除
+                </button>
+              </div>
+
+              <div class="text-xs text-slate-500">
+                最終更新: 今日 18:42 / source: 初期プリセット
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </section>
+
+    <!-- Right -->
+    <aside class="bg-white border-l border-slate-200 overflow-y-auto hide-scrollbar">
+      <div class="p-5 space-y-5">
+        <section class="section-card p-5 shadow-soft">
+          <div class="flex items-center justify-between gap-3 mb-4">
+            <div>
+              <h3 class="text-sm font-black text-slate-800">手動で新ルールを追加</h3>
+              <p class="text-xs text-slate-500 mt-1">新しい正式ルールを人力で追加します</p>
+            </div>
+          </div>
+
+          <div class="grid gap-3">
+            <div>
+              <label class="block text-[10px] font-black text-slate-500 uppercase mb-2">何のルールを作るか</label>
+              <input
+                type="text"
+                value="機材トークへの返答"
+                class="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-sm"
+              />
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block text-[10px] font-black text-slate-500 uppercase mb-2">対象</label>
+                <select class="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-sm">
+                  <option selected>視聴者</option>
+                  <option>配信者</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-[10px] font-black text-slate-500 uppercase mb-2">方向性</label>
+                <select class="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-sm">
+                  <option selected>質問への返答</option>
+                  <option>補助コメント</option>
+                  <option>軽い話題振り</option>
+                </select>
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-[10px] font-black text-slate-500 uppercase mb-2">初期候補文</label>
+              <textarea class="w-full min-h-[88px] px-3 py-3 rounded-xl border border-slate-200 text-sm">機材まわりは少しずつ整えています。まだ調整中のところもありますね。</textarea>
+            </div>
+
+            <button class="w-full px-4 py-2.5 text-sm font-bold text-white bg-indigo-600 rounded-xl hover:bg-indigo-700">
+              新ルールを作成
+            </button>
+          </div>
+        </section>
+
+        <section class="section-card p-5">
+          <div class="flex items-center justify-between gap-3 mb-4">
+            <div>
+              <h3 class="text-sm font-black text-slate-800">手動で新定義を追加</h3>
+              <p class="text-xs text-slate-500 mt-1">Basic Settings などで使う正式定義を追加します</p>
+            </div>
+          </div>
+
+          <div class="grid gap-3">
+            <div>
+              <label class="block text-[10px] font-black text-slate-500 uppercase mb-2">定義種別</label>
+              <select class="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-sm">
+                <option selected>反応カテゴリ</option>
+                <option>性格タイプ</option>
+                <option>口調タイプ</option>
+                <option>語尾タイプ</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="block text-[10px] font-black text-slate-500 uppercase mb-2">名前</label>
+              <input
+                type="text"
+                value="機材トーク"
+                class="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-sm"
+              />
+            </div>
+
+            <div>
+              <label class="block text-[10px] font-black text-slate-500 uppercase mb-2">説明</label>
+              <textarea class="w-full min-h-[72px] px-3 py-3 rounded-xl border border-slate-200 text-sm">マイク、カメラ、配信環境などの話題に使うカテゴリ</textarea>
+            </div>
+
+            <div>
+              <label class="block text-[10px] font-black text-slate-500 uppercase mb-2">初期方向性</label>
+              <input
+                type="text"
+                value="質問 / 指摘 / 調整中の説明"
+                class="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-sm"
+              />
+            </div>
+
+            <button class="w-full px-4 py-2.5 text-sm font-bold text-white bg-slate-800 rounded-xl hover:bg-slate-900">
+              新定義を追加
+            </button>
+          </div>
+        </section>
+
+        <section class="section-card p-5">
+          <div class="flex items-center justify-between gap-3 mb-4">
+            <div>
+              <h3 class="text-sm font-black text-slate-800">Review patch 採用</h3>
+              <p class="text-xs text-slate-500 mt-1">Review で保留された候補を正式採用します</p>
+            </div>
+            <span class="pill pill-warn">3件</span>
+          </div>
+
+          <div class="space-y-3">
+            <div class="bg-slate-50 border border-slate-200 rounded-xl p-4">
+              <div class="flex items-center justify-between gap-3 mb-2">
+                <div class="flex items-center gap-2 flex-wrap">
+                  <span class="pill pill-gray">ignore</span>
+                  <span class="text-xs font-black text-slate-700">晩御飯系の軽い雑談質問</span>
+                </div>
+              </div>
+              <p class="text-xs text-slate-500 leading-5 mb-3">軽い雑談質問を無視対象候補として保持</p>
+              <div class="flex items-center gap-2">
+                <button class="px-3 py-2 text-xs font-bold text-white bg-indigo-600 rounded-lg hover:bg-indigo-700">採用</button>
+                <button class="px-3 py-2 text-xs font-bold text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50">保留</button>
+                <button class="px-3 py-2 text-xs font-bold text-rose-600 bg-white border border-rose-200 rounded-lg hover:bg-rose-50">破棄</button>
+              </div>
+            </div>
+
+            <div class="bg-slate-50 border border-slate-200 rounded-xl p-4">
+              <div class="flex items-center justify-between gap-3 mb-2">
+                <div class="flex items-center gap-2 flex-wrap">
+                  <span class="pill pill-indigo">existing category</span>
+                  <span class="text-xs font-black text-slate-700">question カテゴリへの追加候補</span>
+                </div>
+              </div>
+              <p class="text-xs text-slate-500 leading-5 mb-3">機材トーク系を質問カテゴリに寄せる候補</p>
+              <div class="flex items-center gap-2">
+                <button class="px-3 py-2 text-xs font-bold text-white bg-indigo-600 rounded-lg hover:bg-indigo-700">採用</button>
+                <button class="px-3 py-2 text-xs font-bold text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50">保留</button>
+                <button class="px-3 py-2 text-xs font-bold text-rose-600 bg-white border border-rose-200 rounded-lg hover:bg-rose-50">破棄</button>
+              </div>
+            </div>
+
+            <div class="bg-slate-50 border border-slate-200 rounded-xl p-4">
+              <div class="flex items-center justify-between gap-3 mb-2">
+                <div class="flex items-center gap-2 flex-wrap">
+                  <span class="pill pill-warn">new candidate</span>
+                  <span class="text-xs font-black text-slate-700">機材トークの新規候補</span>
+                </div>
+              </div>
+              <p class="text-xs text-slate-500 leading-5 mb-3">新しい反応カテゴリやルールの候補として保持</p>
+              <div class="flex items-center gap-2">
+                <button class="px-3 py-2 text-xs font-bold text-white bg-indigo-600 rounded-lg hover:bg-indigo-700">採用</button>
+                <button class="px-3 py-2 text-xs font-bold text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50">保留</button>
+                <button class="px-3 py-2 text-xs font-bold text-rose-600 bg-white border border-rose-200 rounded-lg hover:bg-rose-50">破棄</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="section-card p-5">
+          <div class="flex items-center justify-between gap-3 mb-3">
+            <div>
+              <h3 class="text-sm font-black text-slate-800">採用済み変更</h3>
+              <p class="text-xs text-slate-500 mt-1">compile 前の確認用</p>
+            </div>
+            <span class="pill pill-adopted">compile 待ち</span>
+          </div>
+
+          <div class="grid gap-2 text-sm">
+            <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 flex items-center justify-between gap-3">
+              <span class="font-semibold text-slate-700">Review 由来ルール 1件を採用</span>
+              <span class="text-xs text-slate-500">今日</span>
+            </div>
+            <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 flex items-center justify-between gap-3">
+              <span class="font-semibold text-slate-700">定義 1件を手動追加</span>
+              <span class="text-xs text-slate-500">今日</span>
+            </div>
+            <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 flex items-center justify-between gap-3">
+              <span class="font-semibold text-slate-700">候補文 2件を更新</span>
+              <span class="text-xs text-slate-500">今日</span>
+            </div>
+          </div>
+
+          <button class="w-full mt-4 px-4 py-2.5 text-sm font-bold text-slate-600 bg-white border border-slate-200 rounded-xl hover:bg-slate-50">
+            採用済み変更を確認する
+          </button>
+        </section>
+      </div>
+    </aside>
+  </main>
+</body>
+</html>
