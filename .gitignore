@@ -69,3 +69,6 @@ exports/
 
 # Keep repository clean
 !.gitkeep
+
+.lingma
+.continue
