@@ -1,5 +1,5 @@
-import { DetailedRulesPage } from "./pages/DetailedRulesPage";
+import { AiJsonStudioPage } from "./pages/AiJsonStudioPage";
 
 export function App() {
-  return <DetailedRulesPage />;
+  return <AiJsonStudioPage />;
 }
