@@ -31,7 +31,12 @@ import {
 } from "./reviewCompileBridge";
 import { loadReviewCompileReadModel } from "./reviewCompileApi";
 
-type StorageReadStatus = "idle" | "loading" | "loaded" | "fallback";
+type StorageReadStatus =
+  | "idle"
+  | "loading"
+  | "loaded"
+  | "backend_empty"
+  | "fallback";
 
 export function App() {
   const [currentScreen, setCurrentScreen] = useState<AppScreen>("preview_test");
@@ -66,9 +71,44 @@ export function App() {
           return;
         }
 
-        setReviewPatchQueue(result.reviewPatchQueue);
-        setAdoptedChanges(result.adoptedChanges);
-        setCompileHistory(result.compileHistory);
+        const nextReviewPatchQueue =
+          result.reviewPatchQueue.length > 0
+            ? result.reviewPatchQueue
+            : initialReviewPatchQueue;
+        const nextAdoptedChanges =
+          result.adoptedChanges.length > 0
+            ? result.adoptedChanges
+            : initialAdoptedChanges;
+        const nextCompileHistory =
+          result.compileHistory.length > 0
+            ? result.compileHistory
+            : initialCompileHistory;
+        const emptySources = [
+          result.reviewPatchQueue.length === 0 ? "Review Patch Queue" : null,
+          result.adoptedChanges.length === 0 ? "Adopted Changes" : null,
+          result.compileHistory.length === 0 ? "compile 履歴" : null,
+        ].filter((item): item is string => item !== null);
+
+        setReviewPatchQueue(nextReviewPatchQueue);
+        setAdoptedChanges(nextAdoptedChanges);
+        setCompileHistory(nextCompileHistory);
+
+        if (emptySources.length === 3) {
+          setStorageReadStatus("backend_empty");
+          setStorageReadMessage(
+            `backend read は成功しましたが、backend 側は空配列でした。skeleton 確認のため frontend seed を維持しています。(${result.backendOrigin})`,
+          );
+          return;
+        }
+
+        if (emptySources.length > 0) {
+          setStorageReadStatus("backend_empty");
+          setStorageReadMessage(
+            `backend read を反映しています。一部は backend 側が空のため frontend seed を維持しています: ${emptySources.join(" / ")} (${result.backendOrigin})`,
+          );
+          return;
+        }
+
         setStorageReadStatus("loaded");
         setStorageReadMessage(
           `backend read を初期表示へ反映しています。(${result.backendOrigin})`,

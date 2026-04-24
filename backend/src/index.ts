@@ -10,8 +10,20 @@ import { readCompileHistory } from "./storage/compileStorage";
 const DEFAULT_PORT = 3001;
 const port = Number(process.env.PORT ?? DEFAULT_PORT);
 
+const DEFAULT_CORS_HEADERS = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Methods": "GET, OPTIONS",
+  "Access-Control-Allow-Headers": "Content-Type",
+} as const;
+
 const server = createServer(async (request, response) => {
   try {
+    if (request.method === "OPTIONS") {
+      response.writeHead(204, DEFAULT_CORS_HEADERS);
+      response.end();
+      return;
+    }
+
     if (request.method === "GET" && request.url === "/health") {
       sendJson(response, 200, {
         status: "ok",
@@ -68,6 +80,7 @@ function sendJson(
 ) {
   response.writeHead(statusCode, {
     "Content-Type": "application/json; charset=utf-8",
+    ...DEFAULT_CORS_HEADERS,
   });
   response.end(JSON.stringify(payload));
 }

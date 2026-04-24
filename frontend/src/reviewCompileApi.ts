@@ -36,7 +36,10 @@ async function fetchJsonArray<T>(
   backendOrigin: string,
   path: string,
 ): Promise<T[]> {
-  const response = await fetch(`${backendOrigin}${path}`);
+  const response = await fetch(`${backendOrigin}${path}`, {
+    method: "GET",
+    mode: "cors",
+  });
 
   if (!response.ok) {
     throw new Error(`Request failed: ${path} (${response.status})`);

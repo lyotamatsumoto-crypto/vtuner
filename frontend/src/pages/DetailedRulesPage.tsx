@@ -161,7 +161,7 @@ export function DetailedRulesPage({
     status: ReviewPatchQueueItem["status"],
   ) => void;
   onRunCompile: () => void;
-  storageReadStatus: "idle" | "loading" | "loaded" | "fallback";
+  storageReadStatus: "idle" | "loading" | "loaded" | "backend_empty" | "fallback";
   storageReadMessage: string;
 }) {
   const [selectedEntryId, setSelectedEntryId] = useState("rule-first-time");
@@ -945,7 +945,7 @@ function summaryChipStyle(active: boolean) {
 }
 
 function storageReadNoticeStyle(
-  status: "idle" | "loading" | "loaded" | "fallback",
+  status: "idle" | "loading" | "loaded" | "backend_empty" | "fallback",
 ) {
   if (status === "loaded") {
     return {
@@ -956,7 +956,7 @@ function storageReadNoticeStyle(
     } as const;
   }
 
-  if (status === "fallback") {
+  if (status === "fallback" || status === "backend_empty") {
     return {
       ...pageTextStyle,
       color: "#A96E22",
