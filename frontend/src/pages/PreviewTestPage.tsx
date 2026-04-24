@@ -7,16 +7,15 @@ import {
   type SharedOrientation,
 } from "../basicPreviewBridge";
 import { CharacterStage } from "../components/display";
+import {
+  decidePreviewReaction,
+  normalizeCommentInput,
+  type PreviewOnlyReaction,
+} from "../features/previewTest/previewOnlyCommentRuntime";
 
 type BackgroundVariant = PreviewBackgroundVariant;
 type SampleKey = "compliment" | "greeting" | "question" | "quiet";
 type Orientation = SharedOrientation;
-type RuntimeCategory =
-  | "挨拶っぽい"
-  | "質問っぽい"
-  | "応援っぽい"
-  | "unknown"
-  | "ignore 寄り";
 
 interface PreviewHistoryItem {
   id: string;
@@ -25,17 +24,6 @@ interface PreviewHistoryItem {
   name?: string;
   text: string;
   detail?: string;
-}
-
-interface PreviewResult {
-  result_label: string;
-  category_label: RuntimeCategory;
-  reason_label: string;
-  reaction_name: string;
-  adoption_label: string;
-  target_label: "viewer" | "streamer";
-  orientation: Orientation;
-  bubble_text: string;
 }
 
 interface SampleDefinition {
@@ -150,7 +138,7 @@ export function PreviewTestPage({
   const [selectedSample, setSelectedSample] = useState<SampleKey>("compliment");
   const [commentText, setCommentText] = useState(initialSample.text);
   const [historyItems, setHistoryItems] = useState<PreviewHistoryItem[]>([]);
-  const [previewResult, setPreviewResult] = useState<PreviewResult>({
+  const [previewResult, setPreviewResult] = useState<PreviewOnlyReaction>({
     result_label: "未実行",
     category_label: "unknown",
     reason_label: "未実行",
@@ -161,11 +149,6 @@ export function PreviewTestPage({
     bubble_text:
       "ここでは Main Preview、キャラクター表示、吹き出し表示、Bottom Test Area の骨格を確認できます。",
   });
-  const endingSuffix = sharedSettings.endingStyle.includes("だね")
-    ? "だよ。"
-    : sharedSettings.endingStyle.includes("特に固定しない")
-      ? "です。"
-      : "ですね。";
 
   function applySample(sampleKey: SampleKey) {
     const sample = sampleDefinitions[sampleKey];
@@ -179,101 +162,15 @@ export function PreviewTestPage({
     setHistoryItems((current) => [...items, ...current].slice(0, 10));
   }
 
-  function buildPreviewOnlyResultFromComment(text: string): PreviewResult {
-    const normalizedText = text.trim().toLowerCase();
-
-    // Preview / Test 限定の仮ロジック。Overlay や正式 runtime の判定とは分離して扱う。
-    if (
-      normalizedText.includes("www") ||
-      normalizedText === "w" ||
-      normalizedText.includes("草") ||
-      normalizedText.includes("言って") ||
-      normalizedText.includes("ngワード")
-    ) {
-      return {
-        result_label: "ignored",
-        category_label: "ignore 寄り",
-        reason_label: "短文ノイズまたは誘導寄りのため仮 ignore",
-        reaction_name: "ignore 候補",
-        adoption_label: "不採用",
-        target_label: "viewer",
-        orientation: "side",
-        bubble_text: `${sharedSettings.firstPerson}はこの入力を ignore 寄りとして扱いました${endingSuffix} Preview / Test 専用の見え方だけを確認しています。`,
-      };
-    }
-
-    if (
-      normalizedText.includes("こんにちは") ||
-      normalizedText.includes("こんばんは") ||
-      normalizedText.includes("おはよう") ||
-      normalizedText.includes("初見") ||
-      normalizedText.includes("来ました")
-    ) {
-      return {
-        result_label: "displayed",
-        category_label: "挨拶っぽい",
-        reason_label: "あいさつ系キーワードを検出",
-        reaction_name: "挨拶返答",
-        adoption_label: "採用",
-        target_label: "viewer",
-        orientation: "front",
-        bubble_text: `${sharedSettings.viewerCall}、来てくれてありがとうございます${endingSuffix} ${sharedSettings.toneLabel} の仮反応を確認しています。`,
-      };
-    }
-
-    if (
-      normalizedText.includes("？") ||
-      normalizedText.includes("?") ||
-      normalizedText.includes("どう") ||
-      normalizedText.includes("何") ||
-      normalizedText.includes("どんな") ||
-      normalizedText.includes("ですか")
-    ) {
-      return {
-        result_label: "displayed",
-        category_label: "質問っぽい",
-        reason_label: "質問らしい記号または語尾を検出",
-        reaction_name: "質問応答",
-        adoption_label: "採用",
-        target_label: "viewer",
-        orientation: "front",
-        bubble_text: `${sharedSettings.firstPerson}は質問っぽい入力として拾いました${endingSuffix} いまは Preview / Test 専用の仮応答で確認しています。`,
-      };
-    }
-
-    if (
-      normalizedText.includes("応援") ||
-      normalizedText.includes("がんば") ||
-      normalizedText.includes("好き") ||
-      normalizedText.includes("よかった") ||
-      normalizedText.includes("すごい")
-    ) {
-      return {
-        result_label: "displayed",
-        category_label: "応援っぽい",
-        reason_label: "応援または好意寄りの語を検出",
-        reaction_name: "応援お礼",
-        adoption_label: "採用",
-        target_label: "viewer",
-        orientation: "side",
-        bubble_text: `${sharedSettings.viewerCall}からの応援っぽい入力として受けました${endingSuffix} Preview / Test 限定の仮 wiring なので反応名は確認用です。`,
-      };
-    }
-
-    return {
-      result_label: "unknown",
-      category_label: "unknown",
-      reason_label: "簡易分類でカテゴリを決めきれない",
-      reaction_name: "unknown 仮反応",
-      adoption_label: "保留",
-      target_label: "viewer",
-      orientation: "front",
-      bubble_text: `${sharedSettings.firstPerson}はこの入力を unknown 扱いにしました${endingSuffix} 正式ルールではなく Preview / Test 限定の仮 runtime 結果だけを表示しています。`,
-    };
-  }
-
   function runCommentTest(source: "manual" | "sample") {
-    const nextResult = buildPreviewOnlyResultFromComment(commentText);
+    const normalizedComment = normalizeCommentInput(commentText);
+    const nextResult = decidePreviewReaction({
+      normalizedComment,
+      firstPerson: sharedSettings.firstPerson,
+      viewerCall: sharedSettings.viewerCall,
+      toneLabel: sharedSettings.toneLabel,
+      endingStyle: sharedSettings.endingStyle,
+    });
 
     setOrientation(nextResult.orientation);
     setPreviewResult(nextResult);
@@ -298,7 +195,7 @@ export function PreviewTestPage({
 
   function runEventPreset(preset: EventPreset) {
     const isIgnored = preset.id === "ng-word";
-    const nextResult: PreviewResult = {
+    const nextResult: PreviewOnlyReaction = {
       result_label: isIgnored ? "ignored" : preset.id === "rapid-post" ? "skipped" : "displayed",
       category_label: isIgnored ? "ignore 寄り" : preset.id === "rapid-post" ? "unknown" : "応援っぽい",
       reason_label: preset.reason_label,
