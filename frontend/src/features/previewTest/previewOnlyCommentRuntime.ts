@@ -26,12 +26,14 @@ interface DecidePreviewReactionInput {
   endingStyle: string;
 }
 
-// Preview / Test 専用の仮ロジック。本番 runtime や正式 classifier の置き場ではない。
+// Preview / Test 専用の仮ロジック。
+// 正式 runtime 最小入口とは分離して残しておき、本番 runtime へ昇格させない。
 export function normalizeCommentInput(text: string) {
   return text.trim().toLowerCase();
 }
 
-// Preview / Test で見え方を確認するための簡易判定。正式ルール処理とは分離して扱う。
+// Preview / Test で見え方を確認するための簡易判定。
+// 正式ルール処理や runtime contract の主導線とは分離して扱う。
 export function decidePreviewReaction({
   normalizedComment,
   firstPerson,

@@ -7,7 +7,7 @@ import type {
 } from "../../../../schemas/runtime/runtimeTypes";
 
 // Preview / Test 用の条件イベント簡易処理。
-// runtime contract は使うが、本番 runtime の完成版としては扱わない。
+// RuntimeDecision を返して表示系はそろえるが、本番 runtime の完成版としては扱わない。
 export function decidePreviewTestEvent(input: TestEventInput): RuntimeDecision {
   if (input.test_name === "silence-120") {
     const decision: ReplyDecision = {

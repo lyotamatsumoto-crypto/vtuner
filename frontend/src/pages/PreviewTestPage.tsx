@@ -182,14 +182,14 @@ export function PreviewTestPage({
         label: source === "sample" ? "単発サンプル" : "コメント",
         name: authorName,
         text: commentText,
-        detail: `${runtimeDecision.kind} / ${nextResult.category_label} / ${nextResult.reason_label}`,
+        detail: buildRuntimeHistoryDetail(runtimeDecision, nextResult),
       },
       {
         id: `${Date.now()}-reply`,
         kind: "reply",
         label: "VTuner返答",
         text: nextResult.bubble_text,
-        detail: `${nextResult.reaction_name} / ${nextResult.target_label} / ${nextResult.orientation}`,
+        detail: buildReplyHistoryDetail(runtimeDecision, nextResult),
       },
     ]);
   }
@@ -214,14 +214,14 @@ export function PreviewTestPage({
         kind: "event",
         label: preset.condition_label,
         text: `${preset.title} を実行: ${preset.value_label}`,
-        detail: `${runtimeDecision.kind} / ${nextResult.result_label} / ${nextResult.reason_label}`,
+        detail: buildRuntimeHistoryDetail(runtimeDecision, nextResult),
       },
       {
         id: `${Date.now()}-${preset.id}-reply`,
         kind: "reply",
         label: "VTuner返答",
         text: nextResult.bubble_text,
-        detail: `${nextResult.reaction_name} / ${nextResult.target_label} / ${nextResult.orientation}`,
+        detail: buildReplyHistoryDetail(runtimeDecision, nextResult),
       },
     ]);
   }
@@ -311,13 +311,13 @@ export function PreviewTestPage({
               Basic Settings からは VTuner名 / 呼び方 / 口調 / 表示向き / 表示サイズ / 吹き出し色 / 背景だけを最小反映しています。
             </span>
             <span style={{ color: "#357F91", lineHeight: 1.7, fontSize: "12px", fontWeight: 700 }}>
-              今回は Preview / Test 限定の仮 runtime wiring です。正式ルール処理や本番 runtime、Overlay 表示処理ではありません。
+              この画面全体は Preview / Test 限定の確認 wiring です。正式ルール処理や本番 runtime、Overlay 表示処理そのものではありません。
             </span>
             <span style={{ color: "#5F747A", lineHeight: 1.7, fontSize: "12px" }}>
-              コメント入力だけは最小の正式 runtime decide を経由し、画面表示は Preview / Test 用に整形しています。
+              コメント入力だけは正式 runtime 側の最小入口を経由し、画面表示は Preview / Test 用に整形しています。
             </span>
             <span style={{ color: "#5F747A", lineHeight: 1.7, fontSize: "12px" }}>
-              条件イベントは `TestEventInput` を使う preview 専用の簡易入口を通し、本番 runtime とは分離したまま確認します。
+              条件イベントは `TestEventInput` を使う preview-only の簡易入口を通し、正式 runtime 本体とは分離したまま確認します。
             </span>
           </div>
         </section>
@@ -406,6 +406,12 @@ export function PreviewTestPage({
                 <div style={resultCardStyle}>
                   <span style={resultLabelStyle}>表示向き</span>
                   <strong>{previewResult.orientation}</strong>
+                </div>
+                <div style={resultCardStyle}>
+                  <span style={resultLabelStyle}>Runtime entry</span>
+                  <strong>
+                    {lastRuntimeDecision ? describeRuntimeEntry(lastRuntimeDecision) : "未実行"}
+                  </strong>
                 </div>
                 <div style={resultCardStyle}>
                   <span style={resultLabelStyle}>Runtime kind / source</span>
@@ -671,6 +677,32 @@ function mapRuntimeDecisionToPreviewReaction(
     orientation: "front",
     bubble_text: `${sharedSettings.firstPerson}はこの入力を unknown 扱いにしました${endingSuffix} 正式ルールではなく Preview / Test 限定の確認表示です。`,
   };
+}
+
+function describeRuntimeEntry(decision: RuntimeDecision) {
+  if (decision.source === "comment_input") {
+    return "正式 runtime 側の最小入口";
+  }
+
+  if (decision.source === "test_event_input") {
+    return "preview-only test event 入口";
+  }
+
+  return "runtime 入口";
+}
+
+function buildRuntimeHistoryDetail(
+  decision: RuntimeDecision,
+  previewResult: PreviewOnlyReaction,
+) {
+  return `${describeRuntimeEntry(decision)} / ${decision.kind} / ${decision.source} / ${previewResult.reason_label}`;
+}
+
+function buildReplyHistoryDetail(
+  decision: RuntimeDecision,
+  previewResult: PreviewOnlyReaction,
+) {
+  return `${describeRuntimeEntry(decision)} / ${previewResult.reaction_name} / ${previewResult.target_label} / ${previewResult.orientation}`;
 }
 
 function buildReplyTextFromCategory(
