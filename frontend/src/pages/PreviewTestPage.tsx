@@ -134,6 +134,7 @@ export function PreviewTestPage({
 }: {
   sharedSettings: BasicPreviewBridgeSettings;
 }) {
+  // Basic Settings からの反映は最小接続に限定する。双方向同期や正式保存はまだ行わない。
   const [orientation, setOrientation] = useState<Orientation>(sharedSettings.defaultFacing);
   const [mirror, setMirror] = useState(sharedSettings.mirrorEnabled);
   const [backgroundVariant, setBackgroundVariant] = useState<BackgroundVariant>(
@@ -178,10 +179,10 @@ export function PreviewTestPage({
     setHistoryItems((current) => [...items, ...current].slice(0, 10));
   }
 
-  function buildPreviewResultFromComment(text: string): PreviewResult {
+  function buildPreviewOnlyResultFromComment(text: string): PreviewResult {
     const normalizedText = text.trim().toLowerCase();
 
-    // Preview / Test 限定の仮ロジック。正式 runtime や classifier の本実装ではない。
+    // Preview / Test 限定の仮ロジック。Overlay や正式 runtime の判定とは分離して扱う。
     if (
       normalizedText.includes("www") ||
       normalizedText === "w" ||
@@ -197,7 +198,7 @@ export function PreviewTestPage({
         adoption_label: "不採用",
         target_label: "viewer",
         orientation: "side",
-        bubble_text: `${sharedSettings.firstPerson}はこの入力を ignore 寄りとして扱いました${endingSuffix} 理由ラベルと見え方だけを確認しています。`,
+        bubble_text: `${sharedSettings.firstPerson}はこの入力を ignore 寄りとして扱いました${endingSuffix} Preview / Test 専用の見え方だけを確認しています。`,
       };
     }
 
@@ -236,7 +237,7 @@ export function PreviewTestPage({
         adoption_label: "採用",
         target_label: "viewer",
         orientation: "front",
-        bubble_text: `${sharedSettings.firstPerson}は質問っぽい入力として拾いました${endingSuffix} いまは Preview / Test 用の仮応答で確認しています。`,
+        bubble_text: `${sharedSettings.firstPerson}は質問っぽい入力として拾いました${endingSuffix} いまは Preview / Test 専用の仮応答で確認しています。`,
       };
     }
 
@@ -255,7 +256,7 @@ export function PreviewTestPage({
         adoption_label: "採用",
         target_label: "viewer",
         orientation: "side",
-        bubble_text: `${sharedSettings.viewerCall}からの応援っぽい入力として受けました${endingSuffix} 仮 wiring なので反応名は確認用です。`,
+        bubble_text: `${sharedSettings.viewerCall}からの応援っぽい入力として受けました${endingSuffix} Preview / Test 限定の仮 wiring なので反応名は確認用です。`,
       };
     }
 
@@ -267,12 +268,12 @@ export function PreviewTestPage({
       adoption_label: "保留",
       target_label: "viewer",
       orientation: "front",
-      bubble_text: `${sharedSettings.firstPerson}はこの入力を unknown 扱いにしました${endingSuffix} 正式ルールではなく仮 runtime の判定結果だけを表示しています。`,
+      bubble_text: `${sharedSettings.firstPerson}はこの入力を unknown 扱いにしました${endingSuffix} 正式ルールではなく Preview / Test 限定の仮 runtime 結果だけを表示しています。`,
     };
   }
 
   function runCommentTest(source: "manual" | "sample") {
-    const nextResult = buildPreviewResultFromComment(commentText);
+    const nextResult = buildPreviewOnlyResultFromComment(commentText);
 
     setOrientation(nextResult.orientation);
     setPreviewResult(nextResult);
@@ -410,10 +411,10 @@ export function PreviewTestPage({
               Basic Settings の主編集や Review の仕分けはここへ持ち込みません。
             </span>
             <span style={{ color: "#5F747A", lineHeight: 1.7, fontSize: "12px" }}>
-              Basic Settings からは VTuner名 / 呼び方 / 口調 / 表示向き / 表示サイズ / 吹き出し色 / 背景が最小反映されています。
+              Basic Settings からは VTuner名 / 呼び方 / 口調 / 表示向き / 表示サイズ / 吹き出し色 / 背景だけを最小反映しています。
             </span>
             <span style={{ color: "#357F91", lineHeight: 1.7, fontSize: "12px", fontWeight: 700 }}>
-              今回は Preview / Test 限定の仮 runtime wiring です。正式ルール処理や本番 runtime ではありません。
+              今回は Preview / Test 限定の仮 runtime wiring です。正式ルール処理や本番 runtime、Overlay 表示処理ではありません。
             </span>
           </div>
         </section>
@@ -617,7 +618,7 @@ export function PreviewTestPage({
 
               <div style={inputBoxStyle}>
                 <p style={{ margin: 0, color: "#5F747A", fontSize: "12px", lineHeight: 1.7 }}>
-                  ここは手入力テスト用です。仮判定ロジックで Preview / Test 専用結果を返します。正式ルール編集や JSON 生成は他画面の責務です。
+                  ここは手入力テスト用です。preview-only の仮判定ロジックで Preview / Test 専用結果を返します。正式ルール編集や JSON 生成は他画面の責務です。
                 </p>
                 <label style={fieldStyle}>
                   <span style={fieldLabelStyle}>投稿者名</span>

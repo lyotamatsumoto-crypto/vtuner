@@ -97,7 +97,7 @@ export function AppShell({
               lineHeight: 1.6,
             }}
           >
-            Phase 1-7 skeleton を App 内で切り替えます。
+            現在の確認用画面を App 内で切り替えます。
           </p>
         </div>
 
