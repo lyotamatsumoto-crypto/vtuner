@@ -1,10 +1,14 @@
 import { useMemo, useState } from "react";
+import type {
+  AdoptedChangeItem,
+  ReviewPatchQueueItem,
+} from "../../../backend/src/contracts/queue";
+import type { CompilePlanItem } from "../../../backend/src/contracts/compile";
 
 type EntryKind = "rule" | "definition";
 type RuleSource = "初期プリセット" | "手動追加" | "Review由来" | "AI採用済み" | "派生編集";
 type RuleTarget = "視聴者" | "配信者" | "共通";
-type PatchStatus = "candidate" | "pending";
-type AdoptionStatus = "採用待ち" | "保留" | "破棄";
+type PatchStatus = "candidate" | "pending" | "adopted" | "discarded" | "compiled";
 
 interface LibraryEntry {
   id: string;
@@ -27,18 +31,11 @@ interface EditableCondition {
 
 interface ReviewPatchCandidate {
   id: string;
-  patchType: "ignore patch" | "existing category patch" | "new candidate patch";
+  patchType: "ignore_patch" | "existing_category_patch" | "new_candidate_patch";
   title: string;
   summary: string;
   targetLabel: string;
   status: PatchStatus;
-}
-
-interface AdoptedChange {
-  id: string;
-  summary: string;
-  timeLabel: string;
-  compileStatus: "compile 待ち" | "確認のみ";
 }
 
 const libraryEntries: LibraryEntry[] = [
@@ -118,7 +115,7 @@ const initialReplyCandidates = [
 const initialReviewPatches: ReviewPatchCandidate[] = [
   {
     id: "patch-1",
-    patchType: "ignore patch",
+    patchType: "ignore_patch",
     title: "晩御飯系の軽い雑談質問",
     summary: "軽い雑談質問を ignore 対象へ寄せる候補",
     targetLabel: "ignore 条件候補",
@@ -126,7 +123,7 @@ const initialReviewPatches: ReviewPatchCandidate[] = [
   },
   {
     id: "patch-2",
-    patchType: "existing category patch",
+    patchType: "existing_category_patch",
     title: "question カテゴリへの追加候補",
     summary: "機材トーク系を質問カテゴリへ統合する候補",
     targetLabel: "質問カテゴリ",
@@ -134,36 +131,28 @@ const initialReviewPatches: ReviewPatchCandidate[] = [
   },
   {
     id: "patch-3",
-    patchType: "new candidate patch",
+    patchType: "new_candidate_patch",
     title: "機材トークの新規候補",
     summary: "新しい反応カテゴリまたはルール候補として保持",
     targetLabel: "機材トーク",
-    status: "candidate",
+    status: "adopted",
   },
 ];
 
-const adoptedChanges: AdoptedChange[] = [
-  {
-    id: "adopted-1",
-    summary: "Review 由来ルール 1件を採用",
-    timeLabel: "今日",
-    compileStatus: "compile 待ち",
-  },
-  {
-    id: "adopted-2",
-    summary: "定義 1件を手動追加",
-    timeLabel: "今日",
-    compileStatus: "compile 待ち",
-  },
-  {
-    id: "adopted-3",
-    summary: "候補文 2件を更新",
-    timeLabel: "今日",
-    compileStatus: "確認のみ",
-  },
-];
-
-export function DetailedRulesPage() {
+export function DetailedRulesPage({
+  reviewPatchQueue,
+  adoptedChanges,
+  compilePrecheckItems,
+  onSetReviewPatchStatus,
+}: {
+  reviewPatchQueue: ReviewPatchQueueItem[];
+  adoptedChanges: AdoptedChangeItem[];
+  compilePrecheckItems: CompilePlanItem[];
+  onSetReviewPatchStatus: (
+    patchId: string,
+    status: ReviewPatchQueueItem["status"],
+  ) => void;
+}) {
   const [selectedEntryId, setSelectedEntryId] = useState("rule-first-time");
   const [searchText, setSearchText] = useState("");
   const [kindFilter, setKindFilter] = useState<"all" | EntryKind>("all");
@@ -178,7 +167,19 @@ export function DetailedRulesPage() {
   const [notes, setNotes] = useState("初見歓迎は強めに出す。常連向けルールより先に当てる。");
   const [conditions] = useState(initialConditions);
   const [replyCandidates] = useState(initialReplyCandidates);
-  const [reviewPatches] = useState(initialReviewPatches);
+  const [reviewPatchesFallback] = useState(initialReviewPatches);
+
+  const reviewPatches: ReviewPatchCandidate[] =
+    reviewPatchQueue.length > 0
+      ? reviewPatchQueue.map((patch) => ({
+          id: patch.id,
+          patchType: patch.patch_type,
+          title: patch.target_category_or_definition ?? patch.proposal_summary,
+          summary: patch.proposal_summary,
+          targetLabel: patch.target_category_or_definition ?? "未設定",
+          status: patch.status,
+        }))
+      : reviewPatchesFallback;
 
   const filteredEntries = useMemo(
     () =>
@@ -275,7 +276,7 @@ export function DetailedRulesPage() {
                 <h2 style={sectionTitleStyle}>ルール / 定義</h2>
                 <p style={pageTextStyle}>正式に使う内容を探して開きます。</p>
               </div>
-              <span style={summaryChipStyle(true)}>採用済み変更 3件</span>
+              <span style={summaryChipStyle(true)}>採用済み変更 {adoptedChanges.length}件</span>
             </div>
 
             <div style={{ padding: "14px", display: "grid", gap: "12px" }}>
@@ -600,8 +601,8 @@ export function DetailedRulesPage() {
                   {reviewPatches.map((patch) => (
                     <article key={patch.id} style={subCardStyle}>
                       <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", alignItems: "center" }}>
-                        <span style={patchTypeStyle(patch.patchType)}>{patch.patchType}</span>
-                        <span style={pillStyle(patch.status === "pending" ? "#FFF0D8" : "#EAF7F7", patch.status === "pending" ? "#A96E22" : "#357F91")}>
+                      <span style={patchTypeStyle(patch.patchType)}>{patchTypeLabel(patch.patchType)}</span>
+                        <span style={reviewPatchStatusStyle(patch.status)}>
                           {patch.status}
                         </span>
                       </div>
@@ -609,9 +610,9 @@ export function DetailedRulesPage() {
                       <span style={pageTextStyle}>{patch.summary}</span>
                       <span style={{ ...pageTextStyle, fontSize: "12px" }}>対象: {patch.targetLabel}</span>
                       <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
-                        <button style={primaryButtonStyle}>採用</button>
-                        <button style={secondaryButtonStyle}>保留</button>
-                        <button style={dangerButtonStyle}>破棄</button>
+                        <button style={primaryButtonStyle} onClick={() => onSetReviewPatchStatus(patch.id, "adopted")}>採用</button>
+                        <button style={secondaryButtonStyle} onClick={() => onSetReviewPatchStatus(patch.id, "pending")}>保留</button>
+                        <button style={dangerButtonStyle} onClick={() => onSetReviewPatchStatus(patch.id, "discarded")}>破棄</button>
                       </div>
                     </article>
                   ))}
@@ -630,12 +631,20 @@ export function DetailedRulesPage() {
                   {adoptedChanges.map((item) => (
                     <div key={item.id} style={subCardStyle}>
                       <div style={{ display: "flex", justifyContent: "space-between", gap: "10px", alignItems: "center" }}>
-                        <strong>{item.summary}</strong>
-                        <span style={{ ...pageTextStyle, fontSize: "12px" }}>{item.timeLabel}</span>
+                        <strong>{item.target_name}</strong>
+                        <span style={{ ...pageTextStyle, fontSize: "12px" }}>{new Date(item.adopted_at).toLocaleDateString("ja-JP")}</span>
                       </div>
-                      <span style={pillStyle(item.compileStatus === "compile 待ち" ? "#EAF7F7" : "#F7FCFC", item.compileStatus === "compile 待ち" ? "#357F91" : "#5F747A")}>
-                        {item.compileStatus}
+                      <span style={pillStyle(item.compile_wait_status === "pending" ? "#EAF7F7" : "#F7FCFC", item.compile_wait_status === "pending" ? "#357F91" : "#5F747A")}>
+                        {item.compile_wait_status === "pending" ? "compile 待ち" : "compiled"}
                       </span>
+                    </div>
+                  ))}
+                </div>
+                <div style={{ display: "grid", gap: "8px" }}>
+                  {compilePrecheckItems.map((item) => (
+                    <div key={item.adopted_change_id} style={subCardStyle}>
+                      <strong>{item.target_name}</strong>
+                      <span style={pageTextStyle}>反映先: {item.target_kind}</span>
                     </div>
                   ))}
                 </div>
@@ -884,15 +893,47 @@ function statusChipStyle(active: boolean) {
 }
 
 function patchTypeStyle(type: ReviewPatchCandidate["patchType"]) {
-  if (type === "ignore patch") {
+  if (type === "ignore_patch") {
     return pillStyle("#F7FCFC", "#5F747A");
   }
 
-  if (type === "existing category patch") {
+  if (type === "existing_category_patch") {
     return pillStyle("#DDF3F4", "#357F91");
   }
 
   return pillStyle("#FFF0D8", "#A96E22");
+}
+
+function patchTypeLabel(type: ReviewPatchCandidate["patchType"]) {
+  if (type === "ignore_patch") {
+    return "ignore patch";
+  }
+
+  if (type === "existing_category_patch") {
+    return "existing category patch";
+  }
+
+  return "new candidate patch";
+}
+
+function reviewPatchStatusStyle(status: PatchStatus) {
+  if (status === "candidate") {
+    return pillStyle("#EAF7F7", "#357F91");
+  }
+
+  if (status === "pending") {
+    return pillStyle("#FFF0D8", "#A96E22");
+  }
+
+  if (status === "adopted") {
+    return pillStyle("#E4F5EC", "#3F8A63");
+  }
+
+  if (status === "compiled") {
+    return pillStyle("#DDF3F4", "#357F91");
+  }
+
+  return pillStyle("#F7FCFC", "#5F747A");
 }
 
 function pillStyle(background: string, color: string) {

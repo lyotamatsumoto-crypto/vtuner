@@ -1,8 +1,15 @@
 import { useMemo, useState } from "react";
+import type {
+  ReviewCommentState as QueueReviewCommentState,
+  ReviewPatchAction,
+  ReviewPatchQueueItem,
+  ReviewPatchStatus,
+  ReviewPatchType,
+} from "../../../backend/src/contracts/queue";
+import type { CreateReviewPatchCandidateInput } from "../reviewCompileBridge";
 
 type ReviewState = "unknown" | "skipped" | "displayed" | "ignored";
 type InferenceHint = "existing_close" | "ambiguous" | "unknown_leaning" | "ignore_leaning";
-type PatchType = "ignore patch" | "existing category patch" | "new candidate patch";
 
 interface ReviewSession {
   id: string;
@@ -26,16 +33,6 @@ interface ReviewComment {
   reasonLabels: string[];
   helperNote?: string;
   parseError?: string;
-}
-
-interface PatchCandidate {
-  id: string;
-  sessionId: string;
-  commentId: string;
-  patchType: PatchType;
-  summary: string;
-  targetLabel: string;
-  queueStatus: "candidate" | "pending";
 }
 
 const initialSessions: ReviewSession[] = [
@@ -165,43 +162,18 @@ const initialComments: ReviewComment[] = [
   },
 ];
 
-const initialPatchCandidates: PatchCandidate[] = [
-  {
-    id: "p1",
-    sessionId: "session-13",
-    commentId: "c5",
-    patchType: "ignore patch",
-    summary: "軽い生活質問を ignore 候補として保持",
-    targetLabel: "晩御飯たべた？ 系コメント",
-    queueStatus: "candidate",
-  },
-  {
-    id: "p2",
-    sessionId: "session-13",
-    commentId: "c3",
-    patchType: "existing category patch",
-    summary: "初見あいさつを既存カテゴリへ寄せる候補",
-    targetLabel: "挨拶 / 初見反応",
-    queueStatus: "pending",
-  },
-  {
-    id: "p3",
-    sessionId: "session-13",
-    commentId: "c1",
-    patchType: "new candidate patch",
-    summary: "機材トークを新カテゴリ候補として保留",
-    targetLabel: "質問 / 技術系の境界領域",
-    queueStatus: "candidate",
-  },
-];
-
 const stateOrder: ReviewState[] = ["unknown", "skipped", "displayed", "ignored"];
 const inferenceOrder: InferenceHint[] = ["existing_close", "ambiguous", "unknown_leaning", "ignore_leaning"];
 
-export function ReviewPage() {
+export function ReviewPage({
+  reviewPatchQueue,
+  onCreateReviewPatchCandidate,
+}: {
+  reviewPatchQueue: ReviewPatchQueueItem[];
+  onCreateReviewPatchCandidate: (input: CreateReviewPatchCandidateInput) => void;
+}) {
   const [sessions, setSessions] = useState(initialSessions);
   const [comments] = useState(initialComments);
-  const [patchCandidates, setPatchCandidates] = useState(initialPatchCandidates);
   const [selectedSessionId, setSelectedSessionId] = useState(initialSessions.at(0)?.id ?? "");
   const [selectedCommentId, setSelectedCommentId] = useState("c1");
   const [stateFilter, setStateFilter] = useState<ReviewState | "all">("all");
@@ -243,8 +215,8 @@ export function ReviewPage() {
     comments.find((comment) => comment.id === selectedCommentId) ??
     sessionComments[0];
 
-  const currentSessionPatchCandidates = patchCandidates.filter(
-    (candidate) => candidate.sessionId === selectedSessionId,
+  const currentSessionPatchCandidates = reviewPatchQueue.filter(
+    (candidate) => candidate.source_ref.session_id === selectedSessionId,
   );
 
   function loadPastedSessionSkeleton() {
@@ -267,23 +239,27 @@ export function ReviewPage() {
     );
   }
 
-  function addPatchCandidate(patchType: PatchType) {
+  function addPatchCandidate(action: ReviewPatchAction) {
     if (!selectedComment) {
       return;
     }
 
-    const existing = patchCandidates.find(
-      (candidate) => candidate.sessionId === selectedSessionId && candidate.commentId === selectedComment.id && candidate.patchType === patchType,
+    const nextPatchType = toPatchType(action);
+    const existing = reviewPatchQueue.find(
+      (candidate) =>
+        candidate.source_ref.session_id === selectedSessionId &&
+        candidate.source_ref.original_text === `${selectedComment.author}: ${selectedComment.text}` &&
+        candidate.patch_type === nextPatchType,
     );
 
     if (existing) {
       return;
     }
 
-    const summaryByType: Record<PatchType, string> = {
-      "ignore patch": "ignore 候補として保持",
-      "existing category patch": "既存カテゴリ候補として保持",
-      "new candidate patch": "新カテゴリ候補として保留",
+    const summaryByAction: Record<ReviewPatchAction, string> = {
+      ignore: "ignore 候補として保持",
+      existing_category: "既存カテゴリ候補として保持",
+      new_candidate: "新カテゴリ候補として保留",
     };
 
     const targetLabel =
@@ -291,17 +267,23 @@ export function ReviewPage() {
         ? selectedComment.categoryCandidates.join(" / ")
         : selectedComment.text;
 
-    const nextCandidate: PatchCandidate = {
-      id: `patch-${Date.now()}`,
-      sessionId: selectedSessionId,
-      commentId: selectedComment.id,
-      patchType,
-      summary: `${selectedComment.author} のコメントを ${summaryByType[patchType]}`,
-      targetLabel,
-      queueStatus: "candidate",
-    };
-
-    setPatchCandidates((current) => [nextCandidate, ...current]);
+    onCreateReviewPatchCandidate({
+      session_id: selectedSessionId,
+      comment_id: selectedComment.id,
+      comment_state: selectedComment.state as QueueReviewCommentState,
+      selected_action: action,
+      proposal_summary: `${selectedComment.author} のコメントを ${summaryByAction[action]}`,
+      inferred_category_candidates: selectedComment.categoryCandidates,
+      target_category_or_definition: targetLabel,
+      source_ref: {
+        source_type: "pasted_text",
+        session_id: selectedSessionId,
+        original_text: `${selectedComment.author}: ${selectedComment.text}`,
+        extracted_author: selectedComment.author,
+        extracted_body: selectedComment.text,
+        ...(selectedComment.parseError ? { parse_errors: [selectedComment.parseError] } : {}),
+      },
+    });
   }
 
   return (
@@ -408,10 +390,10 @@ export function ReviewPage() {
                   }}
                 >
                   <div style={{ display: "flex", justifyContent: "space-between", gap: "8px", alignItems: "center" }}>
-                    <strong style={{ textAlign: "left" }}>{session.title}</strong>
-                    <span style={statusChipStyle(session.reviewedLabel === "Review 中")}>{session.reviewedLabel}</span>
-                  </div>
-                  <span style={{ ...pageTextStyle, fontSize: "12px", textAlign: "left" }}>{session.dateLabel}</span>
+                      <strong style={{ textAlign: "left" }}>{session.title}</strong>
+                      <span style={statusChipStyle(session.reviewedLabel === "Review 中")}>{session.reviewedLabel}</span>
+                    </div>
+                    <span style={{ ...pageTextStyle, fontSize: "12px", textAlign: "left" }}>{session.dateLabel}</span>
                   <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: "8px" }}>
                     <div style={metricCardStyle}>
                       <span style={metricLabelStyle}>コメント</span>
@@ -419,7 +401,7 @@ export function ReviewPage() {
                     </div>
                     <div style={metricCardStyle}>
                       <span style={metricLabelStyle}>候補</span>
-                      <strong>{session.patchCount}</strong>
+                      <strong>{reviewPatchQueue.filter((item) => item.source_ref.session_id === session.id).length}</strong>
                     </div>
                   </div>
                   <span style={{ ...pageTextStyle, fontSize: "12px", textAlign: "left" }}>
@@ -551,13 +533,13 @@ export function ReviewPage() {
               <section style={cardInsetStyle}>
                 <h2 style={sectionTitleStyle}>Review 操作</h2>
                 <div style={{ display: "grid", gap: "8px" }}>
-                  <button style={secondaryButtonStyle} onClick={() => addPatchCandidate("ignore patch")}>
+                  <button style={secondaryButtonStyle} onClick={() => addPatchCandidate("ignore")}>
                     ignore にする
                   </button>
-                  <button style={primaryButtonStyle} onClick={() => addPatchCandidate("existing category patch")}>
+                  <button style={primaryButtonStyle} onClick={() => addPatchCandidate("existing_category")}>
                     existing category 候補にする
                   </button>
-                  <button style={secondaryButtonStyle} onClick={() => addPatchCandidate("new candidate patch")}>
+                  <button style={secondaryButtonStyle} onClick={() => addPatchCandidate("new_candidate")}>
                     new category 候補として保留
                   </button>
                 </div>
@@ -577,11 +559,13 @@ export function ReviewPage() {
                   {currentSessionPatchCandidates.map((candidate) => (
                     <article key={candidate.id} style={patchCandidateStyle}>
                       <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", alignItems: "center" }}>
-                        <span style={metaChipStyle}>{candidate.patchType}</span>
-                        <span style={queueStatusChipStyle(candidate.queueStatus)}>{candidate.queueStatus}</span>
+                        <span style={metaChipStyle}>{patchTypeLabel(candidate.patch_type)}</span>
+                        <span style={queueStatusChipStyle(candidate.status)}>{candidate.status}</span>
                       </div>
-                      <strong>{candidate.summary}</strong>
-                      <span style={pageTextStyle}>対象: {candidate.targetLabel}</span>
+                      <strong>{candidate.proposal_summary}</strong>
+                      <span style={pageTextStyle}>
+                        対象: {candidate.target_category_or_definition ?? "未設定"}
+                      </span>
                     </article>
                   ))}
                 </div>
@@ -611,6 +595,30 @@ function DetailRow({ label, value }: { label: string; value: string }) {
       <span style={{ lineHeight: 1.6 }}>{value}</span>
     </div>
   );
+}
+
+function toPatchType(action: ReviewPatchAction): ReviewPatchType {
+  if (action === "ignore") {
+    return "ignore_patch";
+  }
+
+  if (action === "existing_category") {
+    return "existing_category_patch";
+  }
+
+  return "new_candidate_patch";
+}
+
+function patchTypeLabel(type: ReviewPatchType) {
+  if (type === "ignore_patch") {
+    return "ignore patch";
+  }
+
+  if (type === "existing_category_patch") {
+    return "existing category patch";
+  }
+
+  return "new candidate patch";
 }
 
 function inferenceLabel(hint: InferenceHint) {
@@ -909,8 +917,24 @@ function inferenceChipStyle(inference: InferenceHint) {
   return chipStyle("#F7FCFC", "#5F747A");
 }
 
-function queueStatusChipStyle(status: "candidate" | "pending") {
-  return chipStyle(status === "candidate" ? "#EAF7F7" : "#FFF0D8", status === "candidate" ? "#357F91" : "#A96E22");
+function queueStatusChipStyle(status: ReviewPatchStatus) {
+  if (status === "candidate") {
+    return chipStyle("#EAF7F7", "#357F91");
+  }
+
+  if (status === "pending") {
+    return chipStyle("#FFF0D8", "#A96E22");
+  }
+
+  if (status === "adopted") {
+    return chipStyle("#E4F5EC", "#3F8A63");
+  }
+
+  if (status === "compiled") {
+    return chipStyle("#DDF3F4", "#357F91");
+  }
+
+  return chipStyle("#F7FCFC", "#5F747A");
 }
 
 const metaChipStyle = chipStyle("#FFFFFF", "#5F747A");

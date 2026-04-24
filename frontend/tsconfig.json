@@ -10,6 +10,7 @@
     "noEmit": true
   },
   "include": [
+    "../backend/src/contracts/**/*.ts",
     "../schemas/runtime/**/*.ts",
     "./src/**/*.ts",
     "./src/**/*.tsx",
