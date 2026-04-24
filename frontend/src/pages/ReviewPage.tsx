@@ -570,7 +570,7 @@ export function ReviewPage({
                   ))}
                 </div>
                 <div style={inlineNoticeStyle}>
-                  ここで作った差分候補は `Review Patch Queue` に並びます。まだ本体へ反映せず、Detailed Rules 側で採用する前の確認対象として扱います。
+                  ここで作った差分候補は `Review Patch Queue` に並びます。まだ本体へ反映せず、Detailed Rules 側で採用と compile 前確認を行う前の確認対象として扱います。
                 </div>
               </section>
             </div>
@@ -635,7 +635,7 @@ function reviewPatchStatusLabel(status: ReviewPatchStatus) {
   }
 
   if (status === "compiled") {
-    return "compiled / 反映済み";
+    return "compiled / 確認版反映済み";
   }
 
   return "discarded / 破棄";

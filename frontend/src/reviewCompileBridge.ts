@@ -155,6 +155,8 @@ export function runCompileFromAdoptedChanges(
   nextAdoptedChanges: AdoptedChangeItem[];
   compileRecord: CompileRecord | null;
 } {
+  // Phase 9 の compile は frontend 内の最小確認版だけを扱う。
+  // queue 保存や backend 実行、本体反映はまだここに含めない。
   if (compilePrecheckPlanItems.length === 0) {
     return {
       nextAdoptedChanges: adoptedChanges,

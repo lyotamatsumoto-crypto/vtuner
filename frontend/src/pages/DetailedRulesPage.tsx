@@ -600,7 +600,7 @@ export function DetailedRulesPage({
                 <div style={{ display: "flex", justifyContent: "space-between", gap: "8px", alignItems: "center" }}>
                   <div>
                     <h2 style={sectionTitleStyle}>Review Patch Queue から採用</h2>
-                    <p style={pageTextStyle}>Review で整理された差分候補を、ここで正式採用する前提の確認欄です。</p>
+                    <p style={pageTextStyle}>Review で整理された差分候補を、ここで正式採用し、次の compile 前確認へつなげます。</p>
                   </div>
                   <span style={pillStyle("#FFF0D8", "#A96E22")}>{reviewPatches.length}件</span>
                 </div>
@@ -630,7 +630,7 @@ export function DetailedRulesPage({
                 <div style={{ display: "flex", justifyContent: "space-between", gap: "8px", alignItems: "center" }}>
                   <div>
                     <h2 style={sectionTitleStyle}>Adopted Changes</h2>
-                    <p style={pageTextStyle}>採用済み変更の一覧です。compile 前確認から、最小の compile 実行結果を履歴へ流せます。</p>
+                    <p style={pageTextStyle}>採用済み変更の一覧です。ここでは compile 前確認と、frontend 確認版の最小 compile 履歴だけを扱います。</p>
                   </div>
                   <span style={pillStyle("#EAF7F7", "#357F91")}>compile 前確認</span>
                 </div>
@@ -642,7 +642,7 @@ export function DetailedRulesPage({
                         <span style={{ ...pageTextStyle, fontSize: "12px" }}>{new Date(item.adopted_at).toLocaleDateString("ja-JP")}</span>
                       </div>
                       <span style={pillStyle(item.compile_wait_status === "pending" ? "#EAF7F7" : "#F7FCFC", item.compile_wait_status === "pending" ? "#357F91" : "#5F747A")}>
-                        {item.compile_wait_status === "pending" ? "compile 前確認中" : "compiled / 反映済み"}
+                        {item.compile_wait_status === "pending" ? "compile 前確認中" : "compiled / 確認版反映済み"}
                       </span>
                     </div>
                   ))}
@@ -655,7 +655,7 @@ export function DetailedRulesPage({
                       onClick={onRunCompile}
                       disabled={compilePrecheckItems.length === 0}
                     >
-                      最小 compile を実行
+                      確認版 compile を実行
                     </button>
                   </div>
                   {compilePrecheckItems.map((item) => (
@@ -686,7 +686,7 @@ export function DetailedRulesPage({
                               record.status === "success" ? "#3F8A63" : "#B94D4D",
                             )}
                           >
-                            {record.status === "success" ? "success / 成功" : "failed / 失敗"}
+                            {record.status === "success" ? "success / 確認版成功" : "failed / 失敗"}
                           </span>
                         </div>
                         <span style={pageTextStyle}>対象件数: {record.target_count}</span>
@@ -695,12 +695,12 @@ export function DetailedRulesPage({
                     ))
                   ) : (
                     <div style={subCardStyle}>
-                      <span style={pageTextStyle}>まだ compile 履歴はありません。</span>
+                      <span style={pageTextStyle}>まだ compile 履歴はありません。確認版 compile の実行後にここへ追加されます。</span>
                     </div>
                   )}
                 </div>
                 <div style={inlineNoticeStyle}>
-                  ここでの compile は frontend 内の最小確認版です。履歴表示までは進めますが、queue 保存や本体反映はまだ行いません。
+                  ここでの compile は frontend 内の最小確認版です。現段階では `success` 固定で履歴表示までを扱い、queue 保存や backend 実行、本体反映はまだ行いません。
                 </div>
               </section>
             </div>
@@ -994,7 +994,7 @@ function reviewPatchStatusLabel(status: PatchStatus) {
   }
 
   if (status === "compiled") {
-    return "compiled / 反映済み";
+    return "compiled / 確認版反映済み";
   }
 
   return "discarded / 不採用";
