@@ -1,0 +1,911 @@
+import { useMemo, useState } from "react";
+
+type EntryKind = "rule" | "definition";
+type RuleSource = "初期プリセット" | "手動追加" | "Review由来" | "AI採用済み" | "派生編集";
+type RuleTarget = "視聴者" | "配信者" | "共通";
+type PatchStatus = "candidate" | "pending";
+type AdoptionStatus = "採用待ち" | "保留" | "破棄";
+
+interface LibraryEntry {
+  id: string;
+  name: string;
+  kind: EntryKind;
+  enabled: boolean;
+  source: RuleSource;
+  target: RuleTarget;
+  summary: string;
+  conditionCount?: number;
+  replyCount?: number;
+}
+
+interface EditableCondition {
+  id: string;
+  type: string;
+  content: string;
+  priority: "高" | "中" | "低";
+}
+
+interface ReviewPatchCandidate {
+  id: string;
+  patchType: "ignore patch" | "existing category patch" | "new candidate patch";
+  title: string;
+  summary: string;
+  targetLabel: string;
+  status: PatchStatus;
+}
+
+interface AdoptedChange {
+  id: string;
+  summary: string;
+  timeLabel: string;
+  compileStatus: "compile 待ち" | "確認のみ";
+}
+
+const libraryEntries: LibraryEntry[] = [
+  {
+    id: "rule-first-time",
+    name: "初見歓迎ルール",
+    kind: "rule",
+    enabled: true,
+    source: "初期プリセット",
+    target: "視聴者",
+    summary: "初見 / 挨拶系コメントを優先して歓迎する正式ルール",
+    conditionCount: 2,
+    replyCount: 4,
+  },
+  {
+    id: "rule-regular",
+    name: "常連向けお礼ルール",
+    kind: "rule",
+    enabled: true,
+    source: "派生編集",
+    target: "視聴者",
+    summary: "よく来る視聴者へ少しやわらかく返す正式ルール",
+    conditionCount: 2,
+    replyCount: 3,
+  },
+  {
+    id: "rule-gear-talk",
+    name: "機材トーク候補ルール",
+    kind: "rule",
+    enabled: false,
+    source: "Review由来",
+    target: "視聴者",
+    summary: "機材や配信環境に関する質問を正式ルールへ寄せる候補",
+    conditionCount: 1,
+    replyCount: 2,
+  },
+  {
+    id: "def-question",
+    name: "質問カテゴリ",
+    kind: "definition",
+    enabled: true,
+    source: "初期プリセット",
+    target: "視聴者",
+    summary: "質問系コメントへ返すカテゴリ定義",
+  },
+  {
+    id: "def-gear",
+    name: "機材トーク定義",
+    kind: "definition",
+    enabled: true,
+    source: "手動追加",
+    target: "視聴者",
+    summary: "マイク、カメラ、配信環境などの話題に使う正式定義",
+  },
+];
+
+const initialConditions: EditableCondition[] = [
+  {
+    id: "cond-1",
+    type: "コメント条件",
+    content: "初見 / はじめまして / 初見です を含む",
+    priority: "高",
+  },
+  {
+    id: "cond-2",
+    type: "名前条件",
+    content: "初見バッジ / 初回ユーザー寄り",
+    priority: "中",
+  },
+];
+
+const initialReplyCandidates = [
+  "こんにちは。来てくれてありがとうございます。ゆっくりしていってくださいね。",
+  "初見さん、ありがとうございます。今日はこんな感じでやっています。",
+];
+
+const initialReviewPatches: ReviewPatchCandidate[] = [
+  {
+    id: "patch-1",
+    patchType: "ignore patch",
+    title: "晩御飯系の軽い雑談質問",
+    summary: "軽い雑談質問を ignore 対象へ寄せる候補",
+    targetLabel: "ignore 条件候補",
+    status: "candidate",
+  },
+  {
+    id: "patch-2",
+    patchType: "existing category patch",
+    title: "question カテゴリへの追加候補",
+    summary: "機材トーク系を質問カテゴリへ統合する候補",
+    targetLabel: "質問カテゴリ",
+    status: "pending",
+  },
+  {
+    id: "patch-3",
+    patchType: "new candidate patch",
+    title: "機材トークの新規候補",
+    summary: "新しい反応カテゴリまたはルール候補として保持",
+    targetLabel: "機材トーク",
+    status: "candidate",
+  },
+];
+
+const adoptedChanges: AdoptedChange[] = [
+  {
+    id: "adopted-1",
+    summary: "Review 由来ルール 1件を採用",
+    timeLabel: "今日",
+    compileStatus: "compile 待ち",
+  },
+  {
+    id: "adopted-2",
+    summary: "定義 1件を手動追加",
+    timeLabel: "今日",
+    compileStatus: "compile 待ち",
+  },
+  {
+    id: "adopted-3",
+    summary: "候補文 2件を更新",
+    timeLabel: "今日",
+    compileStatus: "確認のみ",
+  },
+];
+
+export function DetailedRulesPage() {
+  const [selectedEntryId, setSelectedEntryId] = useState("rule-first-time");
+  const [searchText, setSearchText] = useState("");
+  const [kindFilter, setKindFilter] = useState<"all" | EntryKind>("all");
+  const [enabledFilter, setEnabledFilter] = useState<"all" | "enabled" | "disabled">("all");
+  const [targetFilter, setTargetFilter] = useState<"all" | RuleTarget>("all");
+  const [sourceFilter, setSourceFilter] = useState<"all" | RuleSource>("all");
+  const [ruleName, setRuleName] = useState("初見歓迎ルール");
+  const [enabled, setEnabled] = useState("有効");
+  const [target, setTarget] = useState<RuleTarget>("視聴者");
+  const [personaLayer, setPersonaLayer] = useState("基本人格");
+  const [toneDirection, setToneDirection] = useState("丁寧で落ち着いた口調");
+  const [notes, setNotes] = useState("初見歓迎は強めに出す。常連向けルールより先に当てる。");
+  const [conditions] = useState(initialConditions);
+  const [replyCandidates] = useState(initialReplyCandidates);
+  const [reviewPatches] = useState(initialReviewPatches);
+
+  const filteredEntries = useMemo(
+    () =>
+      libraryEntries.filter((entry) => {
+        if (kindFilter !== "all" && entry.kind !== kindFilter) {
+          return false;
+        }
+
+        if (enabledFilter === "enabled" && !entry.enabled) {
+          return false;
+        }
+
+        if (enabledFilter === "disabled" && entry.enabled) {
+          return false;
+        }
+
+        if (targetFilter !== "all" && entry.target !== targetFilter) {
+          return false;
+        }
+
+        if (sourceFilter !== "all" && entry.source !== sourceFilter) {
+          return false;
+        }
+
+        if (
+          searchText &&
+          !`${entry.name} ${entry.summary} ${entry.source} ${entry.target}`.toLowerCase().includes(searchText.toLowerCase())
+        ) {
+          return false;
+        }
+
+        return true;
+      }),
+    [enabledFilter, kindFilter, searchText, sourceFilter, targetFilter],
+  );
+
+  const selectedEntry =
+    filteredEntries.find((entry) => entry.id === selectedEntryId) ??
+    libraryEntries.find((entry) => entry.id === selectedEntryId) ??
+    libraryEntries[0];
+
+  return (
+    <main
+      style={{
+        minHeight: "100vh",
+        margin: 0,
+        padding: "24px",
+        background: "#F3F7F7",
+        color: "#2F3E46",
+        fontFamily: "\"Noto Sans JP\", system-ui, sans-serif",
+      }}
+    >
+      <div
+        style={{
+          maxWidth: "1520px",
+          margin: "0 auto",
+          display: "grid",
+          gap: "16px",
+        }}
+      >
+        <header style={pageHeaderStyle}>
+          <div style={{ display: "grid", gap: "6px" }}>
+            <div style={pageBadgeStyle}>Detailed Rules Skeleton</div>
+            <h1 style={{ margin: 0, fontSize: "30px", fontWeight: 800 }}>Detailed Rules</h1>
+            <p style={pageTextStyle}>
+              正式編集室として、採用済みルールと定義の編集、手動追加、Review patch 採用をまとめます。
+            </p>
+          </div>
+          <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
+            <div style={summaryChipStyle(true)}>正式編集室</div>
+            <div style={summaryChipStyle(false)}>AI / JSON Studio 主導線は持ち込まない</div>
+          </div>
+        </header>
+
+        <section style={summaryCardStyle}>
+          <strong style={{ fontSize: "15px" }}>この画面の役割</strong>
+          <span style={pageTextStyle}>
+            ここでは採用済みルールの正式編集、採用済み定義の正式編集、手動追加、Review patch の採用、
+            compile 前変更確認だけを扱います。JSON 生成、JSON 検証、エラー修正は AI / JSON Studio の責務です。
+          </span>
+        </section>
+
+        <section
+          style={{
+            display: "grid",
+            gridTemplateColumns: "320px minmax(0, 1fr) 380px",
+            gap: "16px",
+            alignItems: "start",
+          }}
+        >
+          <aside style={paneStyle}>
+            <div style={{ ...paneHeaderStyle, borderBottom: "1px solid #BFDCDD" }}>
+              <div>
+                <h2 style={sectionTitleStyle}>ルール / 定義</h2>
+                <p style={pageTextStyle}>正式に使う内容を探して開きます。</p>
+              </div>
+              <span style={summaryChipStyle(true)}>採用済み変更 3件</span>
+            </div>
+
+            <div style={{ padding: "14px", display: "grid", gap: "12px" }}>
+              <div style={cardInsetStyle}>
+                <input
+                  style={inputStyle}
+                  value={searchText}
+                  onChange={(event) => setSearchText(event.target.value)}
+                  placeholder="ルール名 / 定義名 / 条件で検索"
+                />
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: "8px" }}>
+                  <button style={toggleButtonStyle(kindFilter === "all")} onClick={() => setKindFilter("all")}>
+                    すべて
+                  </button>
+                  <button style={toggleButtonStyle(kindFilter === "rule")} onClick={() => setKindFilter("rule")}>
+                    ルール
+                  </button>
+                  <button
+                    style={toggleButtonStyle(kindFilter === "definition")}
+                    onClick={() => setKindFilter("definition")}
+                  >
+                    定義
+                  </button>
+                  <button style={toggleButtonStyle(sourceFilter === "Review由来")} onClick={() => setSourceFilter("Review由来")}>
+                    Review 由来
+                  </button>
+                </div>
+                <div style={{ display: "grid", gap: "8px" }}>
+                  <select
+                    style={inputStyle}
+                    value={enabledFilter}
+                    onChange={(event) => setEnabledFilter(event.target.value as "all" | "enabled" | "disabled")}
+                  >
+                    <option value="all">状態: すべて</option>
+                    <option value="enabled">有効のみ</option>
+                    <option value="disabled">無効のみ</option>
+                  </select>
+                  <select
+                    style={inputStyle}
+                    value={targetFilter}
+                    onChange={(event) => setTargetFilter(event.target.value as "all" | RuleTarget)}
+                  >
+                    <option value="all">発話対象: すべて</option>
+                    <option value="視聴者">視聴者</option>
+                    <option value="配信者">配信者</option>
+                    <option value="共通">共通</option>
+                  </select>
+                  <select
+                    style={inputStyle}
+                    value={sourceFilter}
+                    onChange={(event) => setSourceFilter(event.target.value as "all" | RuleSource)}
+                  >
+                    <option value="all">source: すべて</option>
+                    <option value="初期プリセット">初期プリセット</option>
+                    <option value="手動追加">手動追加</option>
+                    <option value="Review由来">Review由来</option>
+                    <option value="AI採用済み">AI採用済み</option>
+                    <option value="派生編集">派生編集</option>
+                  </select>
+                </div>
+              </div>
+
+              {filteredEntries.map((entry) => (
+                <button
+                  key={entry.id}
+                  type="button"
+                  onClick={() => setSelectedEntryId(entry.id)}
+                  style={{
+                    ...listCardStyle,
+                    borderColor: entry.id === selectedEntryId ? "#8FCFD3" : "#BFDCDD",
+                    background:
+                      entry.id === selectedEntryId
+                        ? "linear-gradient(180deg, #FFFFFF 0%, #F7FCFC 100%)"
+                        : "#FFFFFF",
+                  }}
+                >
+                  <div style={{ display: "flex", justifyContent: "space-between", gap: "10px", alignItems: "flex-start" }}>
+                    <div style={{ display: "grid", gap: "5px", textAlign: "left" }}>
+                      <strong>{entry.name}</strong>
+                      <span style={{ ...pageTextStyle, fontSize: "12px" }}>{entry.summary}</span>
+                    </div>
+                    <span style={statusChipStyle(entry.enabled)}>{entry.enabled ? "有効" : "無効"}</span>
+                  </div>
+                  <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                    <span style={pillStyle("#E4F5EC", "#3F8A63")}>{entry.kind === "rule" ? "ルール" : "定義"}</span>
+                    <span style={pillStyle("#F7FCFC", "#5F747A")}>{entry.source}</span>
+                    <span style={pillStyle("#EAF7F7", "#357F91")}>{entry.target}</span>
+                  </div>
+                  {entry.kind === "rule" ? (
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: "8px" }}>
+                      <div style={metricCardStyle}>
+                        <span style={metricLabelStyle}>候補文</span>
+                        <strong>{entry.replyCount}</strong>
+                      </div>
+                      <div style={metricCardStyle}>
+                        <span style={metricLabelStyle}>条件</span>
+                        <strong>{entry.conditionCount}</strong>
+                      </div>
+                    </div>
+                  ) : null}
+                </button>
+              ))}
+            </div>
+          </aside>
+
+          <section style={paneStyle}>
+            <div style={paneHeaderStyle}>
+              <div>
+                <h2 style={sectionTitleStyle}>選択中の正式編集</h2>
+                <p style={pageTextStyle}>
+                  {selectedEntry?.kind === "definition"
+                    ? "定義の正式編集導線をここで確認します。"
+                    : "採用済みルールの正式編集フォームをここで確認します。"}
+                </p>
+              </div>
+              <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                <span style={pillStyle("#EAF7F7", "#357F91")}>{selectedEntry?.source ?? "source 未設定"}</span>
+                <span style={pillStyle("#F7FCFC", "#5F747A")}>{selectedEntry?.target ?? "共通"}</span>
+              </div>
+            </div>
+
+            <div style={{ padding: "14px", display: "grid", gap: "14px" }}>
+              <section style={cardInsetStyle}>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: "14px" }}>
+                  <Field label={selectedEntry?.kind === "definition" ? "定義名" : "ルール名"}>
+                    <input style={inputStyle} value={ruleName} onChange={(event) => setRuleName(event.target.value)} />
+                  </Field>
+                  <Field label="状態">
+                    <select style={inputStyle} value={enabled} onChange={(event) => setEnabled(event.target.value)}>
+                      <option>有効</option>
+                      <option>無効</option>
+                    </select>
+                  </Field>
+                  <Field label="発話対象">
+                    <select
+                      style={inputStyle}
+                      value={target}
+                      onChange={(event) => setTarget(event.target.value as RuleTarget)}
+                    >
+                      <option value="視聴者">視聴者</option>
+                      <option value="配信者">配信者</option>
+                      <option value="共通">共通</option>
+                    </select>
+                  </Field>
+                </div>
+
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: "14px" }}>
+                  <Field label="使用人格レイヤー">
+                    <select style={inputStyle} value={personaLayer} onChange={(event) => setPersonaLayer(event.target.value)}>
+                      <option>基本人格</option>
+                      <option>やわらかめ</option>
+                      <option>補助寄り</option>
+                      <option>クール寄り</option>
+                    </select>
+                  </Field>
+                  <Field label="口調方向">
+                    <select style={inputStyle} value={toneDirection} onChange={(event) => setToneDirection(event.target.value)}>
+                      <option>丁寧で落ち着いた口調</option>
+                      <option>やわらかい口調</option>
+                      <option>少しカジュアル</option>
+                    </select>
+                  </Field>
+                </div>
+              </section>
+
+              <section style={cardInsetStyle}>
+                <div style={{ display: "flex", justifyContent: "space-between", gap: "8px", alignItems: "center" }}>
+                  <div>
+                    <h3 style={{ margin: 0, fontSize: "18px", fontWeight: 800 }}>条件編集</h3>
+                    <p style={{ ...pageTextStyle, fontSize: "12px" }}>発火条件を正式ルールとして調整します。</p>
+                  </div>
+                  <button style={secondaryButtonStyle}>条件を追加</button>
+                </div>
+
+                <div style={{ display: "grid", gap: "10px" }}>
+                  {conditions.map((condition) => (
+                    <div key={condition.id} style={subCardStyle}>
+                      <div style={{ display: "grid", gridTemplateColumns: "1fr 2fr 1fr auto", gap: "10px" }}>
+                        <Field label="条件種別">
+                          <select style={inputStyle} defaultValue={condition.type}>
+                            <option>コメント条件</option>
+                            <option>無コメント条件</option>
+                            <option>連投条件</option>
+                            <option>名前条件</option>
+                            <option>時間条件</option>
+                          </select>
+                        </Field>
+                        <Field label="条件内容">
+                          <input style={inputStyle} defaultValue={condition.content} />
+                        </Field>
+                        <Field label="優先度">
+                          <select style={inputStyle} defaultValue={condition.priority}>
+                            <option>高</option>
+                            <option>中</option>
+                            <option>低</option>
+                          </select>
+                        </Field>
+                        <div style={{ display: "flex", alignItems: "end" }}>
+                          <button style={secondaryButtonStyle}>削除</button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </section>
+
+              <section style={cardInsetStyle}>
+                <div style={{ display: "flex", justifyContent: "space-between", gap: "8px", alignItems: "center" }}>
+                  <div>
+                    <h3 style={{ margin: 0, fontSize: "18px", fontWeight: 800 }}>候補文編集</h3>
+                    <p style={{ ...pageTextStyle, fontSize: "12px" }}>採用済みルールの候補文を正式に調整します。</p>
+                  </div>
+                  <button style={secondaryButtonStyle}>候補文を追加</button>
+                </div>
+
+                <div style={{ display: "grid", gap: "10px" }}>
+                  {replyCandidates.map((reply, index) => (
+                    <div key={`${reply}-${index}`} style={subCardStyle}>
+                      <div style={{ display: "flex", justifyContent: "space-between", gap: "8px", alignItems: "center", marginBottom: "8px" }}>
+                        <span style={pillStyle("#DDF3F4", "#357F91")}>候補文 {index + 1}</span>
+                        <button style={textButtonStyle}>削除</button>
+                      </div>
+                      <textarea style={{ ...inputStyle, minHeight: "88px", resize: "vertical" }} defaultValue={reply} />
+                    </div>
+                  ))}
+                </div>
+              </section>
+
+              <section style={cardInsetStyle}>
+                <Field label="補足メモ">
+                  <textarea
+                    style={{ ...inputStyle, minHeight: "96px", resize: "vertical" }}
+                    value={notes}
+                    onChange={(event) => setNotes(event.target.value)}
+                  />
+                </Field>
+                <div style={{ display: "flex", justifyContent: "space-between", gap: "10px", alignItems: "center", flexWrap: "wrap" }}>
+                  <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                    <button style={primaryButtonStyle}>保存</button>
+                    <button style={secondaryButtonStyle}>複製</button>
+                    <button style={dangerButtonStyle}>削除</button>
+                  </div>
+                  <span style={{ ...pageTextStyle, fontSize: "12px" }}>
+                    最終更新: 今日 18:42 / source: {selectedEntry?.source ?? "初期プリセット"}
+                  </span>
+                </div>
+              </section>
+            </div>
+          </section>
+
+          <aside style={paneStyle}>
+            <div style={{ padding: "14px", display: "grid", gap: "14px" }}>
+              <section style={cardInsetStyle}>
+                <div>
+                  <h2 style={sectionTitleStyle}>手動で新ルールを追加</h2>
+                  <p style={pageTextStyle}>新しい正式ルールを人力で追加する骨格です。</p>
+                </div>
+                <Field label="何のルールを作るか">
+                  <input style={inputStyle} defaultValue="機材トークへの返答" />
+                </Field>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: "12px" }}>
+                  <Field label="対象">
+                    <select style={inputStyle} defaultValue="視聴者">
+                      <option>視聴者</option>
+                      <option>配信者</option>
+                    </select>
+                  </Field>
+                  <Field label="方向性">
+                    <select style={inputStyle} defaultValue="質問への返答">
+                      <option>質問への返答</option>
+                      <option>補助コメント</option>
+                      <option>軽い話題振り</option>
+                    </select>
+                  </Field>
+                </div>
+                <Field label="初期候補文">
+                  <textarea
+                    style={{ ...inputStyle, minHeight: "88px", resize: "vertical" }}
+                    defaultValue="機材まわりは少しずつ整えています。まだ調整中のところもありますね。"
+                  />
+                </Field>
+                <button style={primaryButtonStyle}>新ルールを作成</button>
+              </section>
+
+              <section style={cardInsetStyle}>
+                <div>
+                  <h2 style={sectionTitleStyle}>手動で新定義を追加</h2>
+                  <p style={pageTextStyle}>Basic Settings などで使う正式定義の追加骨格です。</p>
+                </div>
+                <Field label="定義種別">
+                  <select style={inputStyle} defaultValue="反応カテゴリ">
+                    <option>反応カテゴリ</option>
+                    <option>性格タイプ</option>
+                    <option>口調タイプ</option>
+                    <option>語尾タイプ</option>
+                  </select>
+                </Field>
+                <Field label="名前">
+                  <input style={inputStyle} defaultValue="機材トーク" />
+                </Field>
+                <Field label="説明">
+                  <textarea
+                    style={{ ...inputStyle, minHeight: "72px", resize: "vertical" }}
+                    defaultValue="マイク、カメラ、配信環境などの話題に使うカテゴリ"
+                  />
+                </Field>
+                <Field label="初期方向性">
+                  <input style={inputStyle} defaultValue="質問 / 指摘 / 調整中の説明" />
+                </Field>
+                <button style={secondaryDarkButtonStyle}>新定義を追加</button>
+              </section>
+
+              <section style={cardInsetStyle}>
+                <div style={{ display: "flex", justifyContent: "space-between", gap: "8px", alignItems: "center" }}>
+                  <div>
+                    <h2 style={sectionTitleStyle}>Review patch 採用</h2>
+                    <p style={pageTextStyle}>Review で保留された候補を正式採用するための骨格です。</p>
+                  </div>
+                  <span style={pillStyle("#FFF0D8", "#A96E22")}>{reviewPatches.length}件</span>
+                </div>
+                <div style={{ display: "grid", gap: "10px" }}>
+                  {reviewPatches.map((patch) => (
+                    <article key={patch.id} style={subCardStyle}>
+                      <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", alignItems: "center" }}>
+                        <span style={patchTypeStyle(patch.patchType)}>{patch.patchType}</span>
+                        <span style={pillStyle(patch.status === "pending" ? "#FFF0D8" : "#EAF7F7", patch.status === "pending" ? "#A96E22" : "#357F91")}>
+                          {patch.status}
+                        </span>
+                      </div>
+                      <strong>{patch.title}</strong>
+                      <span style={pageTextStyle}>{patch.summary}</span>
+                      <span style={{ ...pageTextStyle, fontSize: "12px" }}>対象: {patch.targetLabel}</span>
+                      <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                        <button style={primaryButtonStyle}>採用</button>
+                        <button style={secondaryButtonStyle}>保留</button>
+                        <button style={dangerButtonStyle}>破棄</button>
+                      </div>
+                    </article>
+                  ))}
+                </div>
+              </section>
+
+              <section style={cardInsetStyle}>
+                <div style={{ display: "flex", justifyContent: "space-between", gap: "8px", alignItems: "center" }}>
+                  <div>
+                    <h2 style={sectionTitleStyle}>採用済み変更</h2>
+                    <p style={pageTextStyle}>compile 前の確認用骨格です。</p>
+                  </div>
+                  <span style={pillStyle("#EAF7F7", "#357F91")}>compile 前確認</span>
+                </div>
+                <div style={{ display: "grid", gap: "8px" }}>
+                  {adoptedChanges.map((item) => (
+                    <div key={item.id} style={subCardStyle}>
+                      <div style={{ display: "flex", justifyContent: "space-between", gap: "10px", alignItems: "center" }}>
+                        <strong>{item.summary}</strong>
+                        <span style={{ ...pageTextStyle, fontSize: "12px" }}>{item.timeLabel}</span>
+                      </div>
+                      <span style={pillStyle(item.compileStatus === "compile 待ち" ? "#EAF7F7" : "#F7FCFC", item.compileStatus === "compile 待ち" ? "#357F91" : "#5F747A")}>
+                        {item.compileStatus}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+                <div style={inlineNoticeStyle}>
+                  compile はここで直接実行しません。採用済み変更を compile 前に確認する骨格だけを置いています。
+                </div>
+              </section>
+            </div>
+          </aside>
+        </section>
+      </div>
+    </main>
+  );
+}
+
+function Field({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <label style={{ display: "grid", gap: "6px" }}>
+      <span style={fieldLabelStyle}>{label}</span>
+      {children}
+    </label>
+  );
+}
+
+const pageHeaderStyle = {
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "space-between",
+  gap: "16px",
+  flexWrap: "wrap",
+  padding: "18px 20px",
+  border: "1px solid #BFDCDD",
+  borderRadius: "20px",
+  background: "#FFFFFF",
+  boxShadow: "0 12px 28px rgba(47, 62, 70, 0.08)",
+} as const;
+
+const summaryCardStyle = {
+  display: "grid",
+  gap: "8px",
+  padding: "16px 18px",
+  border: "1px solid #BFDCDD",
+  borderRadius: "20px",
+  background: "linear-gradient(180deg, #F7FCFC 0%, #FFFFFF 100%)",
+  boxShadow: "0 12px 28px rgba(47, 62, 70, 0.08)",
+} as const;
+
+const paneStyle = {
+  border: "1px solid #BFDCDD",
+  borderRadius: "20px",
+  background: "#FFFFFF",
+  boxShadow: "0 12px 28px rgba(47, 62, 70, 0.08)",
+  overflow: "hidden",
+  minWidth: 0,
+} as const;
+
+const paneHeaderStyle = {
+  padding: "16px 18px",
+  background: "#F7FCFC",
+  display: "flex",
+  justifyContent: "space-between",
+  gap: "12px",
+  alignItems: "flex-start",
+  flexWrap: "wrap",
+} as const;
+
+const cardInsetStyle = {
+  border: "1px solid #BFDCDD",
+  borderRadius: "16px",
+  background: "#F7FCFC",
+  padding: "14px",
+  display: "grid",
+  gap: "12px",
+} as const;
+
+const subCardStyle = {
+  border: "1px solid #BFDCDD",
+  borderRadius: "14px",
+  background: "#FFFFFF",
+  padding: "12px",
+  display: "grid",
+  gap: "8px",
+} as const;
+
+const listCardStyle = {
+  border: "1px solid #BFDCDD",
+  borderRadius: "16px",
+  padding: "14px",
+  display: "grid",
+  gap: "10px",
+  textAlign: "left",
+  cursor: "pointer",
+} as const;
+
+const metricCardStyle = {
+  border: "1px solid #BFDCDD",
+  borderRadius: "12px",
+  background: "#FFFFFF",
+  padding: "10px",
+  display: "grid",
+  gap: "4px",
+  textAlign: "center",
+} as const;
+
+const metricLabelStyle = {
+  color: "#5F747A",
+  fontSize: "10px",
+  fontWeight: 800,
+  textTransform: "uppercase",
+} as const;
+
+const sectionTitleStyle = {
+  margin: 0,
+  fontSize: "18px",
+  fontWeight: 800,
+} as const;
+
+const pageBadgeStyle = {
+  display: "inline-flex",
+  alignItems: "center",
+  width: "fit-content",
+  padding: "6px 10px",
+  borderRadius: "999px",
+  background: "#DDF3F4",
+  color: "#357F91",
+  fontSize: "12px",
+  fontWeight: 800,
+} as const;
+
+const pageTextStyle = {
+  margin: 0,
+  color: "#5F747A",
+  lineHeight: 1.7,
+} as const;
+
+const fieldLabelStyle = {
+  color: "#5F747A",
+  fontSize: "12px",
+  fontWeight: 800,
+} as const;
+
+const inputStyle = {
+  width: "100%",
+  border: "1px solid #BFDCDD",
+  borderRadius: "12px",
+  padding: "10px 12px",
+  background: "#FFFFFF",
+  color: "#2F3E46",
+  font: "inherit",
+} as const;
+
+const inlineNoticeStyle = {
+  border: "1px solid #BFDCDD",
+  borderRadius: "14px",
+  background: "linear-gradient(180deg, #F7FCFC, #EAF7F7)",
+  padding: "12px 13px",
+  color: "#5F747A",
+  lineHeight: 1.7,
+  fontSize: "12px",
+} as const;
+
+const primaryButtonStyle = {
+  border: "1px solid #4AAEB6",
+  borderRadius: "14px",
+  padding: "10px 14px",
+  background: "#4AAEB6",
+  color: "#FFFFFF",
+  fontWeight: 800,
+  cursor: "pointer",
+} as const;
+
+const secondaryButtonStyle = {
+  border: "1px solid #BFDCDD",
+  borderRadius: "14px",
+  padding: "10px 14px",
+  background: "#FFFFFF",
+  color: "#2F3E46",
+  fontWeight: 800,
+  cursor: "pointer",
+} as const;
+
+const secondaryDarkButtonStyle = {
+  border: "1px solid #2F3E46",
+  borderRadius: "14px",
+  padding: "10px 14px",
+  background: "#2F3E46",
+  color: "#FFFFFF",
+  fontWeight: 800,
+  cursor: "pointer",
+} as const;
+
+const dangerButtonStyle = {
+  border: "1px solid rgba(185, 77, 77, 0.28)",
+  borderRadius: "14px",
+  padding: "10px 14px",
+  background: "#FFFFFF",
+  color: "#B94D4D",
+  fontWeight: 800,
+  cursor: "pointer",
+} as const;
+
+const textButtonStyle = {
+  border: "none",
+  background: "transparent",
+  color: "#91A3A8",
+  fontSize: "12px",
+  fontWeight: 800,
+  cursor: "pointer",
+} as const;
+
+function toggleButtonStyle(active: boolean) {
+  return {
+    border: `1px solid ${active ? "#4AAEB6" : "#BFDCDD"}`,
+    borderRadius: "12px",
+    padding: "8px 10px",
+    background: active ? "#2F3E46" : "#FFFFFF",
+    color: active ? "#FFFFFF" : "#5F747A",
+    fontSize: "12px",
+    fontWeight: 800,
+    cursor: "pointer",
+  } as const;
+}
+
+function summaryChipStyle(active: boolean) {
+  return {
+    display: "inline-flex",
+    alignItems: "center",
+    padding: "8px 12px",
+    borderRadius: "999px",
+    border: `1px solid ${active ? "#8FCFD3" : "#BFDCDD"}`,
+    background: active ? "#DDF3F4" : "#FFFFFF",
+    color: active ? "#357F91" : "#5F747A",
+    fontSize: "12px",
+    fontWeight: 800,
+  } as const;
+}
+
+function statusChipStyle(active: boolean) {
+  return pillStyle(active ? "#E4F5EC" : "#F7FCFC", active ? "#3F8A63" : "#5F747A");
+}
+
+function patchTypeStyle(type: ReviewPatchCandidate["patchType"]) {
+  if (type === "ignore patch") {
+    return pillStyle("#F7FCFC", "#5F747A");
+  }
+
+  if (type === "existing category patch") {
+    return pillStyle("#DDF3F4", "#357F91");
+  }
+
+  return pillStyle("#FFF0D8", "#A96E22");
+}
+
+function pillStyle(background: string, color: string) {
+  return {
+    display: "inline-flex",
+    alignItems: "center",
+    width: "fit-content",
+    padding: "5px 9px",
+    borderRadius: "999px",
+    border: "1px solid rgba(191, 220, 221, 0.9)",
+    background,
+    color,
+    fontSize: "11px",
+    fontWeight: 800,
+  } as const;
+}
