@@ -137,6 +137,7 @@ export function PreviewTestPage({
   const [selectedSample, setSelectedSample] = useState<SampleKey>("compliment");
   const [commentText, setCommentText] = useState(initialSample.text);
   const [historyItems, setHistoryItems] = useState<PreviewHistoryItem[]>([]);
+  const [lastRuntimeDecision, setLastRuntimeDecision] = useState<RuntimeDecision | null>(null);
   const [previewResult, setPreviewResult] = useState<PreviewOnlyReaction>({
     result_label: "未実行",
     category_label: "unknown",
@@ -169,8 +170,9 @@ export function PreviewTestPage({
       occurred_at: new Date().toISOString(),
     };
     const runtimeDecision = decideRuntimeEvent(runtimeInput);
-    const nextResult = buildPreviewReactionFromRuntimeDecision(runtimeDecision, sharedSettings);
+    const nextResult = mapRuntimeDecisionToPreviewReaction(runtimeDecision, sharedSettings);
 
+    setLastRuntimeDecision(runtimeDecision);
     setOrientation(nextResult.orientation);
     setPreviewResult(nextResult);
     appendHistory([
@@ -201,8 +203,9 @@ export function PreviewTestPage({
       occurred_at: new Date().toISOString(),
     };
     const runtimeDecision = decidePreviewTestEvent(runtimeInput);
-    const nextResult = buildPreviewReactionFromRuntimeDecision(runtimeDecision, sharedSettings);
+    const nextResult = mapRuntimeDecisionToPreviewReaction(runtimeDecision, sharedSettings);
 
+    setLastRuntimeDecision(runtimeDecision);
     setOrientation(nextResult.orientation);
     setPreviewResult(nextResult);
     appendHistory([
@@ -217,7 +220,7 @@ export function PreviewTestPage({
         id: `${Date.now()}-${preset.id}-reply`,
         kind: "reply",
         label: "VTuner返答",
-        text: preset.bubble_text,
+        text: nextResult.bubble_text,
         detail: `${nextResult.reaction_name} / ${nextResult.target_label} / ${nextResult.orientation}`,
       },
     ]);
@@ -403,6 +406,14 @@ export function PreviewTestPage({
                 <div style={resultCardStyle}>
                   <span style={resultLabelStyle}>表示向き</span>
                   <strong>{previewResult.orientation}</strong>
+                </div>
+                <div style={resultCardStyle}>
+                  <span style={resultLabelStyle}>Runtime kind / source</span>
+                  <strong>
+                    {lastRuntimeDecision
+                      ? `${lastRuntimeDecision.kind} / ${lastRuntimeDecision.source}`
+                      : "未実行"}
+                  </strong>
                 </div>
                 <div style={resultCardStyle}>
                   <span style={resultLabelStyle}>反映中の口調</span>
@@ -603,7 +614,7 @@ export function PreviewTestPage({
   );
 }
 
-function buildPreviewReactionFromRuntimeDecision(
+function mapRuntimeDecisionToPreviewReaction(
   decision: RuntimeDecision,
   sharedSettings: BasicPreviewBridgeSettings,
 ): PreviewOnlyReaction {
