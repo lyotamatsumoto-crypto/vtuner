@@ -1,5 +1,5 @@
-import { BasicSettingsPage } from "./pages/BasicSettingsPage";
+import { ReviewPage } from "./pages/ReviewPage";
 
 export function App() {
-  return <BasicSettingsPage />;
+  return <ReviewPage />;
 }
