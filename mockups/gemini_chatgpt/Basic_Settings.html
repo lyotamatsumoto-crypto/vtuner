@@ -5,17 +5,37 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>VTuner - Basic Settings</title>
   <style>
+    @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800&family=Noto+Sans+JP:wght@400;500;700;800&display=swap');
+
     :root {
-      --bg: #f6f7fb;
-      --panel: #ffffff;
-      --line: #e5e7eb;
-      --text: #1f2937;
-      --muted: #6b7280;
-      --primary: #5b6cff;
-      --primary-soft: #eef2ff;
-      --shadow: 0 10px 30px rgba(17, 24, 39, 0.08);
-      --radius: 18px;
-      --ok: #10b981;
+      /* Mint Coral (Adopted) */
+      --bg: #F3F7F7;
+      --panel: #FFFFFF;
+      --panel-soft: #F7FCFC;
+      --sub-mint: #EAF7F7;
+      --sub-blue: #EAF3F8;
+      --line: #BFDCDD;
+      --line-strong: #8FCFD3;
+
+      --text: #2F3E46;
+      --muted: #5F747A;
+      --muted-2: #91A3A8;
+
+      --primary: #4AAEB6;         /* Deep Mint */
+      --primary-soft: #DDF3F4;    /* Soft Mint */
+      --primary-hover: #358F96;
+      --accent: #7ECFD4;          /* Mint */
+
+      --shadow: 0 12px 28px rgba(47, 62, 70, 0.08);
+      --radius: 20px;
+      --radius-sm: 14px;
+
+      --success: #3F8A63;
+      --success-bg: #E4F5EC;
+      --warning: #A96E22;
+      --warning-bg: #FFF0D8;
+      --error: #B94D4D;
+      --error-bg: #FFE2E2;
     }
 
     * { box-sizing: border-box; }
@@ -24,19 +44,82 @@
       margin: 0;
       background: var(--bg);
       color: var(--text);
-      font-family: "Yu Gothic UI", "Hiragino Sans", "Noto Sans JP", system-ui, sans-serif;
+      font-family: "Noto Sans JP", system-ui, -apple-system, "Segoe UI", sans-serif;
     }
 
     .app {
       min-height: 100vh;
       display: flex;
+      flex-direction: row;
+    }
+
+    /* Left sidebar (common navigation) */
+    .sidebar {
+      width: 260px;
+      background: var(--sub-mint);
+      border-right: 1px solid var(--line);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .sidebar-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.65);
+      backdrop-filter: blur(6px);
+    }
+
+    .sidebar-header h1 {
+      margin: 0;
+      font-size: 20px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: var(--text);
+      font-family: "Nunito", "Noto Sans JP", system-ui, -apple-system, "Segoe UI", sans-serif;
+    }
+
+    .sidebar-nav {
+      padding: 14px;
+      display: grid;
+      gap: 6px;
+    }
+
+    .sidebar-nav button {
+      border: 1px solid transparent;
+      background: transparent;
+      color: var(--muted);
+      font-weight: 800;
+      padding: 10px 12px;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      font-size: 13px;
+      text-align: left;
+    }
+
+    .sidebar-nav button:hover {
+      background: var(--primary-soft);
+      color: var(--text);
+      border-color: rgba(127, 207, 212, 0.35);
+    }
+
+    .sidebar-nav button.active {
+      background: var(--accent);
+      color: var(--text);
+      border-color: rgba(74, 174, 182, 0.45);
+      box-shadow: inset 0 0 0 1px rgba(74, 174, 182, 0.35);
+    }
+
+    .content {
+      flex: 1;
+      min-width: 0;
+      display: flex;
       flex-direction: column;
     }
 
     .topbar {
-      height: 64px;
-      background: rgba(255,255,255,0.92);
-      backdrop-filter: blur(8px);
+      min-height: 80px;
+      background: var(--panel);
       border-bottom: 1px solid var(--line);
       display: flex;
       align-items: center;
@@ -47,41 +130,25 @@
       z-index: 10;
     }
 
-    .brand {
-      display: flex;
-      align-items: center;
-      gap: 18px;
-      flex-wrap: wrap;
+    .page-title {
+      min-width: 0;
     }
 
-    .brand h1 {
+    .page-title h2 {
       margin: 0;
-      font-size: 22px;
+      font-size: 18px;
       font-weight: 800;
-      color: var(--primary);
-      letter-spacing: -0.02em;
+      letter-spacing: -0.01em;
+      color: var(--text);
+      font-family: "Nunito", "Noto Sans JP", system-ui, -apple-system, "Segoe UI", sans-serif;
     }
 
-    .nav {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-
-    .nav button {
-      border: 0;
-      background: transparent;
-      color: var(--muted);
-      font-weight: 700;
-      padding: 10px 14px;
-      border-radius: 12px;
-      cursor: pointer;
-      font-size: 14px;
-    }
-
-    .nav button.active {
-      background: var(--primary-soft);
-      color: var(--primary);
+    .btn,
+    .section-title h2,
+    .choice-card strong,
+    .toggle-card strong,
+    .toggle-status {
+      font-family: "Nunito", "Noto Sans JP", system-ui, -apple-system, "Segoe UI", sans-serif;
     }
 
     .top-actions {
@@ -95,10 +162,14 @@
       background: #fff;
       color: var(--text);
       padding: 10px 14px;
-      border-radius: 12px;
+      border-radius: 14px;
       font-weight: 700;
       cursor: pointer;
       font-size: 14px;
+    }
+
+    .btn:hover {
+      background: var(--panel-soft);
     }
 
     .btn.primary {
@@ -107,16 +178,24 @@
       color: white;
     }
 
+    .btn.primary:hover {
+      background: var(--primary-hover);
+      border-color: var(--primary-hover);
+    }
+
     .btn.ghost {
-      background: #fff;
+      background: transparent;
       color: var(--primary);
-      border-color: #dbe4ff;
+      border-color: rgba(191, 220, 221, 0.9);
+    }
+
+    .btn.ghost:hover {
+      background: var(--primary-soft);
+      border-color: rgba(127, 207, 212, 0.45);
     }
 
     .layout {
-      max-width: 1500px;
       width: 100%;
-      margin: 0 auto;
       padding: 24px;
       display: grid;
       grid-template-columns: minmax(0, 1fr) 390px;
@@ -130,10 +209,35 @@
 
     .right-column {
       position: sticky;
-      top: 88px;
+      top: 104px;
       display: flex;
       flex-direction: column;
       gap: 20px;
+    }
+
+    .page-summary {
+      width: 100%;
+      padding: 24px 24px 0;
+    }
+
+    .page-summary-card {
+      background: linear-gradient(180deg, var(--panel-soft) 0%, var(--panel) 100%);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 18px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .page-summary-card h3 {
+      margin: 0;
+      font-size: 14px;
+      font-weight: 800;
+      font-family: "Nunito", "Noto Sans JP", system-ui, -apple-system, "Segoe UI", sans-serif;
     }
 
     .section {
@@ -152,7 +256,7 @@
       align-items: center;
       justify-content: space-between;
       gap: 12px;
-      background: #fcfcff;
+      background: var(--panel-soft);
     }
 
     .section-title {
@@ -165,7 +269,7 @@
       width: 4px;
       height: 22px;
       border-radius: 999px;
-      background: var(--primary);
+      background: var(--accent);
     }
 
     .section-title h2 {
@@ -205,7 +309,7 @@
     .field label {
       font-size: 13px;
       font-weight: 700;
-      color: #374151;
+      color: var(--muted);
     }
 
     .field input[type="text"],
@@ -216,8 +320,16 @@
       border-radius: 12px;
       padding: 10px 12px;
       font: inherit;
-      background: #fff;
+      background: var(--panel-soft);
       color: var(--text);
+    }
+
+    .field input[type="text"]:focus,
+    .field select:focus,
+    .field textarea:focus {
+      outline: 2px solid var(--accent);
+      outline-offset: 1px;
+      border-color: rgba(127, 207, 212, 0.7);
     }
 
     .field textarea {
@@ -244,13 +356,13 @@
     }
 
     .choice-card-grid.persona-grid::-webkit-scrollbar-thumb {
-      background: #d6dcff;
+      background: rgba(127, 207, 212, 0.55);
       border-radius: 999px;
       border: 2px solid #ffffff;
     }
 
     .choice-card-grid.persona-grid::-webkit-scrollbar-track {
-      background: #f3f4f6;
+      background: var(--sub-mint);
       border-radius: 999px;
     }
 
@@ -258,13 +370,13 @@
       border: 1px solid var(--line);
       border-radius: 14px;
       padding: 14px;
-      background: #fff;
+      background: var(--panel);
       cursor: pointer;
       transition: 0.15s ease;
     }
 
     .choice-card.active {
-      border-color: #cdd7ff;
+      border-color: rgba(127, 207, 212, 0.7);
       background: var(--primary-soft);
     }
 
@@ -283,9 +395,9 @@
 
     .linked-note {
       margin-top: 14px;
-      border: 1px solid #e5e7eb;
+      border: 1px solid var(--line);
       border-radius: 14px;
-      background: #fafafa;
+      background: linear-gradient(180deg, var(--panel-soft), var(--sub-mint));
       padding: 14px;
       display: flex;
       justify-content: space-between;
@@ -301,9 +413,9 @@
     }
 
     .profile-note-box {
-      border: 1px dashed #d1d5db;
+      border: 1px dashed rgba(191, 220, 221, 0.95);
       border-radius: 14px;
-      background: #fafafa;
+      background: var(--panel-soft);
       padding: 14px;
       font-size: 12px;
       color: var(--muted);
@@ -317,9 +429,9 @@
     }
 
     .asset-box {
-      border: 1px dashed #cbd5e1;
+      border: 1px dashed rgba(191, 220, 221, 0.95);
       border-radius: 16px;
-      background: #fafbff;
+      background: var(--panel-soft);
       padding: 16px;
       min-height: 240px;
       display: flex;
@@ -333,9 +445,9 @@
 
     .asset-drop {
       flex: 1;
-      border: 2px dashed #c7d2fe;
+      border: 2px dashed rgba(143, 207, 211, 0.9);
       border-radius: 16px;
-      background: linear-gradient(180deg, #f8faff, #f3f6ff);
+      background: linear-gradient(180deg, var(--panel-soft), var(--sub-mint));
       display: flex;
       align-items: center;
       justify-content: center;
@@ -350,13 +462,13 @@
       height: 48px;
       border-radius: 999px;
       background: #fff;
-      border: 1px solid #dbe4ff;
+      border: 1px solid var(--line);
       display: flex;
       align-items: center;
       justify-content: center;
       font-size: 28px;
       font-weight: 300;
-      box-shadow: 0 4px 10px rgba(91,108,255,0.08);
+      box-shadow: 0 6px 16px rgba(47, 62, 70, 0.08);
     }
 
     .asset-drop small {
@@ -375,7 +487,7 @@
     .toggle-card {
       border: 1px solid var(--line);
       border-radius: 14px;
-      background: #fff;
+      background: var(--panel);
       padding: 14px;
       display: flex;
       flex-direction: column;
@@ -399,15 +511,15 @@
       font-weight: 700;
       padding: 6px 10px;
       border-radius: 999px;
-      background: #f3f4f6;
-      color: #374151;
+      background: var(--sub-mint);
+      color: var(--muted);
       border: 1px solid var(--line);
     }
 
     .toggle-status.on {
-      background: var(--primary-soft);
-      color: var(--primary);
-      border-color: #dbe4ff;
+      background: var(--success-bg);
+      color: var(--success);
+      border-color: rgba(63, 138, 99, 0.25);
     }
 
     .bubble-grid {
@@ -425,7 +537,7 @@
       min-height: 180px;
       border: 1px solid var(--line);
       border-radius: 16px;
-      background: #fafbff;
+      background: var(--panel-soft);
       padding: 18px;
       display: flex;
       align-items: center;
@@ -438,8 +550,8 @@
       width: 260px;
       min-height: 90px;
       background: #ffffff;
-      color: #111827;
-      border: 1px solid #dbe4ff;
+      color: var(--text);
+      border: 1px solid var(--line);
       border-radius: 18px;
       padding: 14px 16px;
       line-height: 1.6;
@@ -456,8 +568,8 @@
       width: 18px;
       height: 18px;
       background: #fff;
-      border-right: 1px solid #dbe4ff;
-      border-bottom: 1px solid #dbe4ff;
+      border-right: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
       transform: rotate(45deg);
     }
 
@@ -467,8 +579,8 @@
       bottom: 8px;
       width: 14px;
       height: 14px;
-      border-right: 2px solid #94a3b8;
-      border-bottom: 2px solid #94a3b8;
+      border-right: 2px solid rgba(143, 207, 211, 0.95);
+      border-bottom: 2px solid rgba(143, 207, 211, 0.95);
       opacity: 0.9;
     }
 
@@ -481,7 +593,7 @@
     .palette-label {
       font-size: 13px;
       font-weight: 700;
-      color: #374151;
+      color: var(--muted);
     }
 
     .palette-row {
@@ -495,25 +607,25 @@
       width: 28px;
       height: 28px;
       border-radius: 999px;
-      border: 2px solid #e5e7eb;
+      border: 2px solid var(--line);
       cursor: pointer;
       position: relative;
       box-shadow: inset 0 0 0 1px rgba(0,0,0,0.03);
     }
 
     .swatch.active {
-      border-color: #5b6cff;
-      box-shadow: 0 0 0 3px rgba(91,108,255,0.12);
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(127, 207, 212, 0.18);
     }
 
     .swatch.dark {
-      border-color: #cbd5e1;
+      border-color: var(--line);
     }
 
     .voice-box {
       border: 1px solid var(--line);
       border-radius: 14px;
-      background: #fafbff;
+      background: var(--panel-soft);
       padding: 14px;
     }
 
@@ -542,9 +654,9 @@
     }
 
     .font-drop {
-      border: 2px dashed #c7d2fe;
+      border: 2px dashed rgba(143, 207, 211, 0.9);
       border-radius: 14px;
-      background: linear-gradient(180deg, #f8faff, #f3f6ff);
+      background: linear-gradient(180deg, var(--panel-soft), var(--sub-mint));
       padding: 18px;
       margin-top: 16px;
       display: flex;
@@ -561,7 +673,7 @@
       height: 42px;
       border-radius: 999px;
       background: #fff;
-      border: 1px solid #dbe4ff;
+      border: 1px solid var(--line);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -582,28 +694,29 @@
       font-size: 14px;
       color: var(--muted);
       letter-spacing: 0.03em;
+      font-family: "Nunito", "Noto Sans JP", system-ui, -apple-system, "Segoe UI", sans-serif;
     }
 
     .character-preview {
       border-radius: 18px;
       overflow: hidden;
       border: 1px solid var(--line);
-      background: linear-gradient(180deg, #fbfcff 0%, #f3f6ff 100%);
+      background: linear-gradient(180deg, var(--panel-soft) 0%, var(--sub-mint) 100%);
       padding: 18px;
     }
 
     .character-stage {
       aspect-ratio: 3 / 4;
       border-radius: 16px;
-      border: 1px dashed #cbd5e1;
+      border: 1px dashed rgba(191, 220, 221, 0.95);
       background:
-        linear-gradient(180deg, rgba(255,255,255,0.95), rgba(238,242,255,0.9)),
+        linear-gradient(180deg, rgba(255,255,255,0.95), rgba(234,247,247,0.9)),
         repeating-linear-gradient(
           45deg,
-          rgba(99,102,241,0.03),
-          rgba(99,102,241,0.03) 10px,
-          rgba(99,102,241,0.06) 10px,
-          rgba(99,102,241,0.06) 20px
+          rgba(74,174,182,0.03),
+          rgba(74,174,182,0.03) 10px,
+          rgba(74,174,182,0.06) 10px,
+          rgba(74,174,182,0.06) 20px
         );
       display: flex;
       align-items: center;
@@ -616,8 +729,8 @@
       width: 58%;
       height: 68%;
       border-radius: 24px 24px 16px 16px;
-      background: rgba(91,108,255,0.16);
-      border: 2px solid rgba(91,108,255,0.55);
+      background: rgba(127,207,212,0.18);
+      border: 2px solid rgba(74,174,182,0.55);
       position: relative;
     }
 
@@ -630,8 +743,8 @@
       width: 70px;
       height: 70px;
       border-radius: 999px;
-      background: rgba(91,108,255,0.16);
-      border: 2px solid rgba(91,108,255,0.55);
+      background: rgba(127,207,212,0.18);
+      border: 2px solid rgba(74,174,182,0.55);
     }
 
     .character-mode {
@@ -645,6 +758,7 @@
       font-size: 11px;
       font-weight: 700;
       color: var(--primary);
+      font-family: "Nunito", "Noto Sans JP", system-ui, -apple-system, "Segoe UI", sans-serif;
     }
 
     .summary-list {
@@ -657,7 +771,7 @@
       justify-content: space-between;
       gap: 16px;
       padding: 10px 0;
-      border-bottom: 1px solid #f1f5f9;
+      border-bottom: 1px solid rgba(191, 220, 221, 0.55);
       font-size: 13px;
     }
 
@@ -678,8 +792,8 @@
     }
 
     .next-step-box {
-      border: 1px solid #e5e7eb;
-      background: #fafafa;
+      border: 1px solid var(--line);
+      background: var(--panel-soft);
       border-radius: 14px;
       padding: 14px;
     }
@@ -732,32 +846,74 @@
         gap: 12px;
       }
 
-      .brand {
-        justify-content: space-between;
+      .app {
+        flex-direction: column;
+      }
+
+      .sidebar {
+        width: 100%;
+        border-right: 0;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .sidebar-nav {
+        display: flex;
+        gap: 8px;
+        overflow-x: auto;
+        padding: 12px;
+      }
+
+      .sidebar-nav button {
+        white-space: nowrap;
+        text-align: center;
+      }
+
+      .layout {
+        padding: 16px 14px;
+      }
+
+      .page-summary {
+        padding: 16px 14px 0;
       }
     }
   </style>
 </head>
 <body>
   <div class="app">
-    <header class="topbar">
-      <div class="brand">
+    <aside class="sidebar">
+      <div class="sidebar-header">
         <h1>VTuner</h1>
-        <nav class="nav">
-          <button>Preview / Test</button>
-          <button class="active">Basic Settings</button>
-          <button>Review</button>
-          <button>Detailed Rules</button>
-          <button>AI / JSON Studio</button>
-        </nav>
       </div>
-      <div class="top-actions">
-        <button class="btn">変更を破棄</button>
-        <button class="btn primary">設定を保存して適用</button>
-      </div>
-    </header>
+      <nav class="sidebar-nav">
+        <button class="active">Basic Settings</button>
+        <button>Preview / Test</button>
+        <button>Detailed Rules</button>
+        <button>AI / JSON Studio</button>
+        <button>Review</button>
+      </nav>
+    </aside>
 
-    <main class="layout">
+    <div class="content">
+      <header class="topbar">
+        <div class="page-title">
+          <h2>Basic Settings</h2>
+        </div>
+        <div class="top-actions">
+          <button class="btn">変更を破棄</button>
+          <button class="btn primary">設定を保存して適用</button>
+        </div>
+      </header>
+
+      <section class="page-summary">
+        <div class="page-summary-card">
+          <div>
+            <h3>Basic Settings</h3>
+            <div class="subnote">キャラクターの共通土台を作る。</div>
+          </div>
+        </div>
+      </section>
+
+      <main class="layout">
       <section class="left-column">
 
         <div class="section">
@@ -1421,6 +1577,7 @@
         </div>
       </aside>
     </main>
+    </div>
   </div>
 </body>
 </html>

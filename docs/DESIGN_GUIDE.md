@@ -2,7 +2,7 @@
 
 ## 1. 文書の目的
 
-本書は、今回決定した UI 方針（Slate × Indigo 配色 + 左サイドバー構造）をもとに、
+本書は、今回決定した UI 方針（Mint Coral 配色 + 左サイドバー構造）をもとに、
 見た目と視覚ルールを実装へ安全に橋渡しするためのガイドラインである。
 
 単なる配色メモではなく、以下を一貫したルールとして整理する。
@@ -13,6 +13,13 @@
 * タイポグラフィ
 * コンポーネントの見た目
 * 状態表現
+
+採用済みの基準モックは次とする。
+
+* Theme Name: Mint Coral
+* Status: Adopted
+* Base Screen: AI / JSON Studio
+* Reference mock: `mockups/gemini_chatgpt/AI_JSON_Studio.html`
 
 ---
 
@@ -34,6 +41,15 @@
 
 * 管理画面 / 設定ツール寄り
 * 非エンジニアでも扱えるが、軽すぎない
+
+### Mint Coral の追加方針
+
+* VTuner の Mock UI は、Mint / Cyan 系を基調にした軽い管理画面UIとする
+* 背景は淡いミント系、Cardは白またはごく薄いミント系
+* 黒文字は避け、ネイビーグレー系を基本にする
+* Coral / Red 系は限定アクセントとして使う（多用しない）
+* サマリー系バッジ、補助ラベル、通常タグは同系色に統一する（意味のない多色化を避ける）
+* Warning / Error / Coral は、検証結果・注意・重要CTAなど必要箇所だけに限定する
 
 ---
 
@@ -64,8 +80,9 @@
 
 ルール:
 
-* 現在選択は Indigo 背景で強調
-* hover は薄い Indigo
+* 現在選択は Mint 系背景で強調
+* hover は Soft Mint 系
+* Coral / Red の縦線や強い挿し色で active を表現しない
 * アイコン + ラベル構成
 
 ### 3-3. メインエリア
@@ -80,51 +97,94 @@
 * 主作業面を広く取る
 * 補助情報は右に寄せる
 
+### 3-4. AI / JSON Studio の基本割当
+
+* 左カラム: 入力・生成（外部AIに渡す文の生成）
+* 右カラム: JSON貼り付け・検証・再修正・差分・採用・履歴
+
 ---
 
-## 4. カラールール（Slate × Indigo）
+## 4. カラールール（Mint Coral）
 
 ### 4-1. Base
 
-* Background: #F8FAFC
-* Surface: #FFFFFF
-* Sub surface: #F1F5F9
-* Border: #E2E8F0
+* App Background: #F3F7F7
+* Surface / Card: #FFFFFF
+* Sub Mint: #EAF7F7
+* Sub Blue: #EAF3F8
+* Border: #BFDCDD
+* Strong Border: #8FCFD3
 
 ### 4-2. Text
 
-* Primary text: #0F172A
-* Secondary text: #475569
-* Disabled text: #94A3B8
+* Primary Text: #2F3E46
+* Secondary Text: #5F747A
+* Muted Text: #91A3A8
 
-### 4-3. Primary（Indigo）
+ルール:
 
-* Primary: #4F46E5
-* Hover: #4338CA
-* Soft bg: #EEF2FF
+* #000000（純黒）は避ける
+* 重要箇所以外でテキスト色を増やしすぎない
+
+### 4-3. Mint / Primary
+
+* Mint: #7ECFD4
+* Deep Mint: #4AAEB6
+* Soft Mint: #DDF3F4
 
 用途:
 
-* 選択状態
-* 主要CTA
-* タブアクティブ
+* active navigation / active tab
+* selected / current state
+* primary action（基本の肯定操作）
 
-### 4-4. Status
+### 4-4. Coral（限定アクセント）
 
-* Success: #16A34A
-* Warning: #D97706
-* Error: #DC2626
-* Info: #2563EB
+* Coral: #F47F7A
+* Coral Hover: #E86D69
+
+用途（限定）:
+
+* 検証ボタン
+* 再修正文脈（注意喚起が必要な箇所）
+* 画面全体へ広げない
+
+### 4-5. Status
+
+* Success Text: #3F8A63 / Success BG: #E4F5EC
+* Warning Text: #A96E22 / Warning BG: #FFF0D8
+* Error Text: #B94D4D / Error BG: #FFE2E2
+* Info Text: #357F91 / Info BG: #DFF3F6
 
 ルール:
 
 * 色だけでなく文言でも状態を補う
+* Warning / Error は「検証結果」など本当に注意が必要な場所だけに使う
+* サマリー系バッジ・補助ラベル・通常タグは同系色に統一し、意味のない多色化をしない
 
-### 4-5. 注意点
+### 4-6. 色の使い分け（役割ベース）
 
-* Indigoの使いすぎ禁止
-* 強い色は1画面に2箇所まで
-* 主作業面を邪魔しない
+* Mint:
+  * active navigation
+  * active tab
+  * selected / current state
+  * primary action
+* Deep Mint:
+  * primary button
+  * adoption / confirm action
+* Soft Mint / Success BG:
+  * summary badge
+  * helper badge
+  * normal tag
+  * sub block
+* Coral:
+  * validation button
+  * correction / attention context（限定）
+* Warning / Error:
+  * validation result only
+  * general badges には使わない
+
+---
 
 ---
 
@@ -132,33 +192,35 @@
 
 ### Button
 
-* Primary: Indigo背景 + 白文字
+* Primary: Deep Mint 背景 + 白文字
 * Secondary: 白背景 + 境界線
-* Danger: 赤系
+* Coral: 検証・注意・再修正などの文脈に限定
+* Danger: 破壊的操作がある場合のみ（通常操作に赤を使わない）
 
 ### Card
 
-* 白背景
-* 境界線あり
+* 白背景またはごく薄いミント系
+* 境界線は淡いミント / ブルーグレー系
 * 角丸: 16〜20px
 * 影は弱め
 
 ### Input
 
-* 白背景
-* 薄いボーダー
-* focus時にIndigo強調
+* 白またはごく薄いミント系背景
+* 薄いボーダー（淡いミント / ブルーグレー系）
+* focus時に Mint 系で強調
 
 ### Tabs
 
-* 非選択: グレー
-* 選択: Indigo + 薄背景
+* 非選択: 白または薄いミント系
+* 選択: Mint 系
 
 ### Sidebar item
 
 * 非選択: グレー文字
-* hover: 薄Indigo背景
-* 選択: Indigo背景 + 白文字
+* hover: Soft Mint 背景
+* 選択: Mint 系背景
+* Coral / Red の縦線や強い挿し色は使わない
 
 ---
 
@@ -179,8 +241,11 @@
 
 ## 7. タイポグラフィ
 
-* フォント: Inter + Noto Sans JP
-* 見出し: 太め
+* フォント（推奨）:
+  * Logo / Heading / Badge / Button: Nunito + Noto Sans JP
+  * Body / Input / Textarea: Noto Sans JP
+  * Code / JSON: 等幅フォント
+* 見出し: 太め（ただし強すぎない）
 * 本文: 読みやすさ優先
 
 階層:
@@ -220,7 +285,7 @@
 
 今回の変更は以下に該当する。
 
-* 配色方針の確定
+* 配色方針（Mint Coral）の確定
 * 共通レイアウト（サイドバー）の確定
 
 これは UI仕様の変更ではなく、
@@ -230,6 +295,11 @@
 
 * DESIGN_GUIDE.md（本書）
 * COMPONENT_SPEC.md（必要に応じて）
+
+また、次を記録として扱う。
+
+* `mockups/gemini_chatgpt/AI_JSON_Studio.html` を AI / JSON Studio の採用済みHTMLモックとする
+* この画面のデザインを、残り4画面の見た目調整の基準にする（仕様や責務は変更しない）
 
 ---
 

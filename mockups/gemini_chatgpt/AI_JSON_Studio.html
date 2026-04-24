@@ -4,17 +4,12 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>VTuner - AI / JSON Studio</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&family=Noto+Sans+JP:wght@400;500;700;800&display=swap');
+  <script src="https://cdn.tailwindcss.com"></script>  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800&family=Noto+Sans+JP:wght@400;500;700;800&display=swap');
 
     body {
       font-family: 'Inter', 'Noto Sans JP', sans-serif;
-      background: #f1f5f9;
-    }
-
-    .app-height {
-      height: calc(100vh - 64px);
+      background: #f8fafc;
     }
 
     .shadow-soft {
@@ -38,9 +33,9 @@
     }
 
     .start-active {
-      background: #111827;
+      background: #4f46e5;
       color: white;
-      border-color: #111827;
+      border-color: #4f46e5;
     }
 
     .pill {
@@ -94,81 +89,553 @@
     .code-box {
       font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
     }
-  </style>
+
+    .sidebar-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 14px;
+      font-size: 13px;
+      font-weight: 800;
+      color: #475569;
+      background: transparent;
+    }
+
+    .sidebar-item:hover {
+      background: #eef2ff;
+      color: #4338ca;
+    }
+
+    .sidebar-item-active {
+      background: #4f46e5;
+      color: white;
+    }
+
+    .sidebar-item-active:hover {
+      background: #4338ca;
+      color: white;
+    }
+  
+
+/* Mint Coral Theme inline CSS (from styles-mint-coral.css) */
+:root {
+  --app-bg: #F3F7F7;
+  --surface: #FFFFFF;
+  --sub-mint: #EAF7F7;
+  --sub-blue: #EAF3F8;
+  --sub-coral: #FFF0EE;
+  --panel-gray: #EEF2F2;
+  --border: #BFDCDD;
+  --border-strong: #8FCFD3;
+  --divider: #D7E4E5;
+
+  --text: #2F3E46;
+  --text-2: #5F747A;
+  --muted: #91A3A8;
+
+  --mint: #7ECFD4;
+  --mint-deep: #4AAEB6;
+  --mint-soft: #DDF3F4;
+
+  --coral: #F47F7A;
+  --coral-hover: #E86D69;
+  --coral-soft: #FFE3DF;
+
+  --blue: #74A9C8;
+  --blue-soft: #E3F0F6;
+
+  --success: #3F8A63;
+  --success-bg: #E4F5EC;
+  --warning: #A96E22;
+  --warning-bg: #FFF0D8;
+  --error: #B94D4D;
+  --error-bg: #FFE2E2;
+  --info: #357F91;
+  --info-bg: #DFF3F6;
+}
+
+/* Font policy (retro-soft, but keep body readable) */
+body.mint-coral-theme {
+  background: var(--app-bg);
+  color: var(--text);
+  font-family: "Noto Sans JP", system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-weight: 400;
+}
+
+body.mint-coral-theme h1,
+body.mint-coral-theme h2,
+body.mint-coral-theme h3,
+body.mint-coral-theme .pill,
+body.mint-coral-theme button {
+  font-family: "Nunito", "Noto Sans JP", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+body.mint-coral-theme .code-box {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  color: #43565D !important;
+}
+
+/* Global utility overrides (keep existing classnames; change palette) */
+body.mint-coral-theme .bg-white { background-color: var(--surface) !important; }
+body.mint-coral-theme .bg-slate-50 { background-color: var(--sub-mint) !important; }
+body.mint-coral-theme .bg-slate-100 { background-color: var(--sub-blue) !important; }
+body.mint-coral-theme .bg-slate-200 { background-color: var(--divider) !important; }
+
+body.mint-coral-theme .border-slate-200,
+body.mint-coral-theme .border-slate-100 { border-color: var(--border) !important; }
+
+body.mint-coral-theme .text-slate-900,
+body.mint-coral-theme .text-slate-800,
+body.mint-coral-theme .text-slate-700 { color: var(--text) !important; }
+body.mint-coral-theme .text-slate-600,
+body.mint-coral-theme .text-slate-500 { color: var(--text-2) !important; }
+body.mint-coral-theme .text-slate-400,
+body.mint-coral-theme .text-slate-300 { color: var(--muted) !important; }
+
+/* Indigo -> Mint mapping */
+body.mint-coral-theme .text-indigo-600 { color: var(--text) !important; }
+body.mint-coral-theme .bg-indigo-50 { background-color: var(--mint-soft) !important; }
+body.mint-coral-theme .border-indigo-200 { border-color: var(--border-strong) !important; }
+
+/* Primary action buttons (default = Deep Mint, keep text-white readable) */
+body.mint-coral-theme .bg-indigo-600 { background-color: var(--mint-deep) !important; }
+body.mint-coral-theme .hover\\:bg-indigo-700:hover { background-color: #3E9FA7 !important; }
+body.mint-coral-theme .hover\\:bg-indigo-100:hover { background-color: var(--mint-soft) !important; }
+body.mint-coral-theme .hover\\:text-indigo-600:hover { color: var(--mint-deep) !important; }
+
+/* Secondary / helper hover surfaces */
+body.mint-coral-theme .hover\\:bg-slate-50:hover { background-color: #F7FAFA !important; }
+body.mint-coral-theme .hover\\:bg-slate-200:hover { background-color: var(--divider) !important; }
+
+/* Tabs */
+body.mint-coral-theme .tab-active {
+  background: var(--mint) !important;
+  color: var(--text) !important;
+  border-color: var(--mint-deep) !important;
+}
+
+/* Start source active */
+body.mint-coral-theme .start-active {
+  background: var(--coral) !important;
+  border-color: var(--coral) !important;
+  color: #FFFFFF !important;
+}
+
+/* Cards */
+body.mint-coral-theme .section-card {
+  background: var(--surface) !important;
+  border-color: var(--border) !important;
+  border-radius: 20px;
+}
+
+body.mint-coral-theme .shadow-soft {
+  box-shadow: 0 10px 22px rgba(47, 62, 70, 0.08) !important;
+}
+
+/* Sidebar background */
+body.mint-coral-theme .h-screen > aside {
+  background: var(--sub-mint) !important;
+  border-color: var(--border) !important;
+}
+
+/* Sidebar */
+body.mint-coral-theme .sidebar-item {
+  color: var(--text-2) !important;
+}
+
+body.mint-coral-theme .sidebar-item:hover {
+  background: var(--mint-soft) !important;
+  color: var(--text) !important;
+}
+
+body.mint-coral-theme .sidebar-item-active {
+  position: relative;
+  background: var(--mint) !important;
+  color: var(--text) !important;
+}
+
+body.mint-coral-theme .sidebar-item-active::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 10px;
+  bottom: 10px;
+  width: 4px;
+  border-radius: 999px;
+  background: var(--coral);
+}
+
+body.mint-coral-theme .sidebar-item-active:hover {
+  background: var(--mint-deep) !important;
+  color: #FFFFFF !important;
+}
+
+/* Pills / badges */
+body.mint-coral-theme .pill-indigo {
+  background: var(--info-bg) !important;
+  color: var(--info) !important;
+  border-color: #9ED7DF !important;
+}
+
+body.mint-coral-theme .pill-green {
+  background: var(--success-bg) !important;
+  color: var(--success) !important;
+  border-color: #A8DDBE !important;
+}
+
+body.mint-coral-theme .pill-yellow {
+  background: var(--warning-bg) !important;
+  color: var(--warning) !important;
+  border-color: #F2C98E !important;
+}
+
+body.mint-coral-theme .pill-red {
+  background: var(--error-bg) !important;
+  color: var(--error) !important;
+  border-color: #F3B0B0 !important;
+}
+
+body.mint-coral-theme .pill-gray {
+  background: var(--sub-mint) !important;
+  color: var(--text-2) !important;
+  border-color: var(--border) !important;
+}
+
+/* Status blocks (existing Tailwind classes) */
+body.mint-coral-theme .bg-amber-50 { background-color: var(--warning-bg) !important; }
+body.mint-coral-theme .border-amber-100 { border-color: #F2C98E !important; }
+body.mint-coral-theme .text-amber-800,
+body.mint-coral-theme .text-amber-700 { color: var(--warning) !important; }
+
+body.mint-coral-theme .bg-rose-50 { background-color: var(--error-bg) !important; }
+body.mint-coral-theme .border-rose-100 { border-color: #F3B0B0 !important; }
+body.mint-coral-theme .text-rose-800,
+body.mint-coral-theme .text-rose-700 { color: var(--error) !important; }
+
+/* Inputs */
+body.mint-coral-theme input,
+body.mint-coral-theme textarea,
+body.mint-coral-theme select {
+  background: #F7FCFC !important;
+  border-color: var(--border) !important;
+  color: var(--text) !important;
+}
+
+body.mint-coral-theme input:focus,
+body.mint-coral-theme textarea:focus,
+body.mint-coral-theme select:focus {
+  outline: 2px solid var(--mint);
+  outline-offset: 1px;
+}
+
+/* Code areas */
+body.mint-coral-theme textarea.code-box,
+body.mint-coral-theme pre.code-box {
+  background: #F7FCFC !important;
+  border-color: var(--border) !important;
+  color: var(--text) !important;
+  border-left: 4px solid var(--mint) !important;
+}
+
+/* Page Summary emphasis */
+body.mint-coral-theme .summary-card {
+  background: linear-gradient(180deg, #F7FCFC 0%, #FFFFFF 100%) !important;
+  border-color: var(--border) !important;
+}
+
+/* Default tabs should not be pure white */
+body.mint-coral-theme .target-tabs button:not(.tab-active) {
+  background: #F7FCFC !important;
+  border-color: var(--border) !important;
+}
+
+body.mint-coral-theme .target-tabs button:not(.tab-active):hover {
+  background: var(--mint-soft) !important;
+}
+
+/* Start source selector palette */
+body.mint-coral-theme .start-source button:not(.start-active):not(.start-ideal) {
+  background: #F7FCFC !important;
+  border-color: var(--border) !important;
+  color: var(--text-2) !important;
+}
+
+body.mint-coral-theme .start-source button:not(.start-active):not(.start-ideal):hover {
+  background: var(--mint-soft) !important;
+  color: var(--text) !important;
+}
+
+body.mint-coral-theme .start-source .start-ideal {
+  background: var(--mint-soft) !important;
+  color: var(--info) !important;
+  border-color: var(--mint) !important;
+}
+
+/* Coral important CTAs (検証する / 基本本採用にする) */
+body.mint-coral-theme .cta-coral {
+  background: var(--coral) !important;
+  border-color: var(--coral) !important;
+  color: #FFFFFF !important;
+}
+
+body.mint-coral-theme .cta-coral:hover {
+  background: var(--coral-hover) !important;
+}
+
+/* Small blocks inside cards */
+body.mint-coral-theme .sub-block {
+  background: var(--sub-mint) !important;
+  border-color: var(--border) !important;
+  border-radius: 14px !important;
+}
+
+body.mint-coral-theme .sub-block-blue {
+  background: var(--sub-blue) !important;
+}
+
+body.mint-coral-theme .sub-block-coral {
+  background: var(--sub-coral) !important;
+}
+
+/* Validation “info/notice” box (for non-warning/error hints) */
+body.mint-coral-theme .validate-info {
+  background: var(--info-bg) !important;
+  border-color: #9ED7DF !important;
+}
+
+body.mint-coral-theme .validate-info .text-slate-700 {
+  color: var(--info) !important;
+}
+
+body.mint-coral-theme .validate-info .text-slate-500 {
+  color: var(--text-2) !important;
+}
+
+/* Scrollbar thumb (theme) */
+body.mint-coral-theme .hide-scrollbar::-webkit-scrollbar-thumb {
+  background: #8FCFD3;
+}
+
+/* Figma/html.to.design hard overrides (explicit hex, avoid utility reliance) */
+body.mint-coral-theme {
+  background: #F3F7F7 !important;
+  color: #2F3E46 !important;
+}
+
+body.mint-coral-theme .h-screen > aside {
+  background: #EAF7F7 !important;
+  border-color: #BFDCDD !important;
+}
+
+body.mint-coral-theme header.bg-white {
+  background: #FFFFFF !important;
+}
+
+body.mint-coral-theme .summary-card {
+  background: #F7FCFC !important;
+}
+
+body.mint-coral-theme .section-card {
+  background: #FFFFFF !important;
+  border-color: #BFDCDD !important;
+  border-radius: 20px !important;
+}
+
+/* Active sidebar item */
+body.mint-coral-theme .sidebar-item-active {
+  background: #7ECFD4 !important;
+  color: #2F3E46 !important;
+  border-left: none !important;
+  box-shadow: inset 0 0 0 1px #4AAEB6 !important;
+}
+
+body.mint-coral-theme .sidebar-item-active::before {
+  display: none !important;
+}
+
+/* Start Source: 新規作成 */
+body.mint-coral-theme .start-active {
+  background: #7ECFD4 !important;
+  border-color: #7ECFD4 !important;
+  color: #2F3E46 !important;
+}
+
+/* Start Source: 理想スキーマから開始 */
+body.mint-coral-theme .start-ideal {
+  background: #DDF3F4 !important;
+  color: #357F91 !important;
+  border-color: #7ECFD4 !important;
+}
+
+/* Tabs */
+body.mint-coral-theme .tab-active {
+  background: #7ECFD4 !important;
+  color: #2F3E46 !important;
+  border-color: #4AAEB6 !important;
+}
+
+body.mint-coral-theme .target-tabs button:not(.tab-active) {
+  background: #F7FCFC !important;
+  border-color: #BFDCDD !important;
+  color: #5F747A !important;
+}
+
+/* Buttons */
+body.mint-coral-theme .bg-indigo-600 {
+  background: #4AAEB6 !important;
+  color: #FFFFFF !important;
+}
+
+body.mint-coral-theme .cta-coral {
+  background: #F47F7A !important;
+  color: #FFFFFF !important;
+  border-color: #F47F7A !important;
+}
+
+/* Inner blocks */
+body.mint-coral-theme .sub-block {
+  background: #EAF7F7 !important;
+  border-color: #BFDCDD !important;
+}
+
+body.mint-coral-theme .sub-block-blue {
+  background: #EAF3F8 !important;
+}
+
+body.mint-coral-theme .sub-block-coral {
+  background: #FFF0EE !important;
+}
+
+/* Inputs */
+body.mint-coral-theme input,
+body.mint-coral-theme textarea,
+body.mint-coral-theme select {
+  background: #F7FCFC !important;
+  border-color: #BFDCDD !important;
+  color: #2F3E46 !important;
+}
+
+/* Code boxes */
+body.mint-coral-theme pre.code-box,
+body.mint-coral-theme textarea.code-box {
+  background: #F7FCFC !important;
+  border-color: #BFDCDD !important;
+  color: #2F3E46 !important;
+}
+
+/* Badges */
+body.mint-coral-theme .pill-indigo { background: #DFF3F6 !important; color: #357F91 !important; border-color: #9ED7DF !important; }
+body.mint-coral-theme .pill-green { background: #E4F5EC !important; color: #3F8A63 !important; border-color: #A8DDBE !important; }
+body.mint-coral-theme .pill-yellow { background: #FFF0D8 !important; color: #A96E22 !important; border-color: #F2C98E !important; }
+body.mint-coral-theme .pill-red { background: #FFE2E2 !important; color: #B94D4D !important; border-color: #F3B0B0 !important; }
+body.mint-coral-theme .pill-gray { background: #EAF7F7 !important; color: #5F747A !important; border-color: #BFDCDD !important; }
+body.mint-coral-theme .pill-vivi { background: #EAF7F7 !important; color: #357F91 !important; border-color: #BFDCDD !important; }
+
+/* Unified label badges (non-critical) */
+body.mint-coral-theme .pill-soft { background: #E4F5EC !important; color: #3F8A63 !important; border-color: #A8DDBE !important; }
+
+/* Mood tags: avoid meaningless color variations */
+body.mint-coral-theme .mood-tags .tag-soft { background: #EAF7F7 !important; color: #5F747A !important; border-color: #BFDCDD !important; }
+body.mint-coral-theme .mood-tags .tag-active { background: #DDF3F4 !important; color: #357F91 !important; border-color: #7ECFD4 !important; }
+
+/* Validation result boxes */
+body.mint-coral-theme .bg-amber-50 { background: #FFF0D8 !important; }
+body.mint-coral-theme .bg-rose-50 { background: #FFE2E2 !important; }
+body.mint-coral-theme .validate-info { background: #DFF3F6 !important; }
+
+</style>
 </head>
-<body class="text-slate-800 overflow-hidden">
-  <header class="bg-white border-b border-slate-200 h-16 flex items-center justify-between px-6 shadow-sm">
-    <div class="flex items-center gap-8 min-w-0">
-      <div class="flex items-center gap-3 min-w-0">
-        <h1 class="text-2xl font-black text-indigo-600 tracking-tighter shrink-0">VTuner</h1>
-        <span class="px-3 py-1 rounded-full bg-indigo-50 border border-indigo-100 text-indigo-600 text-xs font-extrabold">ヴィヴィ</span>
+<body class="mint-coral-theme text-slate-800 overflow-hidden">
+  <div class="h-screen flex overflow-hidden">
+    <!-- Left Sidebar -->
+    <aside class="w-[260px] bg-white border-r border-slate-200 flex flex-col overflow-hidden">
+      <div class="px-5 py-4 border-b border-slate-200">
+        <div class="flex items-center gap-2">
+          <h1 class="text-xl font-black text-slate-900 tracking-tighter">VTuner</h1>
+        </div>
       </div>
 
-      <nav class="flex gap-1 text-sm font-bold flex-wrap">
-        <button class="px-4 py-2 text-slate-400 hover:text-indigo-600">Preview / Test</button>
-        <button class="px-4 py-2 text-slate-400 hover:text-indigo-600">Basic Settings</button>
-        <button class="px-4 py-2 text-slate-400 hover:text-indigo-600">Review</button>
-        <button class="px-4 py-2 text-slate-400 hover:text-indigo-600">Detailed Rules</button>
-        <button class="px-4 py-2 text-indigo-600 bg-indigo-50 rounded-lg">AI / JSON Studio</button>
+      <nav class="p-4 space-y-1 overflow-y-auto hide-scrollbar">
+        <button class="sidebar-item">Basic Settings</button>
+        <button class="sidebar-item">Preview / Test</button>
+        <button class="sidebar-item">Detailed Rules</button>
+        <button class="sidebar-item sidebar-item-active">AI / JSON Studio</button>
+        <button class="sidebar-item">Review</button>
       </nav>
-    </div>
+    </aside>
 
-    <div class="text-right shrink-0">
-      <p class="text-[10px] text-slate-400 font-bold uppercase leading-none">AI / JSON Studio</p>
-      <p class="text-xs font-bold text-slate-600">外部ブラウザ AI 支援</p>
-    </div>
-  </header>
-
-  <main class="app-height flex flex-col overflow-hidden">
-    <!-- summary -->
-    <section class="bg-white border-b border-slate-200 px-6 py-4 shrink-0">
-      <div class="flex items-start justify-between gap-4 flex-wrap">
-        <div>
-          <h2 class="text-lg font-black text-slate-800">AI / JSON Studio</h2>
-          <p class="text-sm text-slate-500 mt-1">
-            外部ブラウザ AI に渡す文を作り、返ってきた JSON を検証して、必要なら直してもらい、良ければ採用します。
-          </p>
+    <!-- Right Content -->
+    <div class="flex-1 flex flex-col overflow-hidden">
+      <!-- TopBar -->
+      <header class="bg-white border-b border-slate-200 px-6 py-4 shrink-0">
+        <div class="flex items-center justify-between gap-4 flex-wrap">
+          <div class="min-w-0">
+            <h2 class="text-lg font-black text-slate-900 tracking-tight">AI / JSON Studio</h2>
+            <p class="text-xs font-bold text-slate-600 mt-1">外部ブラウザ AI 支援</p>
+          </div>
+          <div class="flex items-center gap-2 flex-wrap">
+            <span class="pill pill-vivi">ヴィヴィ</span>
+          </div>
         </div>
+      </header>
 
-        <div class="flex items-center gap-2 flex-wrap">
-          <span class="pill pill-indigo">外部AI前提</span>
-          <span class="pill pill-yellow">検証待ち 2件</span>
-          <span class="pill pill-green">採用済み 12件</span>
-        </div>
-      </div>
-    </section>
+      <main class="flex-1 overflow-hidden flex flex-col">
+        <!-- Page Summary -->
+        <section class="px-6 pt-6 shrink-0">
+          <div class="section-card summary-card p-5 shadow-soft">
+            <div class="flex items-start justify-between gap-4 flex-wrap">
+              <div class="min-w-0">
+                <h3 class="text-sm font-black text-slate-800">AI / JSON Studio</h3>
+                <p class="text-sm text-slate-500 mt-1">
+                  外部ブラウザ AI に渡す文を作り、返ってきた JSON を検証して、必要なら直してもらい、良ければ採用します。
+                </p>
+              </div>
 
-    <!-- target tabs -->
-    <section class="bg-white border-b border-slate-200 px-6 py-3 shrink-0">
-      <div class="flex gap-2 flex-wrap">
-        <button class="px-4 py-2.5 text-sm font-bold rounded-xl border border-indigo-200 tab-active">人格</button>
-        <button class="px-4 py-2.5 text-sm font-bold rounded-xl border border-slate-200 bg-white text-slate-600">返答カテゴリ</button>
-        <button class="px-4 py-2.5 text-sm font-bold rounded-xl border border-slate-200 bg-white text-slate-600">返答集</button>
-        <button class="px-4 py-2.5 text-sm font-bold rounded-xl border border-slate-200 bg-white text-slate-600">条件イベント</button>
-        <button class="px-4 py-2.5 text-sm font-bold rounded-xl border border-slate-200 bg-white text-slate-600">カテゴリ定義</button>
-        <button class="px-4 py-2.5 text-sm font-bold rounded-xl border border-slate-200 bg-white text-slate-600">エラー修正</button>
-      </div>
-    </section>
+              <div class="flex items-center gap-2 flex-wrap">
+            <span class="pill pill-soft">外部AI前提</span>
+            <span class="pill pill-soft">検証待ち 2件</span>
+            <span class="pill pill-soft">採用済み 12件</span>
+              </div>
+            </div>
+          </div>
+        </section>
 
-    <!-- start source -->
-    <section class="bg-white border-b border-slate-200 px-6 py-3 shrink-0">
-      <div class="flex items-start gap-4 flex-wrap">
-        <div class="pt-2">
-          <p class="text-xs font-black text-slate-400 uppercase">作業開始元</p>
-        </div>
-        <div class="flex gap-2 flex-wrap">
-          <button class="px-4 py-2 text-xs font-bold rounded-xl border start-active">新規作成</button>
-          <button class="px-4 py-2 text-xs font-bold rounded-xl border border-slate-200 bg-white text-slate-600">Review候補から開始</button>
-          <button class="px-4 py-2 text-xs font-bold rounded-xl border border-slate-200 bg-white text-slate-600">既存ベース</button>
-          <button class="px-4 py-2 text-xs font-bold rounded-xl border border-slate-200 bg-white text-slate-600">履歴</button>
-          <button class="px-4 py-2 text-xs font-bold rounded-xl border border-slate-200 bg-white text-slate-600">マイプリセット</button>
-          <button class="px-4 py-2 text-xs font-bold rounded-xl border border-indigo-200 bg-indigo-50 text-indigo-600">理想スキーマから開始</button>
-        </div>
-      </div>
-    </section>
+        <!-- Target Tabs -->
+        <section class="px-6 pt-4 shrink-0">
+          <div class="target-tabs flex gap-2 flex-wrap">
+            <button class="px-4 py-2.5 text-sm font-bold rounded-xl border border-indigo-200 tab-active">人格</button>
+            <button class="px-4 py-2.5 text-sm font-bold rounded-xl border border-slate-200 bg-white text-slate-600">返答カテゴリ</button>
+            <button class="px-4 py-2.5 text-sm font-bold rounded-xl border border-slate-200 bg-white text-slate-600">返答集</button>
+            <button class="px-4 py-2.5 text-sm font-bold rounded-xl border border-slate-200 bg-white text-slate-600">条件イベント</button>
+            <button class="px-4 py-2.5 text-sm font-bold rounded-xl border border-slate-200 bg-white text-slate-600">カテゴリ定義</button>
+            <button class="px-4 py-2.5 text-sm font-bold rounded-xl border border-slate-200 bg-white text-slate-600">エラー修正</button>
+          </div>
+        </section>
 
-    <!-- main -->
-    <section class="flex-1 grid grid-cols-[minmax(0,1fr)_560px] overflow-hidden">
+        <!-- Start Source Selector -->
+        <section class="px-6 pt-4 pb-6 shrink-0">
+          <div class="section-card p-4">
+            <div class="flex items-start gap-4 flex-wrap">
+              <div class="pt-2">
+                <p class="text-xs font-black text-slate-400 uppercase">作業開始元</p>
+              </div>
+              <div class="start-source flex gap-2 flex-wrap">
+                <button class="px-4 py-2 text-xs font-bold rounded-xl border start-active">新規作成</button>
+                <button class="px-4 py-2 text-xs font-bold rounded-xl border border-slate-200 bg-white text-slate-600">Review候補から開始</button>
+                <button class="px-4 py-2 text-xs font-bold rounded-xl border border-slate-200 bg-white text-slate-600">既存ベース</button>
+                <button class="px-4 py-2 text-xs font-bold rounded-xl border border-slate-200 bg-white text-slate-600">履歴</button>
+                <button class="px-4 py-2 text-xs font-bold rounded-xl border border-slate-200 bg-white text-slate-600">マイプリセット</button>
+                <button class="start-ideal px-4 py-2 text-xs font-bold rounded-xl border border-indigo-200 bg-indigo-50 text-indigo-600">理想スキーマから開始</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Work Area -->
+        <section class="flex-1 px-6 pb-6 overflow-hidden">
+          <section class="h-full grid grid-cols-[minmax(0,1fr)_560px] overflow-hidden section-card shadow-soft">
       <!-- LEFT -->
       <section class="overflow-y-auto hide-scrollbar bg-slate-50 border-r border-slate-200">
         <div class="p-5 space-y-5">
@@ -178,15 +645,15 @@
                 <h3 class="text-sm font-black text-slate-800">いま作るもの</h3>
                 <p class="text-xs text-slate-500 mt-1">人格タブでは、基本性格・視聴者向け態度・配信者向け態度・口調・禁止表現のまとまりを作ります</p>
               </div>
-              <span class="pill pill-indigo">人格</span>
+              <span class="pill pill-soft">人格</span>
             </div>
 
             <div class="grid grid-cols-2 gap-3 text-sm">
-              <div class="bg-slate-50 border border-slate-200 rounded-xl p-3">
+              <div class="sub-block bg-slate-50 border border-slate-200 rounded-xl p-3">
                 <p class="text-[10px] font-black text-slate-400 uppercase mb-1">作る内容</p>
                 <p class="font-semibold text-slate-700">性格 / 態度 / 口調</p>
               </div>
-              <div class="bg-slate-50 border border-slate-200 rounded-xl p-3">
+              <div class="sub-block sub-block-blue bg-slate-50 border border-slate-200 rounded-xl p-3">
                 <p class="text-[10px] font-black text-slate-400 uppercase mb-1">採用後</p>
                 <p class="font-semibold text-slate-700">Detailed Rules で正式編集</p>
               </div>
@@ -199,7 +666,7 @@
                 <h3 class="text-sm font-black text-slate-800">かんたん入力</h3>
                 <p class="text-xs text-slate-500 mt-1">短文で方向性を入れます</p>
               </div>
-              <span class="pill pill-indigo">入力して作る</span>
+              <span class="pill pill-soft">入力して作る</span>
             </div>
 
             <div class="grid gap-3">
@@ -210,12 +677,12 @@
 
               <div>
                 <label class="block text-[10px] font-black text-slate-500 uppercase mb-2">雰囲気</label>
-                <div class="flex gap-2 flex-wrap">
-                  <span class="pill pill-indigo">クール秘書</span>
-                  <span class="pill pill-gray">お姉さん</span>
-                  <span class="pill pill-gray">中性的</span>
-                  <span class="pill pill-gray">からかい上手</span>
-                  <span class="pill pill-gray">クーデレ</span>
+              <div class="mood-tags flex gap-2 flex-wrap">
+                  <span class="pill tag-active">クール秘書</span>
+                  <span class="pill tag-soft">お姉さん</span>
+                  <span class="pill tag-soft">中性的</span>
+                  <span class="pill tag-soft">からかい上手</span>
+                  <span class="pill tag-soft">クーデレ</span>
                 </div>
               </div>
 
@@ -238,7 +705,7 @@
                 <h3 class="text-sm font-black text-slate-800">詳細入力</h3>
                 <p class="text-xs text-slate-500 mt-1">より細かい方向まで指定します</p>
               </div>
-              <span class="pill pill-gray">細かく作る</span>
+              <span class="pill pill-soft">細かく作る</span>
             </div>
 
             <div class="grid gap-3">
@@ -303,7 +770,7 @@
                 <h3 class="text-sm font-black text-slate-800">関連プリセット</h3>
                 <p class="text-xs text-slate-500 mt-1">初期プリセットや過去採用済みの型を土台にできます</p>
               </div>
-              <span class="pill pill-gray">プリセット</span>
+              <span class="pill pill-soft">プリセット</span>
             </div>
 
             <div class="grid grid-cols-2 gap-3">
@@ -360,9 +827,9 @@
                 <p class="text-xs text-slate-500 mt-1">外部ブラウザAIへ渡す文を作ります</p>
               </div>
               <div class="flex items-center gap-2 flex-wrap">
-                <span class="pill pill-indigo">人格用プロンプト</span>
-                <span class="pill pill-green">生成済み</span>
-                <span class="pill pill-yellow">必須項目あり</span>
+                <span class="pill pill-soft">人格用プロンプト</span>
+                <span class="pill pill-soft">生成済み</span>
+                <span class="pill pill-soft">必須項目あり</span>
               </div>
             </div>
 
@@ -419,7 +886,7 @@
                 <h3 class="text-sm font-black text-slate-800">見本と項目ガイド</h3>
                 <p class="text-xs text-slate-500 mt-1">何を返してほしいか迷いにくくするための補助です</p>
               </div>
-              <span class="pill pill-indigo">理想スキーマ前提</span>
+              <span class="pill pill-soft">理想スキーマ前提</span>
             </div>
 
             <div class="grid grid-cols-2 gap-2">
@@ -430,7 +897,8 @@
               <button class="col-span-2 px-3 py-2.5 text-xs font-bold text-slate-700 bg-white border border-slate-200 rounded-xl hover:bg-slate-50">項目の説明を見る</button>
             </div>
 
-            <div class="mt-4 bg-slate-50 border border-slate-200 rounded-2xl p-4">
+            <div class="sub-block sub-block-blue mt-4 bg-slate-50 border border-slate-200 rounded-2xl p-4">
+
               <p class="text-[10px] font-black text-slate-400 uppercase mb-2">このタブの必須項目</p>
               <div class="flex gap-2 flex-wrap">
                 <span class="pill pill-gray">baseTraits</span>
@@ -449,7 +917,7 @@
                 <h3 class="text-sm font-black text-slate-800">返ってきた JSON</h3>
                 <p class="text-xs text-slate-500 mt-1">外部ブラウザ AI から返ってきたものをここに貼ります</p>
               </div>
-              <span class="pill pill-indigo">貼って検証</span>
+              <span class="pill pill-soft">貼って検証</span>
             </div>
 
             <textarea class="code-box w-full min-h-[220px] px-4 py-4 rounded-2xl border border-slate-200 bg-slate-50 text-[12px] leading-6 text-slate-700">{
@@ -463,14 +931,14 @@
 }</textarea>
 
             <div class="flex items-center justify-between gap-3 mt-4 flex-wrap">
-              <div class="flex items-center gap-2">
-                <button class="px-4 py-2.5 text-sm font-bold text-slate-600 bg-white border border-slate-200 rounded-xl hover:bg-slate-50">
-                  JSON を読み込む
-                </button>
-                <button class="px-4 py-2.5 text-sm font-bold text-white bg-indigo-600 rounded-xl hover:bg-indigo-700">
-                  検証する
-                </button>
-              </div>
+            <div class="flex items-center gap-2">
+              <button class="px-4 py-2.5 text-sm font-bold text-slate-600 bg-white border border-slate-200 rounded-xl hover:bg-slate-50">
+                JSON を読み込む
+              </button>
+              <button class="cta-coral px-4 py-2.5 text-sm font-bold text-white bg-indigo-600 rounded-xl hover:bg-indigo-700">
+                検証する
+              </button>
+            </div>
 
               <span class="text-xs text-slate-500">手で直すより、まず検証して直してもらう想定です</span>
             </div>
@@ -502,9 +970,9 @@
                 <p class="text-xs text-rose-700 leading-5">文字列ではなく、配列で返してください。</p>
               </div>
 
-              <div class="bg-slate-50 border border-slate-200 rounded-xl p-4">
+              <div class="validate-info bg-slate-50 border border-slate-200 rounded-xl p-4">
                 <div class="flex items-center gap-2 mb-2">
-                  <span class="pill pill-gray">注意</span>
+                  <span class="pill pill-indigo">注意</span>
                   <p class="text-sm font-bold text-slate-700">forbiddenPhrases が少なめです</p>
                 </div>
                 <p class="text-xs text-slate-500 leading-5">禁止表現の粒度をもう少し増やしてもよさそうです。</p>
@@ -545,21 +1013,21 @@
                 <h3 class="text-sm font-black text-slate-800">差分要約</h3>
                 <p class="text-xs text-slate-500 mt-1">何が追加 / 変更されるのかを短く見ます</p>
               </div>
-              <span class="pill pill-green">検証成功後に有効</span>
+              <span class="pill pill-soft">検証成功後に有効</span>
             </div>
 
             <div class="space-y-3">
-              <div class="bg-slate-50 border border-slate-200 rounded-xl p-4">
+              <div class="sub-block bg-slate-50 border border-slate-200 rounded-xl p-4">
                 <p class="text-[10px] font-black text-slate-400 uppercase mb-1">追加</p>
                 <p class="text-sm font-semibold text-slate-700">好きな言い回し 3件 / 禁止表現 2件</p>
               </div>
 
-              <div class="bg-slate-50 border border-slate-200 rounded-xl p-4">
+              <div class="sub-block sub-block-blue bg-slate-50 border border-slate-200 rounded-xl p-4">
                 <p class="text-[10px] font-black text-slate-400 uppercase mb-1">変更</p>
                 <p class="text-sm font-semibold text-slate-700">視聴者向け態度を「丁寧寄り」に調整</p>
               </div>
 
-              <div class="bg-slate-50 border border-slate-200 rounded-xl p-4">
+              <div class="sub-block sub-block-coral bg-slate-50 border border-slate-200 rounded-xl p-4">
                 <p class="text-[10px] font-black text-slate-400 uppercase mb-1">採用後の位置</p>
                 <p class="text-sm font-semibold text-slate-700">採用後は Detailed Rules で正式編集できます</p>
               </div>
@@ -572,7 +1040,7 @@
                 <h3 class="text-sm font-black text-slate-800">採用</h3>
                 <p class="text-xs text-slate-500 mt-1">良ければ基本本採用とします</p>
               </div>
-              <span class="pill pill-indigo">採用する</span>
+              <span class="pill pill-soft">採用する</span>
             </div>
 
             <div class="grid gap-3">
@@ -585,13 +1053,13 @@
                 </button>
               </div>
 
-              <div class="bg-slate-50 border border-slate-200 rounded-xl p-4">
+              <div class="sub-block sub-block-blue bg-slate-50 border border-slate-200 rounded-xl p-4">
                 <div class="flex items-center justify-between gap-3 mb-2">
                   <div>
                     <p class="text-sm font-bold text-slate-700">マイプリセット化</p>
                     <p class="text-xs text-slate-500 mt-1">検証成功 + 採用済み + 名前付け済み なら保存できます</p>
                   </div>
-                  <span class="pill pill-green">条件達成</span>
+                  <span class="pill pill-soft">条件達成</span>
                 </div>
 
                 <div class="flex gap-2">
@@ -614,11 +1082,11 @@
                 <h3 class="text-sm font-black text-slate-800">履歴</h3>
                 <p class="text-xs text-slate-500 mt-1">最近の作業を軽く確認します</p>
               </div>
-              <span class="pill pill-gray">最近 3件</span>
+              <span class="pill pill-soft">最近 3件</span>
             </div>
 
             <div class="space-y-3">
-              <div class="bg-slate-50 border border-slate-200 rounded-xl p-4">
+              <div class="sub-block bg-slate-50 border border-slate-200 rounded-xl p-4">
                 <div class="flex items-center justify-between gap-3 mb-2">
                   <div>
                     <p class="text-sm font-bold text-slate-700">クール秘書_補助寄り</p>
@@ -628,11 +1096,11 @@
                 </div>
                 <div class="flex items-center gap-2 flex-wrap">
                   <span class="pill pill-gray">修正 1回</span>
-                  <span class="pill pill-indigo">マイプリセット化済み</span>
+                  <span class="pill pill-soft">マイプリセット化済み</span>
                 </div>
               </div>
 
-              <div class="bg-slate-50 border border-slate-200 rounded-xl p-4">
+              <div class="sub-block sub-block-blue bg-slate-50 border border-slate-200 rounded-xl p-4">
                 <div class="flex items-center justify-between gap-3 mb-2">
                   <div>
                     <p class="text-sm font-bold text-slate-700">挨拶カテゴリ_やわらかめ</p>
@@ -645,7 +1113,7 @@
                 </div>
               </div>
 
-              <div class="bg-slate-50 border border-slate-200 rounded-xl p-4">
+              <div class="sub-block bg-slate-50 border border-slate-200 rounded-xl p-4">
                 <div class="flex items-center justify-between gap-3 mb-2">
                   <div>
                     <p class="text-sm font-bold text-slate-700">無コメント120秒_話題振り</p>
@@ -661,7 +1129,11 @@
           </section>
         </div>
       </aside>
-    </section>
-  </main>
+          </section>
+        </section>
+      </main>
+    </div>
+  </div>
 </body>
 </html>
+

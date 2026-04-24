@@ -7,8 +7,9 @@
 
 今回の前提:
 
-* 配色: Slate × Indigo
+* 配色: Mint Coral（Adopted）
 * レイアウト: 左サイドバー + 上部ヘッダー + メイン
+* 採用済み基準モック: `mockups/gemini_chatgpt/AI_JSON_Studio.html`（AI / JSON Studio）
 
 ---
 
@@ -77,9 +78,14 @@
 
 ### 表現
 
-* active: Indigo背景 + 白文字
-* hover: 薄Indigo背景
-* default: グレー文字
+* active: Mint 系背景 + ネイビーグレー文字（強い挿し色は使わない）
+* hover: Soft Mint 系背景
+* default: ネイビーグレー / ブルーグレー文字
+
+### 追加ルール（Mint Coral）
+
+* active item に Coral / Red の縦線や強い挿し色を使わない
+* 画面全体のアクセント色を Sidebar に広げすぎない
 
 ### 注意
 
@@ -120,9 +126,10 @@
 
 ### バリエーション
 
-* Primary（Indigo）
+* Primary（Deep Mint）
 * Secondary（白 + ボーダー）
-* Danger（赤）
+* Coral（検証・注意・再修正などの文脈に限定）
+* Danger（破壊的操作がある場合のみ）
 * Ghost（背景なし）
 
 ### 状態
@@ -136,6 +143,8 @@
 ### 使用ルール
 
 * Primaryは1画面で1〜2個まで
+* 危険操作でないものに Coral / 赤を使わない
+* 採用 / 保存などの肯定系操作は Mint 系を優先する
 
 ---
 
@@ -148,7 +157,7 @@
 ### 状態
 
 * default
-* focus（Indigo強調）
+* focus（Mint強調）
 * error
 * disabled
 
@@ -186,7 +195,8 @@
 
 ### 表現
 
-* active: Indigo + 薄背景
+* active: Mint 系
+* default: 白または薄いミント系
 
 ---
 
@@ -198,9 +208,24 @@
 
 ### 表現
 
-* 白背景
-* 薄いボーダー
+* 白背景またはごく薄いミント系
+* 薄いボーダー（淡いミント / ブルーグレー系）
 * 角丸（16〜20px）
+
+---
+
+## 5-8b. Sub Block（Card内小ブロック）
+
+### 役割
+
+* Card内の補助情報ボックス
+* 差分要約、履歴、補助説明、必須項目などに使う
+
+### 表現
+
+* 薄いミント系背景を基本とする
+* 必要なら薄いブルー系のバリエーションを使う（派手にしない）
+* 意味のない色分けはしない（状態差が必要なら文言で示す）
 
 ---
 
@@ -220,6 +245,8 @@
 ### 注意
 
 * 色 + 文言で表現
+* 上部サマリーや補助ラベルは、状態色を増やしすぎない（同系色で統一）
+* Warning / Error は検証結果など必要箇所に限定する
 
 ---
 
@@ -262,6 +289,12 @@
 * Panel（右側補助領域）
 
 これはレイアウト基盤として全画面共通で使用する。
+
+また、次を記録として扱う（仕様変更ではない）。
+
+* `mockups/gemini_chatgpt/AI_JSON_Studio.html` を AI / JSON Studio の採用済みHTMLモックとする
+* この画面のデザインを、残り4画面の見た目調整の基準にする
+* 残り4画面は、仕様を変えず、Sidebar / Card / Button / Tabs / Badge / Input の見た目だけを揃える
 
 ---
 

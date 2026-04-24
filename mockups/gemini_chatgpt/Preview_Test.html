@@ -5,20 +5,38 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>VTuner - Preview / Test</title>
   <style>
+    @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800&family=Noto+Sans+JP:wght@400;500;700;800&display=swap');
+
     :root {
-      --bg: #f6f7fb;
-      --panel: #ffffff;
-      --line: #e5e7eb;
-      --line-strong: #d6dae3;
-      --text: #1f2937;
-      --muted: #6b7280;
-      --primary: #5b6cff;
-      --primary-soft: #eef2ff;
-      --shadow: 0 10px 30px rgba(17, 24, 39, 0.08);
-      --radius: 18px;
-      --ok: #10b981;
-      --warn: #f59e0b;
-      --danger: #ef4444;
+      /* Mint Coral (Adopted) */
+      --bg: #F3F7F7;            /* App Background */
+      --panel: #FFFFFF;         /* Surface / Card */
+      --panel-soft: #F7FCFC;    /* Soft surface */
+      --sub-mint: #EAF7F7;       /* Sub Mint */
+      --sub-blue: #EAF3F8;       /* Sub Blue */
+      --line: #BFDCDD;           /* Border */
+      --line-strong: #8FCFD3;    /* Strong Border */
+
+      --text: #2F3E46;           /* Primary Text */
+      --muted: #5F747A;          /* Secondary Text */
+      --muted-2: #91A3A8;        /* Muted Text */
+
+      --primary: #4AAEB6;        /* Deep Mint */
+      --primary-hover: #358F96;
+      --primary-soft: #DDF3F4;   /* Soft Mint */
+      --accent: #7ECFD4;         /* Mint */
+
+      --shadow: 0 12px 28px rgba(47, 62, 70, 0.08);
+      --radius: 20px;
+
+      --ok: #3F8A63;             /* Success Text */
+      --ok-bg: #E4F5EC;          /* Success BG */
+      --warn: #A96E22;           /* Warning Text */
+      --warn-bg: #FFF0D8;        /* Warning BG */
+      --danger: #B94D4D;         /* Error Text */
+      --danger-bg: #FFE2E2;      /* Error BG */
+      --info: #357F91;           /* Info Text */
+      --info-bg: #DFF3F6;        /* Info BG */
     }
 
     * { box-sizing: border-box; }
@@ -27,7 +45,7 @@
       margin: 0;
       background: var(--bg);
       color: var(--text);
-      font-family: "Yu Gothic UI", "Hiragino Sans", "Noto Sans JP", system-ui, sans-serif;
+      font-family: "Noto Sans JP", system-ui, -apple-system, "Segoe UI", sans-serif;
     }
 
     button, input, textarea, select {
@@ -37,13 +55,77 @@
     .app {
       min-height: 100vh;
       display: flex;
+      flex-direction: row;
+    }
+
+    /* Left sidebar (common navigation) */
+    .sidebar {
+      width: 260px;
+      background: var(--sub-mint);
+      border-right: 1px solid var(--line);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .sidebar-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.65);
+      backdrop-filter: blur(6px);
+    }
+
+    .sidebar-header h1 {
+      margin: 0;
+      font-size: 20px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: var(--text);
+      font-family: "Nunito", "Noto Sans JP", system-ui, -apple-system, "Segoe UI", sans-serif;
+      white-space: nowrap;
+    }
+
+    .sidebar-nav {
+      padding: 14px;
+      display: grid;
+      gap: 6px;
+    }
+
+    .sidebar-nav button {
+      border: 1px solid transparent;
+      background: transparent;
+      color: var(--muted);
+      font-weight: 800;
+      padding: 10px 12px;
+      border-radius: 14px;
+      cursor: pointer;
+      font-size: 13px;
+      text-align: left;
+    }
+
+    .sidebar-nav button:hover {
+      background: var(--primary-soft);
+      color: var(--text);
+      border-color: rgba(127, 207, 212, 0.35);
+    }
+
+    .sidebar-nav button.active {
+      background: var(--accent);
+      color: var(--text);
+      border-color: rgba(74, 174, 182, 0.45);
+      box-shadow: inset 0 0 0 1px rgba(74, 174, 182, 0.35);
+    }
+
+    .content {
+      flex: 1;
+      min-width: 0;
+      display: flex;
       flex-direction: column;
     }
 
     .topbar {
-      height: 68px;
-      background: rgba(255,255,255,0.94);
-      backdrop-filter: blur(8px);
+      min-height: 80px;
+      background: var(--panel);
       border-bottom: 1px solid var(--line);
       display: flex;
       align-items: center;
@@ -55,61 +137,34 @@
       gap: 16px;
     }
 
-    .brand-wrap {
-      display: flex;
-      align-items: center;
-      gap: 20px;
+    .page-title {
       min-width: 0;
-      flex-wrap: wrap;
-    }
-
-    .brand {
       display: flex;
       align-items: center;
       gap: 12px;
-      min-width: 0;
+      flex-wrap: wrap;
     }
 
-    .brand h1 {
+    .page-title h2 {
       margin: 0;
-      font-size: 22px;
+      font-size: 18px;
       font-weight: 800;
-      color: var(--primary);
-      letter-spacing: -0.02em;
+      letter-spacing: -0.01em;
+      color: var(--text);
+      font-family: "Nunito", "Noto Sans JP", system-ui, -apple-system, "Segoe UI", sans-serif;
       white-space: nowrap;
     }
 
     .vtuner-name {
       padding: 7px 12px;
       border-radius: 999px;
-      border: 1px solid #dbe4ff;
-      background: var(--primary-soft);
-      color: var(--primary);
+      border: 1px solid var(--line);
+      background: var(--sub-mint);
+      color: var(--info);
       font-weight: 800;
       font-size: 13px;
       white-space: nowrap;
-    }
-
-    .nav {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-
-    .nav button {
-      border: 0;
-      background: transparent;
-      color: var(--muted);
-      font-weight: 700;
-      padding: 10px 14px;
-      border-radius: 12px;
-      cursor: pointer;
-      font-size: 14px;
-    }
-
-    .nav button.active {
-      background: var(--primary-soft);
-      color: var(--primary);
+      font-family: "Nunito", "Noto Sans JP", system-ui, -apple-system, "Segoe UI", sans-serif;
     }
 
     .top-actions {
@@ -124,11 +179,15 @@
       background: #fff;
       color: var(--text);
       padding: 10px 14px;
-      border-radius: 12px;
+      border-radius: 14px;
       font-weight: 700;
       cursor: pointer;
       font-size: 14px;
       white-space: nowrap;
+    }
+
+    .btn:hover {
+      background: var(--panel-soft);
     }
 
     .btn.primary {
@@ -137,23 +196,36 @@
       color: #fff;
     }
 
+    .btn.primary:hover {
+      background: var(--primary-hover);
+      border-color: var(--primary-hover);
+    }
+
     .btn.ghost {
-      background: #fff;
+      background: transparent;
       color: var(--primary);
-      border-color: #dbe4ff;
+      border-color: rgba(191, 220, 221, 0.9);
+    }
+
+    .btn.ghost:hover {
+      background: var(--primary-soft);
+      border-color: rgba(127, 207, 212, 0.45);
     }
 
     .btn.danger {
-      color: #b91c1c;
-      border-color: #fecaca;
+      color: var(--danger);
+      border-color: rgba(185, 77, 77, 0.28);
       background: #fff;
     }
 
+    .btn.danger:hover {
+      background: var(--danger-bg);
+      border-color: rgba(243, 176, 176, 0.95);
+    }
+
     .page {
-      max-width: 1540px;
       width: 100%;
-      margin: 0 auto;
-      padding: 18px;
+      padding: 24px;
       display: grid;
       gap: 16px;
     }
@@ -174,6 +246,15 @@
       min-width: 0;
     }
 
+    .page-summary-card {
+      background: linear-gradient(180deg, var(--panel-soft) 0%, var(--panel) 100%);
+    }
+
+    .page-summary-header {
+      background: transparent;
+      border-bottom: 0;
+    }
+
     .card-header {
       padding: 14px 16px;
       border-bottom: 1px solid var(--line);
@@ -182,7 +263,7 @@
       justify-content: space-between;
       gap: 12px;
       flex-wrap: wrap;
-      background: #fcfcff;
+      background: var(--panel-soft);
     }
 
     .card-title {
@@ -196,7 +277,7 @@
       width: 4px;
       height: 20px;
       border-radius: 999px;
-      background: var(--primary);
+      background: var(--accent);
       flex: 0 0 auto;
     }
 
@@ -204,6 +285,7 @@
       margin: 0;
       font-size: 16px;
       font-weight: 800;
+      font-family: "Nunito", "Noto Sans JP", system-ui, -apple-system, "Segoe UI", sans-serif;
     }
 
     .toolbar {
@@ -215,7 +297,7 @@
 
     .preview-stage-wrap {
       padding: 14px;
-      background: #f8f9fd;
+      background: var(--panel-soft);
     }
 
     .preview-stage {
@@ -229,7 +311,7 @@
       background:
         linear-gradient(180deg, rgba(255,255,255,0.03), rgba(0,0,0,0.05)),
         radial-gradient(circle at 20% 20%, rgba(255,255,255,0.18), transparent 30%),
-        linear-gradient(180deg, #d7defd 0%, #b7c6f3 45%, #c6d3ff 100%);
+        linear-gradient(180deg, var(--sub-blue) 0%, var(--info-bg) 45%, var(--sub-mint) 100%);
     }
 
     .preview-bg {
@@ -279,12 +361,14 @@
       cursor: pointer;
       line-height: 1;
       white-space: nowrap;
+      font-family: "Nunito", "Noto Sans JP", system-ui, -apple-system, "Segoe UI", sans-serif;
     }
 
     .mini-chip.active {
-      color: var(--primary);
-      border-color: #dbe4ff;
+      color: var(--info);
+      border-color: rgba(127, 207, 212, 0.7);
       background: var(--primary-soft);
+      font-family: "Nunito", "Noto Sans JP", system-ui, -apple-system, "Segoe UI", sans-serif;
     }
 
     .mini-file {
@@ -300,6 +384,7 @@
       font-weight: 800;
       cursor: pointer;
       white-space: nowrap;
+      font-family: "Nunito", "Noto Sans JP", system-ui, -apple-system, "Segoe UI", sans-serif;
     }
 
     .mini-file input {
@@ -365,7 +450,7 @@
     .vtuner-body {
       position: absolute;
       inset: 0;
-      filter: drop-shadow(0 16px 26px rgba(17,24,39,0.18));
+      filter: drop-shadow(0 16px 26px rgba(47, 62, 70, 0.18));
     }
 
     .hair-back {
@@ -520,11 +605,11 @@
       padding: 18px 18px 16px;
       border-radius: 20px;
       background: rgba(255,255,255,0.98);
-      border: 1px solid #dbe4ff;
-      box-shadow: 0 10px 24px rgba(17,24,39,0.08);
+      border: 1px solid var(--line);
+      box-shadow: 0 12px 28px rgba(47, 62, 70, 0.08);
       line-height: 1.7;
       font-size: 15px;
-      color: #111827;
+      color: var(--text);
       overflow: hidden;
     }
 
@@ -537,8 +622,8 @@
       height: 18px;
       transform: rotate(45deg);
       background: #fff;
-      border-right: 1px solid #dbe4ff;
-      border-bottom: 1px solid #dbe4ff;
+      border-right: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
     }
 
     .bubble-handle {
@@ -549,7 +634,7 @@
       font-weight: 700;
       color: var(--muted);
       border: 1px solid var(--line);
-      background: #f8fafc;
+      background: var(--panel-soft);
       border-radius: 999px;
       padding: 4px 8px;
       cursor: grab;
@@ -570,7 +655,7 @@
       min-width: 260px;
       padding: 10px 14px;
       border-radius: 12px;
-      background: rgba(17,24,39,0.86);
+      background: rgba(47, 62, 70, 0.86);
       color: #fff;
       font-size: 14px;
       line-height: 1.55;
@@ -597,7 +682,7 @@
       min-height: 240px;
       border: 1px solid var(--line);
       border-radius: 16px;
-      background: #fff;
+      background: var(--panel);
       overflow: auto;
       display: grid;
       gap: 0;
@@ -605,7 +690,7 @@
 
     .history-item {
       padding: 14px;
-      border-bottom: 1px solid #f1f5f9;
+      border-bottom: 1px solid rgba(191, 220, 221, 0.55);
       display: grid;
       gap: 7px;
     }
@@ -626,27 +711,28 @@
       padding: 5px 9px;
       border-radius: 999px;
       border: 1px solid var(--line);
-      background: #fff;
-      color: #374151;
+      background: var(--ok-bg);
+      color: var(--ok);
       font-weight: 800;
       font-size: 11px;
+      font-family: "Nunito", "Noto Sans JP", system-ui, -apple-system, "Segoe UI", sans-serif;
     }
 
     .history-badge.reply {
-      background: var(--primary-soft);
-      border-color: #dbe4ff;
-      color: var(--primary);
+      background: var(--ok-bg);
+      border-color: rgba(168, 221, 190, 0.95);
+      color: var(--ok);
     }
 
     .history-badge.event {
-      background: #f9fafb;
-      color: #475569;
+      background: var(--sub-mint);
+      color: var(--muted);
     }
 
     .history-name {
       font-size: 13px;
       font-weight: 800;
-      color: #15803d;
+      color: var(--ok);
     }
 
     .history-text {
@@ -668,7 +754,7 @@
       border: 1px solid var(--line);
       border-radius: 16px;
       padding: 14px;
-      background: #fafbff;
+      background: var(--panel-soft);
       display: grid;
       gap: 10px;
     }
@@ -686,8 +772,16 @@
       border: 1px solid var(--line);
       border-radius: 12px;
       padding: 10px 12px;
-      background: #fff;
+      background: var(--panel-soft);
       color: var(--text);
+    }
+
+    .input-grid input:focus,
+    .input-grid textarea:focus,
+    .input-grid select:focus {
+      outline: 2px solid var(--accent);
+      outline-offset: 1px;
+      border-color: rgba(127, 207, 212, 0.7);
     }
 
     .input-grid textarea {
@@ -784,15 +878,22 @@
       border: 1px solid var(--line);
       border-radius: 12px;
       padding: 10px 11px;
-      background: #fff;
+      background: var(--panel-soft);
       color: var(--text);
       min-width: 0;
+    }
+
+    .field input:focus,
+    .field select:focus {
+      outline: 2px solid var(--accent);
+      outline-offset: 1px;
+      border-color: rgba(127, 207, 212, 0.7);
     }
 
     .preset-bottom {
       padding: 12px 14px;
       border-top: 1px solid var(--line);
-      background: #fafbff;
+      background: var(--panel-soft);
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -813,30 +914,31 @@
       align-items: center;
       padding: 6px 10px;
       border-radius: 999px;
-      border: 1px solid var(--line);
-      background: #fff;
+      border: 1px solid rgba(168, 221, 190, 0.95);
+      background: var(--ok-bg);
       font-size: 12px;
       font-weight: 800;
-      color: #374151;
+      color: var(--ok);
       white-space: nowrap;
+      font-family: "Nunito", "Noto Sans JP", system-ui, -apple-system, "Segoe UI", sans-serif;
     }
 
     .pill.ok {
-      color: #047857;
-      background: #ecfdf5;
-      border-color: #bbf7d0;
+      color: var(--ok);
+      background: var(--ok-bg);
+      border-color: rgba(168, 221, 190, 0.95);
     }
 
     .pill.warn {
-      color: #b45309;
-      background: #fff7ed;
-      border-color: #fed7aa;
+      color: var(--warn);
+      background: var(--warn-bg);
+      border-color: rgba(242, 201, 142, 0.95);
     }
 
     .pill.info {
-      color: var(--primary);
-      background: var(--primary-soft);
-      border-color: #dbe4ff;
+      color: var(--ok);
+      background: var(--ok-bg);
+      border-color: rgba(168, 221, 190, 0.95);
     }
 
     .muted {
@@ -865,8 +967,26 @@
         align-items: stretch;
       }
 
-      .brand-wrap {
-        justify-content: space-between;
+      .app {
+        flex-direction: column;
+      }
+
+      .sidebar {
+        width: 100%;
+        border-right: 0;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .sidebar-nav {
+        display: flex;
+        gap: 8px;
+        overflow-x: auto;
+        padding: 12px;
+      }
+
+      .sidebar-nav button {
+        white-space: nowrap;
+        text-align: center;
       }
 
       .preview-stage {
@@ -893,7 +1013,7 @@
 
     @media (max-width: 640px) {
       .page {
-        padding: 12px;
+        padding: 16px 14px;
       }
 
       .preview-stage-wrap,
@@ -935,30 +1055,34 @@
 </head>
 <body>
   <div class="app">
-    <header class="topbar">
-      <div class="brand-wrap">
-        <div class="brand">
-          <h1>VTuner</h1>
-          <span class="vtuner-name">ヴィヴィ</span>
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <h1>VTuner</h1>
+      </div>
+      <nav class="sidebar-nav">
+        <button>Basic Settings</button>
+        <button class="active">Preview / Test</button>
+        <button>Detailed Rules</button>
+        <button>AI / JSON Studio</button>
+        <button>Review</button>
+      </nav>
+    </aside>
+
+    <div class="content">
+      <header class="topbar">
+        <div class="page-title">
+          <h2>Preview / Test</h2>
         </div>
-        <nav class="nav">
-          <button class="active">Preview / Test</button>
-          <button>Basic Settings</button>
-          <button>Review</button>
-          <button>Detailed Rules</button>
-          <button>AI / JSON Studio</button>
-        </nav>
-      </div>
+        <div class="top-actions">
+          <span class="vtuner-name">ヴィヴィ</span>
+          <button class="btn ghost">音声テスト</button>
+          <button class="btn danger">プリセットに戻す</button>
+        </div>
+      </header>
 
-      <div class="top-actions">
-        <button class="btn ghost">音声テスト</button>
-        <button class="btn danger">プリセットに戻す</button>
-      </div>
-    </header>
-
-    <main class="page">
-      <div class="card" style="box-shadow:none; background:#fafbff;">
-        <div class="card-header" style="background:#fafbff;">
+      <main class="page">
+        <div class="card page-summary-card" style="box-shadow:none;">
+          <div class="card-header page-summary-header">
           <div class="card-title">
             <span class="bar"></span>
             <h2 style="font-size:14px;">この画面の役割</h2>
@@ -966,8 +1090,8 @@
           <div class="muted" style="font-size:12px; line-height:1.7;">
             Preview / Test は、見え方確認・試験入力・条件テストの画面です。ここで正式編集や配信後仕分けは行いません。
           </div>
+          </div>
         </div>
-      </div>
 
       <section class="top-layout">
         <section class="card preview-card">
@@ -1330,6 +1454,7 @@
         </div>
       </section>
     </main>
+    </div>
   </div>
 
   <script>
