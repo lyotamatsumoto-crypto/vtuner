@@ -5,7 +5,7 @@ type BackgroundVariant = "mint" | "studio" | "night";
 
 export interface CharacterStageProps {
   transparent_background: boolean;
-  show_ui_controls: boolean;
+  show_preview_overlay_label: boolean;
   stage_label?: string;
   subtitle?: string;
   background_variant?: BackgroundVariant;
@@ -29,16 +29,14 @@ const stageBackgrounds: Record<BackgroundVariant, string> = {
 
 export function CharacterStage({
   transparent_background,
-  show_ui_controls,
+  show_preview_overlay_label,
   stage_label = "Main Preview",
   subtitle,
   background_variant = "mint",
   character,
   bubble,
 }: CharacterStageProps) {
-  const stageBackground = transparent_background
-    ? "linear-gradient(180deg, rgba(255,255,255,0.12), rgba(255,255,255,0.04))"
-    : stageBackgrounds[background_variant];
+  const stageBackground = transparent_background ? "transparent" : stageBackgrounds[background_variant];
 
   return (
     <div
@@ -49,18 +47,20 @@ export function CharacterStage({
         minHeight: "420px",
         overflow: "hidden",
         borderRadius: "20px",
-        border: "1px solid #8FCFD3",
+        border: transparent_background ? "none" : "1px solid #8FCFD3",
         background: stageBackground,
       }}
     >
-      <div
-        style={{
-          position: "absolute",
-          inset: 0,
-          background:
-            "radial-gradient(circle at 18% 18%, rgba(255,255,255,0.24), transparent 28%), linear-gradient(180deg, rgba(255,255,255,0.04), rgba(0,0,0,0.05))",
-        }}
-      />
+      {transparent_background ? null : (
+        <div
+          style={{
+            position: "absolute",
+            inset: 0,
+            background:
+              "radial-gradient(circle at 18% 18%, rgba(255,255,255,0.24), transparent 28%), linear-gradient(180deg, rgba(255,255,255,0.04), rgba(0,0,0,0.05))",
+          }}
+        />
+      )}
       <div
         style={{
           position: "absolute",
@@ -103,7 +103,10 @@ export function CharacterStage({
           {subtitle}
         </div>
       ) : null}
-      {show_ui_controls ? (
+      {
+        // Preview / Test can opt into this badge. Overlay reuse should keep it off.
+      }
+      {show_preview_overlay_label ? (
         <div
           style={{
             position: "absolute",

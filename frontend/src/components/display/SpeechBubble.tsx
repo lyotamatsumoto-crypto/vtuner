@@ -13,7 +13,7 @@ export function SpeechBubble({
   font_family,
   text_color = "#2F3E46",
   background_color = "rgba(255, 255, 255, 0.98)",
-  label = "Speech Bubble",
+  label,
 }: SpeechBubbleProps) {
   if (!visible) {
     return null;
@@ -34,22 +34,24 @@ export function SpeechBubble({
         lineHeight: 1.7,
       }}
     >
-      <div
-        style={{
-          position: "absolute",
-          top: "-12px",
-          left: "18px",
-          padding: "5px 9px",
-          borderRadius: "999px",
-          background: "#DDF3F4",
-          color: "#357F91",
-          fontSize: "11px",
-          fontWeight: 800,
-        }}
-      >
-        {label}
-      </div>
-      <div style={{ paddingTop: "6px", fontSize: "15px" }}>{text}</div>
+      {label ? (
+        <div
+          style={{
+            position: "absolute",
+            top: "-12px",
+            left: "18px",
+            padding: "5px 9px",
+            borderRadius: "999px",
+            background: "#DDF3F4",
+            color: "#357F91",
+            fontSize: "11px",
+            fontWeight: 800,
+          }}
+        >
+          {label}
+        </div>
+      ) : null}
+      <div style={{ paddingTop: label ? "6px" : 0, fontSize: "15px" }}>{text}</div>
       <div
         style={{
           position: "absolute",

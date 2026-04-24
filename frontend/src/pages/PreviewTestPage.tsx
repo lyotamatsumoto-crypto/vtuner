@@ -324,7 +324,7 @@ export function PreviewTestPage() {
             <div style={{ padding: "14px", display: "grid", gap: "14px" }}>
               <CharacterStage
                 transparent_background={false}
-                show_ui_controls
+                show_preview_overlay_label
                 stage_label="Main Preview"
                 subtitle={previewResult.bubble_text}
                 background_variant={backgroundVariant}
