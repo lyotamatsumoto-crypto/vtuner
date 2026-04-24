@@ -514,11 +514,11 @@
             onclick="openAddModal()"
             class="px-3 py-2 text-xs font-bold text-indigo-600 bg-indigo-50 border border-indigo-200 rounded-lg hover:bg-indigo-100"
           >
-            配信を追加
-          </button>
-        </div>
+            コメントを読み込む
+            </button>
+          </div>
 
-        <p class="text-xs text-slate-500">追加した配信をここで見直します</p>
+        <p class="text-xs text-slate-500">貼り付けたコメントから配信単位を作り、ここで見直します</p>
       </div>
 
       <div class="p-4 space-y-3">
@@ -590,32 +590,43 @@
             <p class="text-xs text-slate-500 mt-1">コメント本文を中心に見直します</p>
           </div>
 
-          <div class="flex items-center gap-2 flex-wrap">
-            <span class="pill pill-green">既存カテゴリに近い 56</span>
-            <span class="pill pill-yellow">あいまい 18</span>
-            <span class="pill pill-red">unknown 寄り 12</span>
-            <span class="pill pill-gray">ignore / スキップ寄り 38</span>
+            <div class="flex items-center gap-2 flex-wrap">
+            <span class="pill pill-red">unknown 12</span>
+            <span class="pill pill-yellow">skipped 18</span>
+            <span class="pill pill-green">displayed 56</span>
+            <span class="pill pill-gray">ignored 38</span>
+            </div>
           </div>
         </div>
-      </div>
 
-      <div class="px-5 py-3 bg-white border-b border-slate-200 flex items-center gap-2 flex-wrap">
-        <button class="px-3 py-1.5 text-xs font-bold rounded-full bg-slate-800 text-white">すべて</button>
-        <button class="px-3 py-1.5 text-xs font-bold rounded-full bg-emerald-50 text-emerald-700 border border-emerald-100">既存カテゴリに近い</button>
-        <button class="px-3 py-1.5 text-xs font-bold rounded-full bg-amber-50 text-amber-700 border border-amber-100">あいまい</button>
-        <button class="px-3 py-1.5 text-xs font-bold rounded-full bg-rose-50 text-rose-700 border border-rose-100">unknown 寄り</button>
-        <button class="px-3 py-1.5 text-xs font-bold rounded-full bg-slate-100 text-slate-600 border border-slate-200">ignore / スキップ寄り</button>
+      <div class="px-5 py-3 bg-white border-b border-slate-200">
+        <div class="flex items-center gap-2 flex-wrap mb-2">
+          <span class="text-[11px] font-black text-slate-400 uppercase">状態</span>
+          <button class="px-3 py-1.5 text-xs font-bold rounded-full bg-slate-800 text-white">すべて</button>
+          <button class="px-3 py-1.5 text-xs font-bold rounded-full bg-rose-50 text-rose-700 border border-rose-100">unknown</button>
+          <button class="px-3 py-1.5 text-xs font-bold rounded-full bg-amber-50 text-amber-700 border border-amber-100">skipped</button>
+          <button class="px-3 py-1.5 text-xs font-bold rounded-full bg-emerald-50 text-emerald-700 border border-emerald-100">displayed</button>
+          <button class="px-3 py-1.5 text-xs font-bold rounded-full bg-slate-100 text-slate-600 border border-slate-200">ignored</button>
+        </div>
+        <div class="flex items-center gap-2 flex-wrap">
+          <span class="text-[11px] font-black text-slate-400 uppercase">推論補助</span>
+          <button class="px-3 py-1.5 text-xs font-bold rounded-full bg-emerald-50 text-emerald-700 border border-emerald-100">既存カテゴリに近い</button>
+          <button class="px-3 py-1.5 text-xs font-bold rounded-full bg-amber-50 text-amber-700 border border-amber-100">あいまい</button>
+          <button class="px-3 py-1.5 text-xs font-bold rounded-full bg-rose-50 text-rose-700 border border-rose-100">unknown 寄り</button>
+          <button class="px-3 py-1.5 text-xs font-bold rounded-full bg-slate-100 text-slate-600 border border-slate-200">ignore 寄り</button>
+        </div>
       </div>
 
       <div class="flex-1 overflow-y-auto hide-scrollbar p-5 space-y-3">
         <button class="w-full text-left rounded-2xl p-4 comment-row comment-unknown selected-row shadow-soft">
           <div class="flex items-start justify-between gap-4">
             <div class="min-w-0">
-              <div class="flex items-center gap-2 flex-wrap mb-2">
-                <span class="pill pill-red">unknown 寄り</span>
-                <span class="text-xs font-bold text-slate-600">猫宮マメ</span>
-                <span class="text-[11px] text-slate-400">メンバー 6か月</span>
-              </div>
+                <div class="flex items-center gap-2 flex-wrap mb-2">
+                  <span class="pill pill-red">unknown 寄り</span>
+                  <span class="pill pill-red">unknown</span>
+                  <span class="text-xs font-bold text-slate-600">猫宮マメ</span>
+                  <span class="text-[11px] text-slate-400">メンバー 6か月</span>
+                </div>
               <p class="text-sm font-bold text-slate-800 leading-6">
                 今日の機材、新しくしたって言ってたやつ？
               </p>
@@ -630,10 +641,11 @@
         <button class="w-full text-left rounded-2xl p-4 comment-ignore comment-row hover:border-indigo-300">
           <div class="flex items-start justify-between gap-4">
             <div class="min-w-0">
-              <div class="flex items-center gap-2 flex-wrap mb-2">
-                <span class="pill pill-gray">ignore / スキップ寄り</span>
-                <span class="text-xs font-bold text-slate-600">視聴者A</span>
-              </div>
+                <div class="flex items-center gap-2 flex-wrap mb-2">
+                  <span class="pill pill-gray">ignore 寄り</span>
+                  <span class="pill pill-yellow">skipped</span>
+                  <span class="text-xs font-bold text-slate-600">視聴者A</span>
+                </div>
               <p class="text-sm font-semibold text-slate-700 leading-6">
                 wwwwwww
               </p>
@@ -648,11 +660,12 @@
         <button class="w-full text-left rounded-2xl p-4 comment-match comment-row hover:border-indigo-300">
           <div class="flex items-start justify-between gap-4">
             <div class="min-w-0">
-              <div class="flex items-center gap-2 flex-wrap mb-2">
-                <span class="pill pill-green">既存カテゴリに近い</span>
-                <span class="text-xs font-bold text-slate-600">TechUser</span>
-                <span class="text-[11px] text-slate-400">初見</span>
-              </div>
+                <div class="flex items-center gap-2 flex-wrap mb-2">
+                  <span class="pill pill-green">既存カテゴリに近い</span>
+                  <span class="pill pill-green">displayed</span>
+                  <span class="text-xs font-bold text-slate-600">TechUser</span>
+                  <span class="text-[11px] text-slate-400">初見</span>
+                </div>
               <p class="text-sm font-semibold text-slate-700 leading-6">
                 こんにちは！初見です
               </p>
@@ -667,10 +680,11 @@
         <button class="w-full text-left rounded-2xl p-4 comment-ambiguous comment-row hover:border-indigo-300">
           <div class="flex items-start justify-between gap-4">
             <div class="min-w-0">
-              <div class="flex items-center gap-2 flex-wrap mb-2">
-                <span class="pill pill-yellow">あいまい</span>
-                <span class="text-xs font-bold text-slate-600">匿名きぼう</span>
-              </div>
+                <div class="flex items-center gap-2 flex-wrap mb-2">
+                  <span class="pill pill-yellow">あいまい</span>
+                  <span class="pill pill-yellow">skipped</span>
+                  <span class="text-xs font-bold text-slate-600">匿名きぼう</span>
+                </div>
               <p class="text-sm font-semibold text-slate-700 leading-6">
                 VTunerの動き、たまにカクつくかも？
               </p>
@@ -685,10 +699,11 @@
         <button class="w-full text-left rounded-2xl p-4 comment-unknown comment-row hover:border-indigo-300">
           <div class="flex items-start justify-between gap-4">
             <div class="min-w-0">
-              <div class="flex items-center gap-2 flex-wrap mb-2">
-                <span class="pill pill-red">unknown 寄り</span>
-                <span class="text-xs font-bold text-slate-600">User-99</span>
-              </div>
+                <div class="flex items-center gap-2 flex-wrap mb-2">
+                  <span class="pill pill-red">unknown 寄り</span>
+                  <span class="pill pill-red">unknown</span>
+                  <span class="text-xs font-bold text-slate-600">User-99</span>
+                </div>
               <p class="text-sm font-semibold text-slate-700 leading-6">
                 晩御飯たべた？
               </p>
@@ -703,10 +718,11 @@
         <button class="w-full text-left rounded-2xl p-4 comment-ignore comment-row hover:border-indigo-300">
           <div class="flex items-start justify-between gap-4">
             <div class="min-w-0">
-              <div class="flex items-center gap-2 flex-wrap mb-2">
-                <span class="pill pill-gray">ignore / スキップ寄り</span>
-                <span class="text-xs font-bold text-slate-600">匿名</span>
-              </div>
+                <div class="flex items-center gap-2 flex-wrap mb-2">
+                  <span class="pill pill-gray">ignore 寄り</span>
+                  <span class="pill pill-gray">ignored</span>
+                  <span class="text-xs font-bold text-slate-600">匿名</span>
+                </div>
               <p class="text-sm font-semibold text-slate-700 leading-6">
                 ○○って言って
               </p>
@@ -729,12 +745,13 @@
         <section class="sidebar-card p-5 shadow-soft">
           <h3 class="text-xs font-black text-slate-400 uppercase mb-4">選択中コメント</h3>
 
-          <div class="space-y-4">
-            <div class="flex items-center gap-2 flex-wrap">
-              <span class="pill pill-red">unknown 寄り</span>
-              <span class="text-[11px] font-bold text-slate-600">猫宮マメ</span>
-              <span class="text-[11px] text-slate-400">メンバー 6か月</span>
-            </div>
+            <div class="space-y-4">
+              <div class="flex items-center gap-2 flex-wrap">
+                <span class="pill pill-red">unknown 寄り</span>
+                <span class="pill pill-red">unknown</span>
+                <span class="text-[11px] font-bold text-slate-600">猫宮マメ</span>
+                <span class="text-[11px] text-slate-400">メンバー 6か月</span>
+              </div>
 
             <div class="bg-rose-50 border border-rose-100 rounded-xl p-4">
               <p class="text-[10px] font-black text-rose-700 uppercase mb-2">コメント本文</p>
@@ -822,8 +839,8 @@
       <div class="w-full max-w-3xl bg-white rounded-3xl border border-slate-200 shadow-2xl overflow-hidden">
         <div class="px-6 py-5 border-b border-slate-200 flex items-center justify-between gap-4">
           <div>
-            <h2 class="text-lg font-black text-slate-800">配信を追加</h2>
-            <p class="text-sm text-slate-500 mt-1">配信URLを入れると、タイトルなどを自動で入れます</p>
+            <h2 class="text-lg font-black text-slate-800">コメントを読み込む</h2>
+            <p class="text-sm text-slate-500 mt-1">まずコメントを貼り付けて読み込みます。URL は補助情報として任意です</p>
           </div>
           <button onclick="closeAddModal()" class="px-3 py-2 text-xs font-bold text-slate-500 bg-slate-100 rounded-lg hover:bg-slate-200">
             閉じる
@@ -832,7 +849,7 @@
 
         <div class="p-6 grid gap-4">
           <div>
-            <label class="block text-xs font-black text-slate-500 uppercase mb-2">配信URL</label>
+            <label class="block text-xs font-black text-slate-500 uppercase mb-2">配信URL（任意 / 補助情報）</label>
             <div class="flex gap-2">
               <input
                 type="text"
@@ -840,14 +857,15 @@
                 class="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white text-sm text-slate-700"
               />
               <button class="px-4 py-3 text-sm font-bold text-indigo-600 bg-indigo-50 border border-indigo-200 rounded-xl hover:bg-indigo-100">
-                取得
+                任意入力
               </button>
             </div>
+            <p class="text-xs text-slate-500 mt-2">後から参照したい URL がある場合だけ補助的に入れます</p>
           </div>
 
           <div class="grid grid-cols-2 gap-4">
             <div>
-              <label class="block text-xs font-black text-slate-500 uppercase mb-2">配信タイトル</label>
+              <label class="block text-xs font-black text-slate-500 uppercase mb-2">配信タイトル（補助情報）</label>
               <input
                 type="text"
                 value="雑談配信 #13"
@@ -857,7 +875,7 @@
             </div>
 
             <div>
-              <label class="block text-xs font-black text-slate-500 uppercase mb-2">配信日時</label>
+              <label class="block text-xs font-black text-slate-500 uppercase mb-2">配信日時（補助情報）</label>
               <input
                 type="text"
                 value="2024/10/25 21:00"
@@ -868,7 +886,7 @@
           </div>
 
           <div>
-            <label class="block text-xs font-black text-slate-500 uppercase mb-2">コメントテキスト</label>
+            <label class="block text-xs font-black text-slate-500 uppercase mb-2">コメントテキスト（主導線）</label>
             <textarea
               class="w-full min-h-[260px] px-4 py-4 rounded-2xl border border-slate-200 bg-slate-50 text-sm text-slate-700 leading-6"
             >猫宮マメ: 今日の機材、新しくしたって言ってたやつ？
@@ -881,7 +899,7 @@ User-99: 晩御飯たべた？
 
           <div class="bg-slate-50 border border-slate-200 rounded-xl p-4">
             <p class="text-xs text-slate-500 leading-6">
-              そのあと、コメントを貼り付けて読み込みます。
+              コメント貼り付けで配信単位を作るのが MVP の主導線です。URL やタイトルは補助情報として任意で保持できます。
             </p>
           </div>
         </div>

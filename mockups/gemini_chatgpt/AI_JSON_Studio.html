@@ -847,17 +847,17 @@ button, input, textarea, select { font: inherit; }
 - 口調は落ち着いた方向
 - 好きな言い回しと避けたい言い回しを反映する
 - 必須キーを省略しない
+- top-level は schema_version / preset_name / persona_core / audience_modes / speech_style / safety_rules / meta を使う
 - JSON 以外の説明文を含めない
 - 理想的な JSON 構造見本に沿って埋める
 
-返す対象:
-- 基本性格
-- 視聴者向け態度
-- 配信者向け態度
-- 禁止表現
-- 口調
-- 語尾
-- 好きな言い回し</pre>
+meta.created_from は次のいずれかにしてください:
+- new
+- review_candidate
+- existing_base
+- history
+- my_preset
+- ideal_schema</pre>
                 </div>
               </div>
             </div>
@@ -889,16 +889,17 @@ button, input, textarea, select { font: inherit; }
             <div class="sub-block sub-block-blue mt-4 bg-slate-50 border border-slate-200 rounded-2xl p-4">
 
               <p class="text-10 font-black text-slate-400 uppercase mb-2">このタブの必須項目</p>
-              <div class="flex gap-2 flex-wrap">
-                <span class="pill pill-gray">baseTraits</span>
-                <span class="pill pill-gray">viewerAttitude</span>
-                <span class="pill pill-gray">streamerAttitude</span>
-                <span class="pill pill-gray">forbiddenPhrases</span>
-                <span class="pill pill-gray">speechTone</span>
-                <span class="pill pill-gray">endingStyle</span>
+                <div class="flex gap-2 flex-wrap">
+                  <span class="pill pill-gray">schema_version</span>
+                  <span class="pill pill-gray">preset_name</span>
+                  <span class="pill pill-gray">persona_core</span>
+                  <span class="pill pill-gray">audience_modes</span>
+                  <span class="pill pill-gray">speech_style</span>
+                  <span class="pill pill-gray">safety_rules</span>
+                  <span class="pill pill-gray">meta</span>
+                </div>
               </div>
-            </div>
-          </section>
+            </section>
 
           <section class="section-card p-5">
             <div class="flex items-start justify-between gap-3 mb-4">
@@ -910,13 +911,46 @@ button, input, textarea, select { font: inherit; }
             </div>
 
             <textarea class="code-box w-full minh-220 px-4 py-4 rounded-2xl border border-slate-200 bg-slate-50 text-12 leading-6 text-slate-700">{
-  "personaName": "クール秘書寄り",
-  "baseTraits": ["落ち着いている", "補助役寄り", "身内にはやわらかい"],
-  "viewerAttitude": "礼儀正しく受ける。常連には少しやわらかい",
-  "streamerAttitude": "困っているときは支えるが、でしゃばりすぎない",
-  "forbiddenPhrases": ["露骨な暴言", "強い煽り"],
-  "speechTone": "落ち着いた",
-  "favoritePhrases": ["なるほどですね", "ひとまず見てみましょう"]
+  "schema_version": "persona_json_v1_draft",
+  "preset_name": "クール秘書_補助寄り",
+  "persona_core": {
+    "archetype": "クール秘書",
+    "summary": "少しクールだが、身内にはやわらかい補助役寄りの人格。",
+    "traits": ["落ち着いている", "補助役寄り", "身内にはやわらかい"],
+    "emotional_temperature": "やや低め",
+    "social_distance": "近すぎず遠すぎない"
+  },
+  "audience_modes": {
+    "viewer": {
+      "stance": "礼儀正しく受ける",
+      "tone": "丁寧で落ち着いた",
+      "distance": "やや控えめ",
+      "behavior_notes": ["常連には少しやわらかくする", "でしゃばりすぎない"]
+    },
+    "streamer": {
+      "stance": "困っているときは支える",
+      "tone": "少し近いが静かめ",
+      "distance": "やや近め",
+      "behavior_notes": ["補助役として動く", "邪魔しない範囲で助け舟を出す"]
+    }
+  },
+  "speech_style": {
+    "tone_label": "落ち着いた",
+    "sentence_ending_style": "〜ですね / 〜ですよ",
+    "favorite_phrases": ["なるほどですね", "ひとまず見てみましょう"],
+    "avoid_phrases": ["強い煽り", "乱暴すぎる言い回し"],
+    "speaking_rules": ["断定しすぎない", "補助役として短くまとめる"]
+  },
+  "safety_rules": {
+    "banned_expressions": ["露骨な暴言"],
+    "banned_attitudes": ["高圧的すぎる態度", "過度に攻撃的な態度"],
+    "notes": ["視聴者を不用意に突き放さない"]
+  },
+  "meta": {
+    "created_from": "ideal_schema",
+    "reference_character_note": "クール秘書寄り",
+    "author_note": "人格タブの見本用"
+  }
 }</textarea>
 
             <div class="flex items-center justify-between gap-3 mt-4 flex-wrap">
@@ -946,25 +980,25 @@ button, input, textarea, select { font: inherit; }
               <div class="bg-amber-50 border border-amber-100 rounded-xl p-4">
                 <div class="flex items-center gap-2 mb-2">
                   <span class="pill pill-yellow">不足</span>
-                  <p class="text-sm font-bold text-amber-800">required: endingStyle がありません</p>
+                    <p class="text-sm font-bold text-amber-800">required: meta.created_from がありません</p>
+                  </div>
+                  <p class="text-xs text-amber-700 leading-5">作業開始元を示す必須項目が不足しています。</p>
                 </div>
-                <p class="text-xs text-amber-700 leading-5">語尾の方向を示す項目が不足しています。</p>
-              </div>
 
-              <div class="bg-rose-50 border border-rose-100 rounded-xl p-4">
-                <div class="flex items-center gap-2 mb-2">
-                  <span class="pill pill-red">型違い</span>
-                  <p class="text-sm font-bold text-rose-800">favoritePhrases は配列である必要があります</p>
+                <div class="bg-rose-50 border border-rose-100 rounded-xl p-4">
+                  <div class="flex items-center gap-2 mb-2">
+                    <span class="pill pill-red">型違い</span>
+                    <p class="text-sm font-bold text-rose-800">persona_core.traits は配列である必要があります</p>
+                  </div>
+                  <p class="text-xs text-rose-700 leading-5">文字列ではなく、文字列配列で返してください。</p>
                 </div>
-                <p class="text-xs text-rose-700 leading-5">文字列ではなく、配列で返してください。</p>
-              </div>
 
               <div class="validate-info bg-slate-50 border border-slate-200 rounded-xl p-4">
                 <div class="flex items-center gap-2 mb-2">
                   <span class="pill pill-indigo">注意</span>
-                  <p class="text-sm font-bold text-slate-700">forbiddenPhrases が少なめです</p>
+                  <p class="text-sm font-bold text-slate-700">schema_version は persona_json_v1_draft を使います</p>
                 </div>
-                <p class="text-xs text-slate-500 leading-5">禁止表現の粒度をもう少し増やしてもよさそうです。</p>
+                <p class="text-xs text-slate-500 leading-5">人格タブでは top-level / nested ともに想定外キーを含めない前提です。</p>
               </div>
             </div>
           </section>
@@ -979,11 +1013,12 @@ button, input, textarea, select { font: inherit; }
             </div>
 
             <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4">
-              <pre class="code-box text-12 leading-6 text-slate-700 whitespace-pre-wrap">前回の JSON を次の点だけ直してください。
+                <pre class="code-box text-12 leading-6 text-slate-700 whitespace-pre-wrap">前回の JSON を次の点だけ直してください。
 
-- endingStyle を必須項目として追加する
-- favoritePhrases は文字列ではなく配列にする
-- forbiddenPhrases を少し増やす
+- meta.created_from を必須項目として追加する
+- persona_core.traits は文字列ではなく配列にする
+- schema_version は persona_json_v1_draft を使う
+- 想定外キーを含めない
 - それ以外の構造はなるべく変えない
 - JSON だけを返す</pre>
             </div>
