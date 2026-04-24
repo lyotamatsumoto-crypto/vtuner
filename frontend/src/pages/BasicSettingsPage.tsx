@@ -1,5 +1,10 @@
 import { useState, type ReactNode } from "react";
 
+import {
+  displaySizeToScale,
+  type BasicPreviewBridgeSettings,
+  type PreviewBackgroundVariant,
+} from "../basicPreviewBridge";
 import { CharacterStage } from "../components/display";
 
 type CategoryKey =
@@ -23,11 +28,13 @@ const categoryMeta: Array<{ key: CategoryKey; label: string; description: string
   { key: "regular", label: "常連反応", description: "よく来る視聴者への返答" },
 ];
 
-export function BasicSettingsPage() {
-  const [vtunerName, setVtunerName] = useState("ヴィヴィ");
-  const [firstPerson, setFirstPerson] = useState("私");
-  const [viewerCall, setViewerCall] = useState("皆さん");
-  const [streamerCall, setStreamerCall] = useState("マスター");
+export function BasicSettingsPage({
+  sharedSettings,
+  onSharedSettingsChange,
+}: {
+  sharedSettings: BasicPreviewBridgeSettings;
+  onSharedSettingsChange: (next: BasicPreviewBridgeSettings) => void;
+}) {
   const [profileSummary, setProfileSummary] = useState(
     "少し落ち着いた雰囲気で、配信の空気を整えながら視聴者と配信者の間をやわらかくつなぐ仲介キャラクター。",
   );
@@ -36,22 +43,14 @@ export function BasicSettingsPage() {
   );
   const [viewerPolicy, setViewerPolicy] = useState("礼儀正しく、常連には少しやわらかく接する");
   const [streamerPolicy, setStreamerPolicy] = useState("困っているときは助け舟を出す");
-  const [toneLabel, setToneLabel] = useState("丁寧で落ち着いた口調");
-  const [endingStyle, setEndingStyle] = useState("〜ですね / 〜ですよ");
   const [favoritePhrases, setFavoritePhrases] = useState("ありがとうございます / なるほどです / それは良いですね");
   const [bannedExpressions, setBannedExpressions] = useState("暴言、差別的表現、過度に攻撃的な言い回し");
   const [voiceEnabled, setVoiceEnabled] = useState("使う");
   const [voiceType, setVoiceType] = useState("落ち着いた女性声");
   const [voiceSpeed, setVoiceSpeed] = useState("標準");
   const [voiceVolume, setVoiceVolume] = useState(68);
-  const [defaultFacing, setDefaultFacing] = useState<"front" | "side">("front");
-  const [mirrorEnabled, setMirrorEnabled] = useState(true);
-  const [displaySize, setDisplaySize] = useState("標準");
-  const [bubbleEnabled, setBubbleEnabled] = useState("使う");
   const [bubbleShape, setBubbleShape] = useState("角丸");
   const [bubbleFont, setBubbleFont] = useState("読みやすいゴシック体");
-  const [bubbleTextColor, setBubbleTextColor] = useState("#111827");
-  const [bubbleBackgroundColor, setBubbleBackgroundColor] = useState("#FFFFFF");
   const [categoryStates, setCategoryStates] = useState<Record<CategoryKey, boolean>>({
     greeting: true,
     compliment: true,
@@ -62,8 +61,30 @@ export function BasicSettingsPage() {
     firstTime: true,
     regular: true,
   });
+  const {
+    vtunerName,
+    firstPerson,
+    viewerCall,
+    streamerCall,
+    toneLabel,
+    endingStyle,
+    defaultFacing,
+    mirrorEnabled,
+    displaySize,
+    bubbleEnabled,
+    bubbleTextColor,
+    bubbleBackgroundColor,
+    previewBackgroundVariant,
+  } = sharedSettings;
   const previewSubtitle =
     bubbleEnabled === "使う" ? `${firstPerson}、${viewerCall}。今日もゆっくり進めます。` : undefined;
+
+  function updateSharedSettings(patch: Partial<BasicPreviewBridgeSettings>) {
+    onSharedSettingsChange({
+      ...sharedSettings,
+      ...patch,
+    });
+  }
 
   return (
     <main
@@ -121,16 +142,32 @@ export function BasicSettingsPage() {
             >
               <FieldGrid columns={2}>
                 <Field label="VTuner名">
-                  <input style={inputStyle} value={vtunerName} onChange={(event) => setVtunerName(event.target.value)} />
+                  <input
+                    style={inputStyle}
+                    value={vtunerName}
+                    onChange={(event) => updateSharedSettings({ vtunerName: event.target.value })}
+                  />
                 </Field>
                 <Field label="一人称">
-                  <input style={inputStyle} value={firstPerson} onChange={(event) => setFirstPerson(event.target.value)} />
+                  <input
+                    style={inputStyle}
+                    value={firstPerson}
+                    onChange={(event) => updateSharedSettings({ firstPerson: event.target.value })}
+                  />
                 </Field>
                 <Field label="視聴者の呼び方">
-                  <input style={inputStyle} value={viewerCall} onChange={(event) => setViewerCall(event.target.value)} />
+                  <input
+                    style={inputStyle}
+                    value={viewerCall}
+                    onChange={(event) => updateSharedSettings({ viewerCall: event.target.value })}
+                  />
                 </Field>
                 <Field label="配信者の呼び方">
-                  <input style={inputStyle} value={streamerCall} onChange={(event) => setStreamerCall(event.target.value)} />
+                  <input
+                    style={inputStyle}
+                    value={streamerCall}
+                    onChange={(event) => updateSharedSettings({ streamerCall: event.target.value })}
+                  />
                 </Field>
                 <Field label="キャラプロフィール" fullWidth>
                   <textarea
@@ -180,14 +217,22 @@ export function BasicSettingsPage() {
             >
               <FieldGrid columns={2}>
                 <Field label="口調">
-                  <select style={inputStyle} value={toneLabel} onChange={(event) => setToneLabel(event.target.value)}>
+                  <select
+                    style={inputStyle}
+                    value={toneLabel}
+                    onChange={(event) => updateSharedSettings({ toneLabel: event.target.value })}
+                  >
                     <option>丁寧で落ち着いた口調</option>
                     <option>やわらかく親しみやすい口調</option>
                     <option>知的で淡々とした口調</option>
                   </select>
                 </Field>
                 <Field label="語尾">
-                  <select style={inputStyle} value={endingStyle} onChange={(event) => setEndingStyle(event.target.value)}>
+                  <select
+                    style={inputStyle}
+                    value={endingStyle}
+                    onChange={(event) => updateSharedSettings({ endingStyle: event.target.value })}
+                  >
                     <option>〜ですね / 〜ですよ</option>
                     <option>〜だね / 〜だよ</option>
                     <option>特に固定しない</option>
@@ -250,7 +295,9 @@ export function BasicSettingsPage() {
                   <select
                     style={inputStyle}
                     value={defaultFacing}
-                    onChange={(event) => setDefaultFacing(event.target.value as "front" | "side")}
+                    onChange={(event) =>
+                      updateSharedSettings({ defaultFacing: event.target.value as "front" | "side" })
+                    }
                   >
                     <option value="front">front</option>
                     <option value="side">side</option>
@@ -260,18 +307,48 @@ export function BasicSettingsPage() {
                   <select
                     style={inputStyle}
                     value={mirrorEnabled ? "on" : "off"}
-                    onChange={(event) => setMirrorEnabled(event.target.value === "on")}
+                    onChange={(event) => updateSharedSettings({ mirrorEnabled: event.target.value === "on" })}
                   >
                     <option value="on">使用する</option>
                     <option value="off">使用しない</option>
                   </select>
                 </Field>
                 <Field label="表示サイズ">
-                  <select style={inputStyle} value={displaySize} onChange={(event) => setDisplaySize(event.target.value)}>
+                  <select
+                    style={inputStyle}
+                    value={displaySize}
+                    onChange={(event) =>
+                      updateSharedSettings({
+                        displaySize: event.target.value as BasicPreviewBridgeSettings["displaySize"],
+                      })
+                    }
+                  >
                     <option>小さめ</option>
                     <option>標準</option>
                     <option>やや大きめ</option>
                   </select>
+                </Field>
+              </FieldGrid>
+              <FieldGrid columns={2}>
+                <Field label="Preview 背景">
+                  <select
+                    style={inputStyle}
+                    value={previewBackgroundVariant}
+                    onChange={(event) =>
+                      updateSharedSettings({
+                        previewBackgroundVariant: event.target.value as PreviewBackgroundVariant,
+                      })
+                    }
+                  >
+                    <option value="mint">Mint</option>
+                    <option value="studio">Studio</option>
+                    <option value="night">Night</option>
+                  </select>
+                </Field>
+                <Field label="Preview / Test 反映メモ">
+                  <div style={inlineReadonlyStyle}>
+                    VTuner名 / 呼び方 / 口調 / 表示向き / サイズ / 吹き出し色 / 背景を Preview / Test へ最小反映します。
+                  </div>
                 </Field>
               </FieldGrid>
               <AssetGrid />
@@ -280,7 +357,15 @@ export function BasicSettingsPage() {
             <SettingsSection title="吹き出し設定" description="吹き出しと文字の土台だけをここで整えます。">
               <FieldGrid columns={2}>
                 <Field label="吹き出しを使う">
-                  <select style={inputStyle} value={bubbleEnabled} onChange={(event) => setBubbleEnabled(event.target.value)}>
+                  <select
+                    style={inputStyle}
+                    value={bubbleEnabled}
+                    onChange={(event) =>
+                      updateSharedSettings({
+                        bubbleEnabled: event.target.value as BasicPreviewBridgeSettings["bubbleEnabled"],
+                      })
+                    }
+                  >
                     <option>使う</option>
                     <option>使わない</option>
                   </select>
@@ -302,14 +387,14 @@ export function BasicSettingsPage() {
                 <Field label="文字色">
                   <ColorChoices
                     value={bubbleTextColor}
-                    onChange={setBubbleTextColor}
+                    onChange={(next) => updateSharedSettings({ bubbleTextColor: next })}
                     colors={["#111827", "#374151", "#1E3A8A", "#FFFFFF"]}
                   />
                 </Field>
                 <Field label="背景色">
                   <ColorChoices
                     value={bubbleBackgroundColor}
-                    onChange={setBubbleBackgroundColor}
+                    onChange={(next) => updateSharedSettings({ bubbleBackgroundColor: next })}
                     colors={["#FFFFFF", "#F3F4F6", "#EFF6FF", "#FDF2F8", "#FFF7ED"]}
                   />
                 </Field>
@@ -370,13 +455,14 @@ export function BasicSettingsPage() {
                   show_preview_overlay_label={false}
                   stage_label="Character Preview"
                   {...(previewSubtitle ? { subtitle: previewSubtitle } : {})}
+                  background_variant={previewBackgroundVariant}
                   character={{
                     character_name: vtunerName,
                     orientation: defaultFacing,
                     mirror: mirrorEnabled,
                     position_x: 70,
                     position_y: 66,
-                    scale_percent: displaySize === "やや大きめ" ? 92 : displaySize === "小さめ" ? 72 : 82,
+                    scale_percent: displaySizeToScale(displaySize),
                   }}
                   bubble={{
                     text: `${firstPerson}は ${viewerCall} をやわらかく迎えます。`,
@@ -681,6 +767,15 @@ const inputStyle = {
   background: "#FFFFFF",
   color: "#2F3E46",
   font: "inherit",
+} as const;
+
+const inlineReadonlyStyle = {
+  ...inputStyle,
+  minHeight: "46px",
+  display: "flex",
+  alignItems: "center",
+  background: "#F7FCFC",
+  color: "#5F747A",
 } as const;
 
 const toggleCardStyle = {

@@ -1,10 +1,22 @@
 import { useState } from "react";
 
+import {
+  displaySizeToScale,
+  type BasicPreviewBridgeSettings,
+  type PreviewBackgroundVariant,
+  type SharedOrientation,
+} from "../basicPreviewBridge";
 import { CharacterStage } from "../components/display";
 
-type BackgroundVariant = "mint" | "studio" | "night";
+type BackgroundVariant = PreviewBackgroundVariant;
 type SampleKey = "compliment" | "greeting" | "question" | "quiet";
-type Orientation = "front" | "side";
+type Orientation = SharedOrientation;
+type RuntimeCategory =
+  | "挨拶っぽい"
+  | "質問っぽい"
+  | "応援っぽい"
+  | "unknown"
+  | "ignore 寄り";
 
 interface PreviewHistoryItem {
   id: string;
@@ -12,13 +24,16 @@ interface PreviewHistoryItem {
   label: string;
   name?: string;
   text: string;
+  detail?: string;
 }
 
 interface PreviewResult {
   result_label: string;
+  category_label: RuntimeCategory;
   reason_label: string;
   reaction_name: string;
   adoption_label: string;
+  target_label: "viewer" | "streamer";
   orientation: Orientation;
   bubble_text: string;
 }
@@ -114,13 +129,19 @@ const eventPresets: EventPreset[] = [
 
 const initialSample = sampleDefinitions.compliment;
 
-export function PreviewTestPage() {
-  const [orientation, setOrientation] = useState<Orientation>("front");
-  const [mirror, setMirror] = useState(false);
-  const [backgroundVariant, setBackgroundVariant] = useState<BackgroundVariant>("mint");
+export function PreviewTestPage({
+  sharedSettings,
+}: {
+  sharedSettings: BasicPreviewBridgeSettings;
+}) {
+  const [orientation, setOrientation] = useState<Orientation>(sharedSettings.defaultFacing);
+  const [mirror, setMirror] = useState(sharedSettings.mirrorEnabled);
+  const [backgroundVariant, setBackgroundVariant] = useState<BackgroundVariant>(
+    sharedSettings.previewBackgroundVariant,
+  );
   const [characterX, setCharacterX] = useState(77);
   const [characterY, setCharacterY] = useState(67);
-  const [characterScale, setCharacterScale] = useState(82);
+  const [characterScale, setCharacterScale] = useState(displaySizeToScale(sharedSettings.displaySize));
   const [bubbleX, setBubbleX] = useState(29);
   const [bubbleY, setBubbleY] = useState(50);
   const [bubbleWidth, setBubbleWidth] = useState(38);
@@ -130,13 +151,20 @@ export function PreviewTestPage() {
   const [historyItems, setHistoryItems] = useState<PreviewHistoryItem[]>([]);
   const [previewResult, setPreviewResult] = useState<PreviewResult>({
     result_label: "未実行",
+    category_label: "unknown",
     reason_label: "未実行",
     reaction_name: "未実行",
     adoption_label: "確認待ち",
+    target_label: "viewer",
     orientation: "front",
     bubble_text:
       "ここでは Main Preview、キャラクター表示、吹き出し表示、Bottom Test Area の骨格を確認できます。",
   });
+  const endingSuffix = sharedSettings.endingStyle.includes("だね")
+    ? "だよ。"
+    : sharedSettings.endingStyle.includes("特に固定しない")
+      ? "です。"
+      : "ですね。";
 
   function applySample(sampleKey: SampleKey) {
     const sample = sampleDefinitions[sampleKey];
@@ -150,33 +178,119 @@ export function PreviewTestPage() {
     setHistoryItems((current) => [...items, ...current].slice(0, 10));
   }
 
-  function runCommentTest(source: "manual" | "sample") {
-    const sample = sampleDefinitions[selectedSample];
-    const nextOrientation = source === "manual" ? sample.orientation : sample.orientation;
-    const nextResult: PreviewResult = {
-      result_label: "displayed",
-      reason_label: sample.reason_label,
-      reaction_name: sample.reaction_name,
-      adoption_label: "採用",
-      orientation: nextOrientation,
-      bubble_text: sample.bubble_text,
-    };
+  function buildPreviewResultFromComment(text: string): PreviewResult {
+    const normalizedText = text.trim().toLowerCase();
 
-    setOrientation(nextOrientation);
+    // Preview / Test 限定の仮ロジック。正式 runtime や classifier の本実装ではない。
+    if (
+      normalizedText.includes("www") ||
+      normalizedText === "w" ||
+      normalizedText.includes("草") ||
+      normalizedText.includes("言って") ||
+      normalizedText.includes("ngワード")
+    ) {
+      return {
+        result_label: "ignored",
+        category_label: "ignore 寄り",
+        reason_label: "短文ノイズまたは誘導寄りのため仮 ignore",
+        reaction_name: "ignore 候補",
+        adoption_label: "不採用",
+        target_label: "viewer",
+        orientation: "side",
+        bubble_text: `${sharedSettings.firstPerson}はこの入力を ignore 寄りとして扱いました${endingSuffix} 理由ラベルと見え方だけを確認しています。`,
+      };
+    }
+
+    if (
+      normalizedText.includes("こんにちは") ||
+      normalizedText.includes("こんばんは") ||
+      normalizedText.includes("おはよう") ||
+      normalizedText.includes("初見") ||
+      normalizedText.includes("来ました")
+    ) {
+      return {
+        result_label: "displayed",
+        category_label: "挨拶っぽい",
+        reason_label: "あいさつ系キーワードを検出",
+        reaction_name: "挨拶返答",
+        adoption_label: "採用",
+        target_label: "viewer",
+        orientation: "front",
+        bubble_text: `${sharedSettings.viewerCall}、来てくれてありがとうございます${endingSuffix} ${sharedSettings.toneLabel} の仮反応を確認しています。`,
+      };
+    }
+
+    if (
+      normalizedText.includes("？") ||
+      normalizedText.includes("?") ||
+      normalizedText.includes("どう") ||
+      normalizedText.includes("何") ||
+      normalizedText.includes("どんな") ||
+      normalizedText.includes("ですか")
+    ) {
+      return {
+        result_label: "displayed",
+        category_label: "質問っぽい",
+        reason_label: "質問らしい記号または語尾を検出",
+        reaction_name: "質問応答",
+        adoption_label: "採用",
+        target_label: "viewer",
+        orientation: "front",
+        bubble_text: `${sharedSettings.firstPerson}は質問っぽい入力として拾いました${endingSuffix} いまは Preview / Test 用の仮応答で確認しています。`,
+      };
+    }
+
+    if (
+      normalizedText.includes("応援") ||
+      normalizedText.includes("がんば") ||
+      normalizedText.includes("好き") ||
+      normalizedText.includes("よかった") ||
+      normalizedText.includes("すごい")
+    ) {
+      return {
+        result_label: "displayed",
+        category_label: "応援っぽい",
+        reason_label: "応援または好意寄りの語を検出",
+        reaction_name: "応援お礼",
+        adoption_label: "採用",
+        target_label: "viewer",
+        orientation: "side",
+        bubble_text: `${sharedSettings.viewerCall}からの応援っぽい入力として受けました${endingSuffix} 仮 wiring なので反応名は確認用です。`,
+      };
+    }
+
+    return {
+      result_label: "unknown",
+      category_label: "unknown",
+      reason_label: "簡易分類でカテゴリを決めきれない",
+      reaction_name: "unknown 仮反応",
+      adoption_label: "保留",
+      target_label: "viewer",
+      orientation: "front",
+      bubble_text: `${sharedSettings.firstPerson}はこの入力を unknown 扱いにしました${endingSuffix} 正式ルールではなく仮 runtime の判定結果だけを表示しています。`,
+    };
+  }
+
+  function runCommentTest(source: "manual" | "sample") {
+    const nextResult = buildPreviewResultFromComment(commentText);
+
+    setOrientation(nextResult.orientation);
     setPreviewResult(nextResult);
     appendHistory([
       {
         id: `${Date.now()}-comment`,
         kind: "comment",
-        label: "コメント",
+        label: source === "sample" ? "単発サンプル" : "コメント",
         name: authorName,
         text: commentText,
+        detail: `${nextResult.category_label} / ${nextResult.reason_label}`,
       },
       {
         id: `${Date.now()}-reply`,
         kind: "reply",
         label: "VTuner返答",
-        text: sample.bubble_text,
+        text: nextResult.bubble_text,
+        detail: `${nextResult.reaction_name} / ${nextResult.target_label} / ${nextResult.orientation}`,
       },
     ]);
   }
@@ -185,9 +299,11 @@ export function PreviewTestPage() {
     const isIgnored = preset.id === "ng-word";
     const nextResult: PreviewResult = {
       result_label: isIgnored ? "ignored" : preset.id === "rapid-post" ? "skipped" : "displayed",
+      category_label: isIgnored ? "ignore 寄り" : preset.id === "rapid-post" ? "unknown" : "応援っぽい",
       reason_label: preset.reason_label,
       reaction_name: preset.reaction_name,
       adoption_label: isIgnored ? "不採用" : preset.id === "rapid-post" ? "保留" : "採用",
+      target_label: "viewer",
       orientation: preset.orientation,
       bubble_text: preset.bubble_text,
     };
@@ -200,12 +316,14 @@ export function PreviewTestPage() {
         kind: "event",
         label: preset.condition_label,
         text: `${preset.title} を実行: ${preset.value_label}`,
+        detail: `${nextResult.result_label} / ${nextResult.reason_label}`,
       },
       {
         id: `${Date.now()}-${preset.id}-reply`,
         kind: "reply",
         label: "VTuner返答",
         text: preset.bubble_text,
+        detail: `${nextResult.reaction_name} / ${nextResult.target_label} / ${nextResult.orientation}`,
       },
     ]);
   }
@@ -266,10 +384,12 @@ export function PreviewTestPage() {
             </p>
           </div>
           <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
+            <div style={toolbarChipStyle(true)}>VTuner: {sharedSettings.vtunerName}</div>
             <div style={toolbarChipStyle("front" === orientation)}>
               向き: {orientation}
             </div>
             <div style={toolbarChipStyle(mirror)}>mirror: {mirror ? "on" : "off"}</div>
+            <div style={toolbarChipStyle(false)}>配信者呼称: {sharedSettings.streamerCall}</div>
             <div style={toolbarChipStyle(false)}>履歴: Preview / Test 専用</div>
           </div>
         </header>
@@ -288,6 +408,12 @@ export function PreviewTestPage() {
             <span style={{ color: "#5F747A", lineHeight: 1.7 }}>
               Main Preview、試験入力、条件イベント確認、理由ラベルと使用反応名の確認に限定します。
               Basic Settings の主編集や Review の仕分けはここへ持ち込みません。
+            </span>
+            <span style={{ color: "#5F747A", lineHeight: 1.7, fontSize: "12px" }}>
+              Basic Settings からは VTuner名 / 呼び方 / 口調 / 表示向き / 表示サイズ / 吹き出し色 / 背景が最小反映されています。
+            </span>
+            <span style={{ color: "#357F91", lineHeight: 1.7, fontSize: "12px", fontWeight: 700 }}>
+              今回は Preview / Test 限定の仮 runtime wiring です。正式ルール処理や本番 runtime ではありません。
             </span>
           </div>
         </section>
@@ -329,7 +455,7 @@ export function PreviewTestPage() {
                 subtitle={previewResult.bubble_text}
                 background_variant={backgroundVariant}
                 character={{
-                  character_name: "ヴィヴィ",
+                  character_name: sharedSettings.vtunerName,
                   orientation,
                   mirror,
                   position_x: characterX,
@@ -338,8 +464,10 @@ export function PreviewTestPage() {
                 }}
                 bubble={{
                   text: previewResult.bubble_text,
-                  visible: true,
+                  visible: sharedSettings.bubbleEnabled === "使う",
                   label: "Speech Bubble",
+                  text_color: sharedSettings.bubbleTextColor,
+                  background_color: sharedSettings.bubbleBackgroundColor,
                   position_x: bubbleX,
                   position_y: bubbleY,
                   width_percent: bubbleWidth,
@@ -350,6 +478,10 @@ export function PreviewTestPage() {
                 <div style={resultCardStyle}>
                   <span style={resultLabelStyle}>実行結果</span>
                   <strong>{previewResult.result_label}</strong>
+                </div>
+                <div style={resultCardStyle}>
+                  <span style={resultLabelStyle}>仮カテゴリ判定</span>
+                  <strong>{previewResult.category_label}</strong>
                 </div>
                 <div style={resultCardStyle}>
                   <span style={resultLabelStyle}>理由ラベル</span>
@@ -364,8 +496,16 @@ export function PreviewTestPage() {
                   <strong>{previewResult.adoption_label}</strong>
                 </div>
                 <div style={resultCardStyle}>
+                  <span style={resultLabelStyle}>発話対象</span>
+                  <strong>{previewResult.target_label}</strong>
+                </div>
+                <div style={resultCardStyle}>
                   <span style={resultLabelStyle}>表示向き</span>
                   <strong>{previewResult.orientation}</strong>
+                </div>
+                <div style={resultCardStyle}>
+                  <span style={resultLabelStyle}>反映中の口調</span>
+                  <strong>{`${sharedSettings.toneLabel} / ${sharedSettings.endingStyle}`}</strong>
                 </div>
               </section>
 
@@ -467,6 +607,9 @@ export function PreviewTestPage() {
                         {item.name ? <strong style={{ color: "#3F8A63", fontSize: "13px" }}>{item.name}</strong> : null}
                       </div>
                       <div style={{ lineHeight: 1.65 }}>{item.text}</div>
+                      {item.detail ? (
+                        <div style={{ color: "#5F747A", fontSize: "12px", lineHeight: 1.6 }}>{item.detail}</div>
+                      ) : null}
                     </div>
                   ))
                 )}
@@ -474,7 +617,7 @@ export function PreviewTestPage() {
 
               <div style={inputBoxStyle}>
                 <p style={{ margin: 0, color: "#5F747A", fontSize: "12px", lineHeight: 1.7 }}>
-                  ここは手入力テスト用です。正式ルール編集や JSON 生成は他画面の責務です。
+                  ここは手入力テスト用です。仮判定ロジックで Preview / Test 専用結果を返します。正式ルール編集や JSON 生成は他画面の責務です。
                 </p>
                 <label style={fieldStyle}>
                   <span style={fieldLabelStyle}>投稿者名</span>
