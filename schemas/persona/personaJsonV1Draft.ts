@@ -339,6 +339,6 @@ export function validatePersonaJsonV1Draft(
 
   return {
     ok: true,
-    value: input as PersonaJsonV1Draft,
+    value: input as unknown as PersonaJsonV1Draft,
   };
 }
