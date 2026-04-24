@@ -12,6 +12,8 @@
 
 - UI は 5 画面構成とする
 - 各画面は責務を分離する
+- 主要画面への遷移は左サイドバーを基本とする
+- 上部領域は現在画面名、補助操作、ユーザー情報の表示に使い、主要画面遷移の主導線にはしない
 - Basic Settings は共通土台、Detailed Rules は正式編集、AI / JSON Studio は生成と検証、といった役割を崩さない
 - 初回利用導線は Basic Settings 起点を基本とする
 - Preview / Test は見え方確認と試験入力の導線である
@@ -30,6 +32,24 @@
 3. Review
 4. Detailed Rules
 5. AI / JSON Studio
+
+---
+
+## Common Layout
+
+- 全画面は原則として左サイドバー + メインコンテンツの構造を基本とする
+- 左サイドバーには主要5画面への導線を置く
+- 左サイドバーの項目は以下を基本とする
+  - Basic Settings
+  - Preview / Test
+  - Detailed Rules
+  - AI / JSON Studio
+  - Review
+- 現在表示中の画面は左サイドバー上で選択状態として表示する
+- 上部領域は画面タイトル、補助アクション、ユーザー情報、必要に応じた戻る導線に使う
+- AI / JSON Studio は補助導線だが、独立した画面として左サイドバーに表示する
+- 配色と詳細な視覚ルールは DESIGN_GUIDE.md に委ねる
+- 共通部品の詳細は COMPONENT_SPEC.md に委ねる
 
 ---
 
