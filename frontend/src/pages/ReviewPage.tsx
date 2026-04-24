@@ -215,7 +215,7 @@ export function ReviewPage({
     comments.find((comment) => comment.id === selectedCommentId) ??
     sessionComments[0];
 
-  const currentSessionPatchCandidates = reviewPatchQueue.filter(
+  const selectedSessionReviewPatchQueueItems = reviewPatchQueue.filter(
     (candidate) => candidate.source_ref.session_id === selectedSessionId,
   );
 
@@ -310,7 +310,7 @@ export function ReviewPage({
             <div style={pageBadgeStyle}>Review Skeleton</div>
             <h1 style={{ margin: 0, fontSize: "30px", fontWeight: 800 }}>Review</h1>
             <p style={pageTextStyle}>
-              配信後の見直しと patch candidate 化の画面です。正式編集、JSON 生成、compile 実行はここでは行いません。
+              配信後コメントを見直して、差分候補を整理する画面です。正式編集、JSON 生成、compile 実行はここでは行いません。
             </p>
           </div>
           <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
@@ -323,7 +323,7 @@ export function ReviewPage({
           <strong style={{ fontSize: "15px" }}>この画面の役割</strong>
           <span style={pageTextStyle}>
             コメント一覧を見直し、`unknown / skipped / displayed / ignored` を追いながら、
-            `ignore`、`existing category`、`new candidate` の patch candidate を Review Patch Queue 向けに整理します。
+            `ignore`、`existing category`、`new candidate` の差分候補を `Review Patch Queue` 向けに整理します。
           </span>
         </section>
 
@@ -534,33 +534,33 @@ export function ReviewPage({
                 <h2 style={sectionTitleStyle}>Review 操作</h2>
                 <div style={{ display: "grid", gap: "8px" }}>
                   <button style={secondaryButtonStyle} onClick={() => addPatchCandidate("ignore")}>
-                    ignore にする
+                    ignore 候補にする
                   </button>
                   <button style={primaryButtonStyle} onClick={() => addPatchCandidate("existing_category")}>
                     existing category 候補にする
                   </button>
                   <button style={secondaryButtonStyle} onClick={() => addPatchCandidate("new_candidate")}>
-                    new category 候補として保留
+                    new candidate 候補として保留
                   </button>
                 </div>
                 <div style={inlineNoticeStyle}>
-                  ここでは仕分けと candidate 作成だけを行います。正式編集や compile は後段です。
+                  ここではコメントの仕分けと差分候補づくりだけを行います。正式編集や compile 前確認は後段です。
                 </div>
               </section>
 
               <section style={cardInsetStyle}>
                 <div style={{ display: "flex", justifyContent: "space-between", gap: "8px", alignItems: "center" }}>
-                  <h2 style={sectionTitleStyle}>Patch Candidate Area</h2>
-                  <span style={summaryChipStyle(currentSessionPatchCandidates.length > 0)}>
-                    {currentSessionPatchCandidates.length}件
+                  <h2 style={sectionTitleStyle}>Review Patch Queue</h2>
+                  <span style={summaryChipStyle(selectedSessionReviewPatchQueueItems.length > 0)}>
+                    {selectedSessionReviewPatchQueueItems.length}件
                   </span>
                 </div>
                 <div style={{ display: "grid", gap: "10px" }}>
-                  {currentSessionPatchCandidates.map((candidate) => (
+                  {selectedSessionReviewPatchQueueItems.map((candidate) => (
                     <article key={candidate.id} style={patchCandidateStyle}>
                       <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", alignItems: "center" }}>
                         <span style={metaChipStyle}>{patchTypeLabel(candidate.patch_type)}</span>
-                        <span style={queueStatusChipStyle(candidate.status)}>{candidate.status}</span>
+                        <span style={queueStatusChipStyle(candidate.status)}>{reviewPatchStatusLabel(candidate.status)}</span>
                       </div>
                       <strong>{candidate.proposal_summary}</strong>
                       <span style={pageTextStyle}>
@@ -570,7 +570,7 @@ export function ReviewPage({
                   ))}
                 </div>
                 <div style={inlineNoticeStyle}>
-                  ここで作った差分は Review Patch Queue を意識した骨格表示です。compile 前差分として保持するだけで、まだ反映はしません。
+                  ここで作った差分候補は `Review Patch Queue` に並びます。まだ本体へ反映せず、Detailed Rules 側で採用する前の確認対象として扱います。
                 </div>
               </section>
             </div>
@@ -611,14 +611,34 @@ function toPatchType(action: ReviewPatchAction): ReviewPatchType {
 
 function patchTypeLabel(type: ReviewPatchType) {
   if (type === "ignore_patch") {
-    return "ignore patch";
+    return "ignore 候補";
   }
 
   if (type === "existing_category_patch") {
-    return "existing category patch";
+    return "existing category 候補";
   }
 
-  return "new candidate patch";
+  return "new candidate 候補";
+}
+
+function reviewPatchStatusLabel(status: ReviewPatchStatus) {
+  if (status === "candidate") {
+    return "candidate / 候補";
+  }
+
+  if (status === "pending") {
+    return "pending / 保留";
+  }
+
+  if (status === "adopted") {
+    return "adopted / 採用済み";
+  }
+
+  if (status === "compiled") {
+    return "compiled / 反映済み";
+  }
+
+  return "discarded / 破棄";
 }
 
 function inferenceLabel(hint: InferenceHint) {

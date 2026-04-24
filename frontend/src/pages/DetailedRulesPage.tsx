@@ -3,7 +3,10 @@ import type {
   AdoptedChangeItem,
   ReviewPatchQueueItem,
 } from "../../../backend/src/contracts/queue";
-import type { CompilePlanItem } from "../../../backend/src/contracts/compile";
+import type {
+  CompilePlanItem,
+  CompileRecord,
+} from "../../../backend/src/contracts/compile";
 
 type EntryKind = "rule" | "definition";
 type RuleSource = "初期プリセット" | "手動追加" | "Review由来" | "AI採用済み" | "派生編集";
@@ -143,15 +146,19 @@ export function DetailedRulesPage({
   reviewPatchQueue,
   adoptedChanges,
   compilePrecheckItems,
+  compileHistory,
   onSetReviewPatchStatus,
+  onRunCompile,
 }: {
   reviewPatchQueue: ReviewPatchQueueItem[];
   adoptedChanges: AdoptedChangeItem[];
   compilePrecheckItems: CompilePlanItem[];
+  compileHistory: CompileRecord[];
   onSetReviewPatchStatus: (
     patchId: string,
     status: ReviewPatchQueueItem["status"],
   ) => void;
+  onRunCompile: () => void;
 }) {
   const [selectedEntryId, setSelectedEntryId] = useState("rule-first-time");
   const [searchText, setSearchText] = useState("");
@@ -245,7 +252,7 @@ export function DetailedRulesPage({
             <div style={pageBadgeStyle}>Detailed Rules Skeleton</div>
             <h1 style={{ margin: 0, fontSize: "30px", fontWeight: 800 }}>Detailed Rules</h1>
             <p style={pageTextStyle}>
-              正式編集室として、採用済みルールと定義の編集、手動追加、Review patch 採用をまとめます。
+              正式編集室として、採用済みルールと定義の編集、手動追加、Review Patch Queue からの採用をまとめます。
             </p>
           </div>
           <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
@@ -257,8 +264,8 @@ export function DetailedRulesPage({
         <section style={summaryCardStyle}>
           <strong style={{ fontSize: "15px" }}>この画面の役割</strong>
           <span style={pageTextStyle}>
-            ここでは採用済みルールの正式編集、採用済み定義の正式編集、手動追加、Review patch の採用、
-            compile 前変更確認だけを扱います。JSON 生成、JSON 検証、エラー修正は AI / JSON Studio の責務です。
+            ここでは採用済みルールの正式編集、採用済み定義の正式編集、手動追加、`Review Patch Queue` からの採用、
+            `compile 前確認` だけを扱います。JSON 生成、JSON 検証、エラー修正は AI / JSON Studio の責務です。
           </span>
         </section>
 
@@ -329,7 +336,7 @@ export function DetailedRulesPage({
                     value={sourceFilter}
                     onChange={(event) => setSourceFilter(event.target.value as "all" | RuleSource)}
                   >
-                    <option value="all">source: すべて</option>
+                    <option value="all">由来: すべて</option>
                     <option value="初期プリセット">初期プリセット</option>
                     <option value="手動追加">手動追加</option>
                     <option value="Review由来">Review由来</option>
@@ -393,7 +400,7 @@ export function DetailedRulesPage({
                 </p>
               </div>
               <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
-                <span style={pillStyle("#EAF7F7", "#357F91")}>{selectedEntry?.source ?? "source 未設定"}</span>
+                <span style={pillStyle("#EAF7F7", "#357F91")}>{selectedEntry?.source ?? "由来未設定"}</span>
                 <span style={pillStyle("#F7FCFC", "#5F747A")}>{selectedEntry?.target ?? "共通"}</span>
               </div>
             </div>
@@ -520,7 +527,7 @@ export function DetailedRulesPage({
                     <button style={dangerButtonStyle}>削除</button>
                   </div>
                   <span style={{ ...pageTextStyle, fontSize: "12px" }}>
-                    最終更新: 今日 18:42 / source: {selectedEntry?.source ?? "初期プリセット"}
+                    最終更新: 今日 18:42 / 由来: {selectedEntry?.source ?? "初期プリセット"}
                   </span>
                 </div>
               </section>
@@ -592,8 +599,8 @@ export function DetailedRulesPage({
               <section style={cardInsetStyle}>
                 <div style={{ display: "flex", justifyContent: "space-between", gap: "8px", alignItems: "center" }}>
                   <div>
-                    <h2 style={sectionTitleStyle}>Review patch 採用</h2>
-                    <p style={pageTextStyle}>Review で保留された候補を正式採用するための骨格です。</p>
+                    <h2 style={sectionTitleStyle}>Review Patch Queue から採用</h2>
+                    <p style={pageTextStyle}>Review で整理された差分候補を、ここで正式採用する前提の確認欄です。</p>
                   </div>
                   <span style={pillStyle("#FFF0D8", "#A96E22")}>{reviewPatches.length}件</span>
                 </div>
@@ -603,16 +610,16 @@ export function DetailedRulesPage({
                       <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", alignItems: "center" }}>
                       <span style={patchTypeStyle(patch.patchType)}>{patchTypeLabel(patch.patchType)}</span>
                         <span style={reviewPatchStatusStyle(patch.status)}>
-                          {patch.status}
+                          {reviewPatchStatusLabel(patch.status)}
                         </span>
                       </div>
                       <strong>{patch.title}</strong>
                       <span style={pageTextStyle}>{patch.summary}</span>
                       <span style={{ ...pageTextStyle, fontSize: "12px" }}>対象: {patch.targetLabel}</span>
                       <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
-                        <button style={primaryButtonStyle} onClick={() => onSetReviewPatchStatus(patch.id, "adopted")}>採用</button>
-                        <button style={secondaryButtonStyle} onClick={() => onSetReviewPatchStatus(patch.id, "pending")}>保留</button>
-                        <button style={dangerButtonStyle} onClick={() => onSetReviewPatchStatus(patch.id, "discarded")}>破棄</button>
+                        <button style={primaryButtonStyle} onClick={() => onSetReviewPatchStatus(patch.id, "adopted")}>採用する</button>
+                        <button style={secondaryButtonStyle} onClick={() => onSetReviewPatchStatus(patch.id, "pending")}>保留に戻す</button>
+                        <button style={dangerButtonStyle} onClick={() => onSetReviewPatchStatus(patch.id, "discarded")}>採用しない</button>
                       </div>
                     </article>
                   ))}
@@ -622,8 +629,8 @@ export function DetailedRulesPage({
               <section style={cardInsetStyle}>
                 <div style={{ display: "flex", justifyContent: "space-between", gap: "8px", alignItems: "center" }}>
                   <div>
-                    <h2 style={sectionTitleStyle}>採用済み変更</h2>
-                    <p style={pageTextStyle}>compile 前の確認用骨格です。</p>
+                    <h2 style={sectionTitleStyle}>Adopted Changes</h2>
+                    <p style={pageTextStyle}>採用済み変更の一覧です。compile 前確認から、最小の compile 実行結果を履歴へ流せます。</p>
                   </div>
                   <span style={pillStyle("#EAF7F7", "#357F91")}>compile 前確認</span>
                 </div>
@@ -635,12 +642,22 @@ export function DetailedRulesPage({
                         <span style={{ ...pageTextStyle, fontSize: "12px" }}>{new Date(item.adopted_at).toLocaleDateString("ja-JP")}</span>
                       </div>
                       <span style={pillStyle(item.compile_wait_status === "pending" ? "#EAF7F7" : "#F7FCFC", item.compile_wait_status === "pending" ? "#357F91" : "#5F747A")}>
-                        {item.compile_wait_status === "pending" ? "compile 待ち" : "compiled"}
+                        {item.compile_wait_status === "pending" ? "compile 前確認中" : "compiled / 反映済み"}
                       </span>
                     </div>
                   ))}
                 </div>
                 <div style={{ display: "grid", gap: "8px" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", gap: "8px", alignItems: "center", flexWrap: "wrap" }}>
+                    <strong style={{ fontSize: "14px" }}>compile 前確認</strong>
+                    <button
+                      style={compileActionButtonStyle(compilePrecheckItems.length > 0)}
+                      onClick={onRunCompile}
+                      disabled={compilePrecheckItems.length === 0}
+                    >
+                      最小 compile を実行
+                    </button>
+                  </div>
                   {compilePrecheckItems.map((item) => (
                     <div key={item.adopted_change_id} style={subCardStyle}>
                       <strong>{item.target_name}</strong>
@@ -648,8 +665,42 @@ export function DetailedRulesPage({
                     </div>
                   ))}
                 </div>
+                <div style={{ display: "grid", gap: "8px" }}>
+                  <strong style={{ fontSize: "14px" }}>compile 履歴</strong>
+                  {compileHistory.length > 0 ? (
+                    compileHistory.map((record) => (
+                      <div key={record.id} style={subCardStyle}>
+                        <div
+                          style={{
+                            display: "flex",
+                            justifyContent: "space-between",
+                            gap: "10px",
+                            alignItems: "center",
+                            flexWrap: "wrap",
+                          }}
+                        >
+                          <strong>{new Date(record.executed_at).toLocaleString("ja-JP")}</strong>
+                          <span
+                            style={pillStyle(
+                              record.status === "success" ? "#E4F5EC" : "#FFE2E2",
+                              record.status === "success" ? "#3F8A63" : "#B94D4D",
+                            )}
+                          >
+                            {record.status === "success" ? "success / 成功" : "failed / 失敗"}
+                          </span>
+                        </div>
+                        <span style={pageTextStyle}>対象件数: {record.target_count}</span>
+                        <span style={pageTextStyle}>反映先: {record.reflected_to.join(" / ")}</span>
+                      </div>
+                    ))
+                  ) : (
+                    <div style={subCardStyle}>
+                      <span style={pageTextStyle}>まだ compile 履歴はありません。</span>
+                    </div>
+                  )}
+                </div>
                 <div style={inlineNoticeStyle}>
-                  compile はここで直接実行しません。採用済み変更を compile 前に確認する骨格だけを置いています。
+                  ここでの compile は frontend 内の最小確認版です。履歴表示までは進めますが、queue 保存や本体反映はまだ行いません。
                 </div>
               </section>
             </div>
@@ -888,6 +939,19 @@ function summaryChipStyle(active: boolean) {
   } as const;
 }
 
+function compileActionButtonStyle(active: boolean) {
+  return {
+    border: `1px solid ${active ? "#2F3E46" : "#BFDCDD"}`,
+    borderRadius: "14px",
+    padding: "10px 14px",
+    background: active ? "#2F3E46" : "#F7FCFC",
+    color: active ? "#FFFFFF" : "#91A3A8",
+    fontWeight: 800,
+    cursor: active ? "pointer" : "not-allowed",
+    opacity: active ? 1 : 0.8,
+  } as const;
+}
+
 function statusChipStyle(active: boolean) {
   return pillStyle(active ? "#E4F5EC" : "#F7FCFC", active ? "#3F8A63" : "#5F747A");
 }
@@ -906,14 +970,34 @@ function patchTypeStyle(type: ReviewPatchCandidate["patchType"]) {
 
 function patchTypeLabel(type: ReviewPatchCandidate["patchType"]) {
   if (type === "ignore_patch") {
-    return "ignore patch";
+    return "ignore 候補";
   }
 
   if (type === "existing_category_patch") {
-    return "existing category patch";
+    return "existing category 候補";
   }
 
-  return "new candidate patch";
+  return "new candidate 候補";
+}
+
+function reviewPatchStatusLabel(status: PatchStatus) {
+  if (status === "candidate") {
+    return "candidate / 候補";
+  }
+
+  if (status === "pending") {
+    return "pending / 保留";
+  }
+
+  if (status === "adopted") {
+    return "adopted / 採用済み";
+  }
+
+  if (status === "compiled") {
+    return "compiled / 反映済み";
+  }
+
+  return "discarded / 不採用";
 }
 
 function reviewPatchStatusStyle(status: PatchStatus) {

@@ -9,6 +9,7 @@ import type {
 } from "../../backend/src/contracts/queue";
 import type {
   CompilePlanItem,
+  CompileRecord,
   CompileTargetKind,
 } from "../../backend/src/contracts/compile";
 
@@ -92,7 +93,9 @@ export const initialAdoptedChanges: AdoptedChangeItem[] = [
   },
 ];
 
-export function createReviewPatchCandidate(
+export const initialCompileHistory: CompileRecord[] = [];
+
+export function createReviewPatchQueueItem(
   input: CreateReviewPatchCandidateInput,
 ): ReviewPatchQueueItem {
   return {
@@ -133,7 +136,7 @@ export function createAdoptedChangeFromReviewPatch(
   };
 }
 
-export function buildCompilePrecheckItems(
+export function buildCompilePrecheckPlanItems(
   adoptedChanges: AdoptedChangeItem[],
 ): CompilePlanItem[] {
   return adoptedChanges
@@ -143,6 +146,70 @@ export function buildCompilePrecheckItems(
       target_kind: item.target_kind as CompileTargetKind,
       target_name: item.target_name,
     }));
+}
+
+export function runCompileFromAdoptedChanges(
+  adoptedChanges: AdoptedChangeItem[],
+  compilePrecheckPlanItems: CompilePlanItem[],
+): {
+  nextAdoptedChanges: AdoptedChangeItem[];
+  compileRecord: CompileRecord | null;
+} {
+  if (compilePrecheckPlanItems.length === 0) {
+    return {
+      nextAdoptedChanges: adoptedChanges,
+      compileRecord: null,
+    };
+  }
+
+  const precheckIds = new Set(
+    compilePrecheckPlanItems.map((item) => item.adopted_change_id),
+  );
+  const reflectedTo = Array.from(
+    new Set(compilePrecheckPlanItems.map((item) => item.target_kind)),
+  );
+
+  return {
+    nextAdoptedChanges: adoptedChanges.map((item) =>
+      precheckIds.has(item.id)
+        ? { ...item, compile_wait_status: "compiled" }
+        : item,
+    ),
+    compileRecord: {
+      id: `compile-${Date.now()}`,
+      executed_at: new Date().toISOString(),
+      target_count: compilePrecheckPlanItems.length,
+      target_kinds: reflectedTo,
+      status: "success",
+      reflected_to: reflectedTo,
+    },
+  };
+}
+
+export function markCompiledReviewPatchQueueItems(
+  reviewPatchQueue: ReviewPatchQueueItem[],
+  adoptedChanges: AdoptedChangeItem[],
+  compilePrecheckPlanItems: CompilePlanItem[],
+): ReviewPatchQueueItem[] {
+  if (compilePrecheckPlanItems.length === 0) {
+    return reviewPatchQueue;
+  }
+
+  const precheckIds = new Set(
+    compilePrecheckPlanItems.map((item) => item.adopted_change_id),
+  );
+  const compiledPatchIds = new Set(
+    adoptedChanges
+      .filter(
+        (item) =>
+          precheckIds.has(item.id) && item.source_lane === "review_patch_queue",
+      )
+      .map((item) => item.id.replace(/^adopted-/, "")),
+  );
+
+  return reviewPatchQueue.map((item) =>
+    compiledPatchIds.has(item.id) ? { ...item, status: "compiled" } : item,
+  );
 }
 
 function toReviewPatchType(action: ReviewPatchAction): ReviewPatchType {

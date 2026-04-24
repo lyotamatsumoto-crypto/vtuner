@@ -9,18 +9,24 @@ import type {
   AdoptedChangeItem,
   ReviewPatchQueueItem,
 } from "../../backend/src/contracts/queue";
-import type { CompilePlanItem } from "../../backend/src/contracts/compile";
+import type {
+  CompilePlanItem,
+  CompileRecord,
+} from "../../backend/src/contracts/compile";
 import { AiJsonStudioPage } from "./pages/AiJsonStudioPage";
 import { BasicSettingsPage } from "./pages/BasicSettingsPage";
 import { DetailedRulesPage } from "./pages/DetailedRulesPage";
 import { PreviewTestPage } from "./pages/PreviewTestPage";
 import { ReviewPage } from "./pages/ReviewPage";
 import {
-  buildCompilePrecheckItems,
+  buildCompilePrecheckPlanItems,
   createAdoptedChangeFromReviewPatch,
-  createReviewPatchCandidate,
+  createReviewPatchQueueItem,
   initialAdoptedChanges,
+  initialCompileHistory,
   initialReviewPatchQueue,
+  markCompiledReviewPatchQueueItems,
+  runCompileFromAdoptedChanges,
   updateReviewPatchStatus,
 } from "./reviewCompileBridge";
 
@@ -32,14 +38,16 @@ export function App() {
     useState<ReviewPatchQueueItem[]>(initialReviewPatchQueue);
   const [adoptedChanges, setAdoptedChanges] =
     useState<AdoptedChangeItem[]>(initialAdoptedChanges);
+  const [compileHistory, setCompileHistory] =
+    useState<CompileRecord[]>(initialCompileHistory);
 
-  const compilePrecheckItems: CompilePlanItem[] =
-    buildCompilePrecheckItems(adoptedChanges);
+  const compilePrecheckPlanItems: CompilePlanItem[] =
+    buildCompilePrecheckPlanItems(adoptedChanges);
 
   function handleCreateReviewPatchCandidate(
-    input: Parameters<typeof createReviewPatchCandidate>[0],
+    input: Parameters<typeof createReviewPatchQueueItem>[0],
   ) {
-    const nextPatch = createReviewPatchCandidate(input);
+    const nextPatch = createReviewPatchQueueItem(input);
     setReviewPatchQueue((current) => [nextPatch, ...current]);
   }
 
@@ -71,6 +79,29 @@ export function App() {
     );
   }
 
+  function handleRunCompile() {
+    const result = runCompileFromAdoptedChanges(
+      adoptedChanges,
+      compilePrecheckPlanItems,
+    );
+
+    if (!result.compileRecord) {
+      return;
+    }
+
+    const nextCompileRecord = result.compileRecord;
+
+    setAdoptedChanges(result.nextAdoptedChanges);
+    setCompileHistory((current) => [nextCompileRecord, ...current]);
+    setReviewPatchQueue((current) =>
+      markCompiledReviewPatchQueueItems(
+        current,
+        adoptedChanges,
+        compilePrecheckPlanItems,
+      ),
+    );
+  }
+
   return (
     <AppShell currentScreen={currentScreen} onSelectScreen={setCurrentScreen}>
       {currentScreen === "basic_settings" ? (
@@ -92,8 +123,10 @@ export function App() {
         <DetailedRulesPage
           reviewPatchQueue={reviewPatchQueue}
           adoptedChanges={adoptedChanges}
-          compilePrecheckItems={compilePrecheckItems}
+          compilePrecheckItems={compilePrecheckPlanItems}
+          compileHistory={compileHistory}
           onSetReviewPatchStatus={handleSetReviewPatchStatus}
+          onRunCompile={handleRunCompile}
         />
       ) : null}
       {currentScreen === "ai_json_studio" ? <AiJsonStudioPage /> : null}
