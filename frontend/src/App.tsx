@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { AppShell, type AppScreen } from "./components/layout/AppShell";
 import {
@@ -29,6 +29,9 @@ import {
   runCompileFromAdoptedChanges,
   updateReviewPatchStatus,
 } from "./reviewCompileBridge";
+import { loadReviewCompileReadModel } from "./reviewCompileApi";
+
+type StorageReadStatus = "idle" | "loading" | "loaded" | "fallback";
 
 export function App() {
   const [currentScreen, setCurrentScreen] = useState<AppScreen>("preview_test");
@@ -40,9 +43,52 @@ export function App() {
     useState<AdoptedChangeItem[]>(initialAdoptedChanges);
   const [compileHistory, setCompileHistory] =
     useState<CompileRecord[]>(initialCompileHistory);
+  const [storageReadStatus, setStorageReadStatus] =
+    useState<StorageReadStatus>("idle");
+  const [storageReadMessage, setStorageReadMessage] = useState(
+    "backend read はまだ読み込んでいません。frontend の初期表示を使っています。",
+  );
 
   const compilePrecheckPlanItems: CompilePlanItem[] =
     buildCompilePrecheckPlanItems(adoptedChanges);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    setStorageReadStatus("loading");
+    setStorageReadMessage(
+      "backend から Review Patch Queue / Adopted Changes / compile 履歴を読み込み中です。",
+    );
+
+    loadReviewCompileReadModel()
+      .then((result) => {
+        if (cancelled) {
+          return;
+        }
+
+        setReviewPatchQueue(result.reviewPatchQueue);
+        setAdoptedChanges(result.adoptedChanges);
+        setCompileHistory(result.compileHistory);
+        setStorageReadStatus("loaded");
+        setStorageReadMessage(
+          `backend read を初期表示へ反映しています。(${result.backendOrigin})`,
+        );
+      })
+      .catch(() => {
+        if (cancelled) {
+          return;
+        }
+
+        setStorageReadStatus("fallback");
+        setStorageReadMessage(
+          "backend read に失敗したため、frontend の初期表示をそのまま使っています。",
+        );
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   function handleCreateReviewPatchCandidate(
     input: Parameters<typeof createReviewPatchQueueItem>[0],
@@ -117,6 +163,8 @@ export function App() {
         <ReviewPage
           reviewPatchQueue={reviewPatchQueue}
           onCreateReviewPatchCandidate={handleCreateReviewPatchCandidate}
+          storageReadStatus={storageReadStatus}
+          storageReadMessage={storageReadMessage}
         />
       ) : null}
       {currentScreen === "detailed_rules" ? (
@@ -127,6 +175,8 @@ export function App() {
           compileHistory={compileHistory}
           onSetReviewPatchStatus={handleSetReviewPatchStatus}
           onRunCompile={handleRunCompile}
+          storageReadStatus={storageReadStatus}
+          storageReadMessage={storageReadMessage}
         />
       ) : null}
       {currentScreen === "ai_json_studio" ? <AiJsonStudioPage /> : null}

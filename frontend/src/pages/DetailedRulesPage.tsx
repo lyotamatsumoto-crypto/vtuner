@@ -149,6 +149,8 @@ export function DetailedRulesPage({
   compileHistory,
   onSetReviewPatchStatus,
   onRunCompile,
+  storageReadStatus,
+  storageReadMessage,
 }: {
   reviewPatchQueue: ReviewPatchQueueItem[];
   adoptedChanges: AdoptedChangeItem[];
@@ -159,6 +161,8 @@ export function DetailedRulesPage({
     status: ReviewPatchQueueItem["status"],
   ) => void;
   onRunCompile: () => void;
+  storageReadStatus: "idle" | "loading" | "loaded" | "fallback";
+  storageReadMessage: string;
 }) {
   const [selectedEntryId, setSelectedEntryId] = useState("rule-first-time");
   const [searchText, setSearchText] = useState("");
@@ -267,6 +271,7 @@ export function DetailedRulesPage({
             ここでは採用済みルールの正式編集、採用済み定義の正式編集、手動追加、`Review Patch Queue` からの採用、
             `compile 前確認` だけを扱います。JSON 生成、JSON 検証、エラー修正は AI / JSON Studio の責務です。
           </span>
+          <span style={storageReadNoticeStyle(storageReadStatus)}>{storageReadMessage}</span>
         </section>
 
         <section
@@ -936,6 +941,34 @@ function summaryChipStyle(active: boolean) {
     color: active ? "#357F91" : "#5F747A",
     fontSize: "12px",
     fontWeight: 800,
+  } as const;
+}
+
+function storageReadNoticeStyle(
+  status: "idle" | "loading" | "loaded" | "fallback",
+) {
+  if (status === "loaded") {
+    return {
+      ...pageTextStyle,
+      color: "#357F91",
+      fontSize: "12px",
+      fontWeight: 700,
+    } as const;
+  }
+
+  if (status === "fallback") {
+    return {
+      ...pageTextStyle,
+      color: "#A96E22",
+      fontSize: "12px",
+      fontWeight: 700,
+    } as const;
+  }
+
+  return {
+    ...pageTextStyle,
+    fontSize: "12px",
+    fontWeight: 700,
   } as const;
 }
 

@@ -168,9 +168,13 @@ const inferenceOrder: InferenceHint[] = ["existing_close", "ambiguous", "unknown
 export function ReviewPage({
   reviewPatchQueue,
   onCreateReviewPatchCandidate,
+  storageReadStatus,
+  storageReadMessage,
 }: {
   reviewPatchQueue: ReviewPatchQueueItem[];
   onCreateReviewPatchCandidate: (input: CreateReviewPatchCandidateInput) => void;
+  storageReadStatus: "idle" | "loading" | "loaded" | "fallback";
+  storageReadMessage: string;
 }) {
   const [sessions, setSessions] = useState(initialSessions);
   const [comments] = useState(initialComments);
@@ -325,6 +329,7 @@ export function ReviewPage({
             コメント一覧を見直し、`unknown / skipped / displayed / ignored` を追いながら、
             `ignore`、`existing category`、`new candidate` の差分候補を `Review Patch Queue` 向けに整理します。
           </span>
+          <span style={storageReadNoticeStyle(storageReadStatus)}>{storageReadMessage}</span>
         </section>
 
         <section
@@ -886,6 +891,34 @@ function summaryChipStyle(active: boolean) {
     color: active ? "#357F91" : "#5F747A",
     fontSize: "12px",
     fontWeight: 800,
+  } as const;
+}
+
+function storageReadNoticeStyle(
+  status: "idle" | "loading" | "loaded" | "fallback",
+) {
+  if (status === "loaded") {
+    return {
+      ...pageTextStyle,
+      color: "#357F91",
+      fontSize: "12px",
+      fontWeight: 700,
+    } as const;
+  }
+
+  if (status === "fallback") {
+    return {
+      ...pageTextStyle,
+      color: "#A96E22",
+      fontSize: "12px",
+      fontWeight: 700,
+    } as const;
+  }
+
+  return {
+    ...pageTextStyle,
+    fontSize: "12px",
+    fontWeight: 700,
   } as const;
 }
 
