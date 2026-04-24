@@ -7,11 +7,10 @@ import {
   type SharedOrientation,
 } from "../basicPreviewBridge";
 import { CharacterStage } from "../components/display";
-import {
-  decidePreviewReaction,
-  normalizeCommentInput,
-  type PreviewOnlyReaction,
-} from "../features/previewTest/previewOnlyCommentRuntime";
+import { decidePreviewTestEvent } from "../features/previewTest/decidePreviewTestEvent";
+import type { PreviewOnlyReaction } from "../features/previewTest/previewOnlyCommentRuntime";
+import { decideRuntimeEvent } from "../runtime/decideRuntimeEvent";
+import type { CommentInput, RuntimeDecision, TestEventInput } from "../../../schemas/runtime/runtimeTypes";
 
 type BackgroundVariant = PreviewBackgroundVariant;
 type SampleKey = "compliment" | "greeting" | "question" | "quiet";
@@ -163,14 +162,14 @@ export function PreviewTestPage({
   }
 
   function runCommentTest(source: "manual" | "sample") {
-    const normalizedComment = normalizeCommentInput(commentText);
-    const nextResult = decidePreviewReaction({
-      normalizedComment,
-      firstPerson: sharedSettings.firstPerson,
-      viewerCall: sharedSettings.viewerCall,
-      toneLabel: sharedSettings.toneLabel,
-      endingStyle: sharedSettings.endingStyle,
-    });
+    const runtimeInput: CommentInput = {
+      kind: "comment_input",
+      user_name: authorName,
+      comment_text: commentText,
+      occurred_at: new Date().toISOString(),
+    };
+    const runtimeDecision = decideRuntimeEvent(runtimeInput);
+    const nextResult = buildPreviewReactionFromRuntimeDecision(runtimeDecision, sharedSettings);
 
     setOrientation(nextResult.orientation);
     setPreviewResult(nextResult);
@@ -181,7 +180,7 @@ export function PreviewTestPage({
         label: source === "sample" ? "単発サンプル" : "コメント",
         name: authorName,
         text: commentText,
-        detail: `${nextResult.category_label} / ${nextResult.reason_label}`,
+        detail: `${runtimeDecision.kind} / ${nextResult.category_label} / ${nextResult.reason_label}`,
       },
       {
         id: `${Date.now()}-reply`,
@@ -194,19 +193,17 @@ export function PreviewTestPage({
   }
 
   function runEventPreset(preset: EventPreset) {
-    const isIgnored = preset.id === "ng-word";
-    const nextResult: PreviewOnlyReaction = {
-      result_label: isIgnored ? "ignored" : preset.id === "rapid-post" ? "skipped" : "displayed",
-      category_label: isIgnored ? "ignore 寄り" : preset.id === "rapid-post" ? "unknown" : "応援っぽい",
-      reason_label: preset.reason_label,
-      reaction_name: preset.reaction_name,
-      adoption_label: isIgnored ? "不採用" : preset.id === "rapid-post" ? "保留" : "採用",
-      target_label: "viewer",
-      orientation: preset.orientation,
-      bubble_text: preset.bubble_text,
+    const runtimeInput: TestEventInput = {
+      kind: "test_event_input",
+      source_screen: "preview_test",
+      test_name: preset.id,
+      test_value: preset.value_label,
+      occurred_at: new Date().toISOString(),
     };
+    const runtimeDecision = decidePreviewTestEvent(runtimeInput);
+    const nextResult = buildPreviewReactionFromRuntimeDecision(runtimeDecision, sharedSettings);
 
-    setOrientation(preset.orientation);
+    setOrientation(nextResult.orientation);
     setPreviewResult(nextResult);
     appendHistory([
       {
@@ -214,7 +211,7 @@ export function PreviewTestPage({
         kind: "event",
         label: preset.condition_label,
         text: `${preset.title} を実行: ${preset.value_label}`,
-        detail: `${nextResult.result_label} / ${nextResult.reason_label}`,
+        detail: `${runtimeDecision.kind} / ${nextResult.result_label} / ${nextResult.reason_label}`,
       },
       {
         id: `${Date.now()}-${preset.id}-reply`,
@@ -312,6 +309,12 @@ export function PreviewTestPage({
             </span>
             <span style={{ color: "#357F91", lineHeight: 1.7, fontSize: "12px", fontWeight: 700 }}>
               今回は Preview / Test 限定の仮 runtime wiring です。正式ルール処理や本番 runtime、Overlay 表示処理ではありません。
+            </span>
+            <span style={{ color: "#5F747A", lineHeight: 1.7, fontSize: "12px" }}>
+              コメント入力だけは最小の正式 runtime decide を経由し、画面表示は Preview / Test 用に整形しています。
+            </span>
+            <span style={{ color: "#5F747A", lineHeight: 1.7, fontSize: "12px" }}>
+              条件イベントは `TestEventInput` を使う preview 専用の簡易入口を通し、本番 runtime とは分離したまま確認します。
             </span>
           </div>
         </section>
@@ -515,7 +518,7 @@ export function PreviewTestPage({
 
               <div style={inputBoxStyle}>
                 <p style={{ margin: 0, color: "#5F747A", fontSize: "12px", lineHeight: 1.7 }}>
-                  ここは手入力テスト用です。preview-only の仮判定ロジックで Preview / Test 専用結果を返します。正式ルール編集や JSON 生成は他画面の責務です。
+                  ここは手入力テスト用です。コメント入力は最小の正式 runtime decide を通しますが、見え方は Preview / Test 用の表示整形です。正式ルール編集や JSON 生成は他画面の責務です。
                 </p>
                 <label style={fieldStyle}>
                   <span style={fieldLabelStyle}>投稿者名</span>
@@ -598,6 +601,105 @@ export function PreviewTestPage({
       </div>
     </main>
   );
+}
+
+function buildPreviewReactionFromRuntimeDecision(
+  decision: RuntimeDecision,
+  sharedSettings: BasicPreviewBridgeSettings,
+): PreviewOnlyReaction {
+  const endingSuffix = buildEndingSuffix(sharedSettings.endingStyle);
+
+  if (decision.kind === "reply") {
+    return {
+      result_label: "displayed",
+      category_label: toPreviewCategoryLabel(decision.used_category),
+      reason_label: decision.reason_label,
+      reaction_name: decision.reply_name ?? "reply",
+      adoption_label: "採用",
+      target_label: decision.speech_target,
+      orientation: decision.display_orientation.facing,
+      bubble_text:
+        decision.reply_text ??
+        buildReplyTextFromCategory(decision.used_category, sharedSettings, endingSuffix),
+    };
+  }
+
+  if (decision.kind === "ignore") {
+    return {
+      result_label: "ignored",
+      category_label: "ignore 寄り",
+      reason_label: decision.reason_label,
+      reaction_name: decision.related_rule ?? "ignore 候補",
+      adoption_label: "不採用",
+      target_label: "viewer",
+      orientation: "side",
+      bubble_text: `${sharedSettings.firstPerson}はこの入力を ignore 寄りとして扱いました${endingSuffix} Preview / Test 専用の見え方だけを確認しています。`,
+    };
+  }
+
+  if (decision.kind === "skip") {
+    return {
+      result_label: "skipped",
+      category_label: "unknown",
+      reason_label: decision.reason_label,
+      reaction_name: decision.suppression_type ?? "skip",
+      adoption_label: "保留",
+      target_label: "viewer",
+      orientation: "front",
+      bubble_text: `${sharedSettings.firstPerson}はこの入力を一旦 skip 扱いにしました${endingSuffix} Preview / Test では保留時の見え方だけを確認しています。`,
+    };
+  }
+
+  return {
+    result_label: "unknown",
+    category_label: "unknown",
+    reason_label: decision.reason_label,
+    reaction_name: decision.candidate_category ?? "unknown 仮反応",
+    adoption_label: "保留",
+    target_label: "viewer",
+    orientation: "front",
+    bubble_text: `${sharedSettings.firstPerson}はこの入力を unknown 扱いにしました${endingSuffix} 正式ルールではなく Preview / Test 限定の確認表示です。`,
+  };
+}
+
+function buildReplyTextFromCategory(
+  usedCategory: string,
+  sharedSettings: BasicPreviewBridgeSettings,
+  endingSuffix: string,
+) {
+  if (usedCategory === "挨拶っぽい") {
+    return `${sharedSettings.viewerCall}、来てくれてありがとうございます${endingSuffix} ${sharedSettings.toneLabel} の反応確認です。`;
+  }
+
+  if (usedCategory === "質問っぽい") {
+    return `${sharedSettings.firstPerson}は質問っぽい入力として拾いました${endingSuffix} いまは最小 runtime decide の見え方を確認しています。`;
+  }
+
+  if (usedCategory === "応援っぽい") {
+    return `${sharedSettings.viewerCall}からの応援っぽい入力として受けました${endingSuffix} 反応名と表示向きの確認に使っています。`;
+  }
+
+  return `${sharedSettings.firstPerson}はこの入力に反応を返す判定を行いました${endingSuffix} Preview / Test 用の表示文です。`;
+}
+
+function toPreviewCategoryLabel(category: string): PreviewOnlyReaction["category_label"] {
+  if (category === "挨拶っぽい" || category === "質問っぽい" || category === "応援っぽい") {
+    return category;
+  }
+
+  return "unknown";
+}
+
+function buildEndingSuffix(endingStyle: string) {
+  if (endingStyle.includes("だね")) {
+    return "だよ。";
+  }
+
+  if (endingStyle.includes("特に固定しない")) {
+    return "です。";
+  }
+
+  return "ですね。";
 }
 
 function ControlRow({
