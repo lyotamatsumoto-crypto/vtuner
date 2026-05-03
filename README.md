@@ -155,9 +155,10 @@ VS Code 上の AI は、docs 内文書に従って次を行います。
 
 現在の状態:
 
-- Project status: Phase 9.6 の最小保存導線と Phase 10 の整合確認は完了。現在は Phase 11 Completion Review の判定整理段階
+- Project status: 条件付きMVP完了（Phase 11 Completion Review の判定整理段階）
 - Current phase: Phase 11 Completion Review
-- Next focus: Completion Review 判定の確定と、継続課題の優先順位整理
+- Next focus: Completion Review 判定の確定と、拡張ロードマップ（Phase 12+）への接続整理
+- Extension roadmap: `docs/ROADMAP_TO_EXTENSION.md`（MVP後の拡張計画）
 
 ---
 

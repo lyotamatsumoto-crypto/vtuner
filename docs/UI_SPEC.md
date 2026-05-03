@@ -94,6 +94,7 @@
 - OBS などの本番表示には、確認 UI を含まない表示専用ルートを用いる
 - キャラクター表示と吹き出し表示は、共通表示部品として Preview / Test と Overlay 表示専用ルートで再利用する
 - Preview / Test と Overlay は同じ画面ではない
+- 拡張フェーズでは、読み上げのみモード、発言対象表示、発言対象に応じた front / side 切替を本画面で確認する（詳細は `ROADMAP_TO_EXTENSION.md`）
 
 ---
 
@@ -138,6 +139,7 @@
 ### Notes
 - ここはキャラの共通土台であり、詳細ルール追加画面ではない
 - 新しい定義追加は Detailed Rules または AI / JSON Studio に委ねる
+- 拡張フェーズでは、Character Profile 保存、未保存状態表示、最終保存時刻表示を本画面に追加する（詳細は `ROADMAP_TO_EXTENSION.md`）
 
 ---
 

@@ -296,3 +296,21 @@
 ### Stop if
 - 一度動いただけで完成扱いしている
 - docs 不足で再開できない
+
+---
+
+## Phase 12+ Checkpoints: Extension Roadmap
+
+### Check items
+- `ROADMAP_TO_EXTENSION.md` の優先順に沿っている
+- 5画面責務（Basic Settings / Preview / Review / Detailed Rules / AI JSON Studio）を崩していない
+- MVP範囲と拡張範囲の境界が docs 上で明示されている
+- compile 確認版と本処理高度化の区別が維持されている
+
+### Done criteria
+- 追加対象が最小単位で導入され、既存導線を壊していない
+- 未完項目と後続送り項目が文書で追える
+
+### Stop if
+- 画面責務が混線する
+- 拡張のためにMVP基盤を大規模に崩す必要がある

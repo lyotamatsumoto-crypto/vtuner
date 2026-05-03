@@ -153,6 +153,15 @@
 
 ---
 
+## Extension Handoff Policy（Phase 12+）
+
+* 条件付きMVP完了後の拡張順は `ROADMAP_TO_EXTENSION.md` を正とする
+* 直近優先は Character Profile 保存、未保存状態表示、読み上げのみモード、共通NG処理、発言対象関連
+* 拡張実装でも 5 画面責務分離を維持し、Detailed Rules と AI / JSON Studio の境界を崩さない
+* compile は確認版最小導線と本処理高度化を区別して段階導入する
+
+---
+
 ## First Implementation Targets
 
 初回実装で優先度が高いものは次のとおり。
