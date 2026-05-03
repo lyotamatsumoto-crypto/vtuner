@@ -280,6 +280,15 @@
 - compile が成立している
 - 非プログラマでも再開できる
 
+### Review snapshot（Phase 11 実施時点）
+- 5 画面 skeleton は責務分離を維持したまま実装済み
+- Preview / Test は最小 runtime wiring と確認導線を実装済み（確認版）
+- Basic Settings → Preview / Test の最小反映導線は実装済み
+- Review → Detailed Rules → Adopted Changes → compile 前確認 → compile 履歴の最小導線は実装済み
+- Review Patch Queue / Adopted Changes / compile history は backend PUT で local JSON へ最小保存可能
+- compile は frontend 確認版最小導線（履歴保存あり）であり、本体 runtime 反映の高度化は後続課題
+- backend 契約の真正な一本化（`backend/src/contracts` と `schemas/` の単一ソース化）は未完了
+
 ### Done criteria
 - 完成または継続判断が説明できる
 - 未解決事項が整理されている
