@@ -1,1 +1,1 @@
-export * from "../../../schemas/reviewCompile/queueContracts";
+export * from "../../../schemas/dist/reviewCompile/queueContracts";

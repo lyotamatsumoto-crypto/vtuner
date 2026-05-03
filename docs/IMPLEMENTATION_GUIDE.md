@@ -140,7 +140,20 @@
 * Review Patch Queue / Adopted Changes / compile history は、backend の最小 PUT API と storage helper により local JSON へ保存できる
 * compile は frontend 確認版の最小導線であり、本体反映の高度化は未実装
 * frontend 側の共有契約参照は `schemas/` 経由へ整理済み
-* backend 側契約の真正な一本化（`schemas/` 単一ソース化）は後続課題として残す
+* backend 側契約の真正な一本化（`schemas/` 単一ソース化）は Phase 10-3 時点では後続課題として残していた
+
+実装現在地メモ（Completion Roadmap C1-3 時点）:
+* Review / Compile 系 contract の正は `schemas/reviewCompile/*`
+* `schemas` は独立 build unit として `schemas/dist` を生成する
+* backend の `backend/src/contracts/*` は `schemas/dist/reviewCompile/*` を re-export する互換 façade
+* backend build 前には `npm run build:schemas` が必要で、`npm run build:backend` はこれを含む
+* backend build output は backend 本体中心で、`backend/dist/schemas` を生成しない
+* Windows sandbox で `clean:backend` が `EPERM` になる場合は、dev server や出力ファイルを掴んでいるプロセスを止めて再実行する
+
+build 確認:
+* `npm run build:schemas`
+* `npm run build:backend`
+* `npm run check`
 
 ---
 

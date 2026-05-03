@@ -249,7 +249,7 @@
 - Phase 9.6 で Review Patch Queue / Adopted Changes / compile history の最小保存導線（backend PUT + local JSON 保存）が通っている
 - Review は candidate 作成、Detailed Rules は採用と compile 前確認、compile は確認版最小導線、という責務分離を維持している
 - frontend 側の共有契約参照は `schemas/` 経由へ整理済み
-- backend 側契約の真正な一本化（`backend/src/contracts` と `schemas/` の単一ソース化）は未完了で、後続課題として保持する
+- backend 側契約の真正な一本化（`backend/src/contracts` と `schemas/` の単一ソース化）は Phase 10-3 時点では未完了で、後続課題として保持していた
 
 ### Residual handoff（Completion Review 前）
 - 今やる: なし（Phase 10 の範囲では整合確認と最小文書同期を優先し、大規模構造変更は行わない）
@@ -258,7 +258,7 @@
   - backend 保存導線はあるが、本番完成版（厳格 validation / retry / 競合制御）ではないこと
   - Review / Detailed Rules / compile history の最小保存導線を「MVP達成」とするかの最終判断
 - 後続送り:
-  - backend 契約の真正な一本化（`backend/src/contracts` と `schemas/reviewCompile/*` の単一ソース化）
+  - backend 契約の真正な一本化（`backend/src/contracts` と `schemas/reviewCompile/*` の単一ソース化。C1-3 時点で整理済み）
   - compile 本処理の高度化と runtime への本体反映
 
 ### Done criteria
@@ -287,7 +287,7 @@
 - Review → Detailed Rules → Adopted Changes → compile 前確認 → compile 履歴の最小導線は実装済み
 - Review Patch Queue / Adopted Changes / compile history は backend PUT で local JSON へ最小保存可能
 - compile は frontend 確認版最小導線（履歴保存あり）であり、本体 runtime 反映の高度化は後続課題
-- backend 契約の真正な一本化（`backend/src/contracts` と `schemas/` の単一ソース化）は未完了
+- backend 契約の真正な一本化（`backend/src/contracts` と `schemas/` の単一ソース化）は Phase 11 時点では未完了だったが、Completion Roadmap C1-3 時点で整理済み
 
 ### Done criteria
 - 完成または継続判断が説明できる
@@ -296,6 +296,35 @@
 ### Stop if
 - 一度動いただけで完成扱いしている
 - docs 不足で再開できない
+
+---
+
+## Completion Roadmap C1 Checkpoints: Contract SSOT
+
+### Check items
+- Review / Compile 系 contract の正が `schemas/reviewCompile/*` にある
+- `backend/src/contracts/*` は契約本体ではなく `schemas/dist/reviewCompile/*` への re-export façade である
+- `schemas` は独立 build unit として `schemas/dist` を生成する
+- backend build は `../schemas` を compile 対象に含めず、backend 本体中心の output になる
+
+### Verified snapshot（C1-3 時点）
+- `npm run check` passed
+- `npm run build:schemas` passed
+- `npm run build:backend` passed
+- `schemas/dist/reviewCompile` が存在する
+- `backend/dist/schemas` が存在しない
+- `backend/dist` は `index` / `contracts` / `storage` 中心の出力である
+- Windows sandbox では `clean:backend` が `EPERM` になる場合がある
+
+### Done criteria
+- frontend / backend の Review / Compile 系 contract 参照元を説明できる
+- `backend/src/contracts` が新しい契約源として増殖していない
+- backend dist に `schemas` が混ざらない
+
+### Stop if
+- 契約型を `backend/src/contracts` 側で再定義し始める
+- backend build のために `../schemas/**/*.ts` を backend compile 対象へ戻す必要が出る
+- C1 の範囲を超えて compile 本処理化や storage safety 強化へ進み始める
 
 ---
 

@@ -2,11 +2,12 @@
   "extends": "../tsconfig.base.json",
   "compilerOptions": {
     "composite": true,
-    "module": "ESNext",
-    "moduleResolution": "Bundler",
-    "noEmit": true
+    "module": "CommonJS",
+    "moduleResolution": "Node",
+    "rootDir": ".",
+    "outDir": "./dist",
+    "declaration": true
   },
-  "include": [
-    "./**/*.ts"
-  ]
+  "include": ["./**/*.ts"],
+  "exclude": ["dist"]
 }

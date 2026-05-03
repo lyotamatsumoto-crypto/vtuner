@@ -1,1 +1,1 @@
-export * from "../../../schemas/reviewCompile/compileContracts";
+export * from "../../../schemas/dist/reviewCompile/compileContracts";
