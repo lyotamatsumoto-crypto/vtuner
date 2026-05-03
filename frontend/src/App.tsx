@@ -8,11 +8,11 @@ import {
 import type {
   AdoptedChangeItem,
   ReviewPatchQueueItem,
-} from "../../backend/src/contracts/queue";
+} from "../../schemas";
 import type {
   CompilePlanItem,
   CompileRecord,
-} from "../../backend/src/contracts/compile";
+} from "../../schemas";
 import { AiJsonStudioPage } from "./pages/AiJsonStudioPage";
 import { BasicSettingsPage } from "./pages/BasicSettingsPage";
 import { DetailedRulesPage } from "./pages/DetailedRulesPage";
@@ -334,3 +334,4 @@ export function App() {
     </AppShell>
   );
 }
+

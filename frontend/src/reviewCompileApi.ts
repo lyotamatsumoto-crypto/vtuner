@@ -1,8 +1,8 @@
 import type {
   AdoptedChangeItem,
   ReviewPatchQueueItem,
-} from "../../backend/src/contracts/queue";
-import type { CompileRecord } from "../../backend/src/contracts/compile";
+} from "../../schemas";
+import type { CompileRecord } from "../../schemas";
 
 const DEFAULT_BACKEND_ORIGIN = "http://localhost:3001";
 
@@ -102,3 +102,4 @@ async function fetchJsonArray<T>(
   const payload: unknown = await response.json();
   return Array.isArray(payload) ? (payload as T[]) : [];
 }
+

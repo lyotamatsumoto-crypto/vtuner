@@ -136,6 +136,12 @@
 * compile 実行
 * compile 後反映
 
+実装現在地メモ（Phase 10-3 時点）:
+* Review Patch Queue / Adopted Changes / compile history は、backend の最小 PUT API と storage helper により local JSON へ保存できる
+* compile は frontend 確認版の最小導線であり、本体反映の高度化は未実装
+* frontend 側の共有契約参照は `schemas/` 経由へ整理済み
+* backend 側契約の真正な一本化（`schemas/` 単一ソース化）は後続課題として残す
+
 ---
 
 ### Step 9: Final consistency

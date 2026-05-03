@@ -155,9 +155,10 @@ VS Code 上の AI は、docs 内文書に従って次を行います。
 
 現在の状態:
 
-- Project status: 仕様固定後の正式文書再構築段階
-- Current phase: Phase 1 Project Foundation
-- Next focus: UI / データ / AI JSON ワークフローを文書基準で固定し、実装開始前提を整える
+- Project status: Phase 9.6 の最小保存導線まで実装済み。現在は Phase 10-3 Docs Sync で文書同期を進行中
+- Project status: Phase 9.6 の最小保存導線まで実装済み。現在は Completion Review 前の残課題整理を進行中
+- Current phase: Phase 10 Validation and Consistency
+- Next focus: Phase 10 の残課題整理（backend 契約の真正な一本化判断）と Completion Review 準備
 
 ---
 

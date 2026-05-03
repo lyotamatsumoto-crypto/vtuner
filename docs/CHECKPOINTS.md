@@ -245,6 +245,22 @@
 - queue / compile / JSON ワークフローが一致している
 - 用語が揃っている
 
+### Progress snapshot（Phase 10-3 時点）
+- Phase 9.6 で Review Patch Queue / Adopted Changes / compile history の最小保存導線（backend PUT + local JSON 保存）が通っている
+- Review は candidate 作成、Detailed Rules は採用と compile 前確認、compile は確認版最小導線、という責務分離を維持している
+- frontend 側の共有契約参照は `schemas/` 経由へ整理済み
+- backend 側契約の真正な一本化（`backend/src/contracts` と `schemas/` の単一ソース化）は未完了で、後続課題として保持する
+
+### Residual handoff（Completion Review 前）
+- 今やる: なし（Phase 10 の範囲では整合確認と最小文書同期を優先し、大規模構造変更は行わない）
+- Completion Review に持ち込む:
+  - compile が「確認版最小導線」であること
+  - backend 保存導線はあるが、本番完成版（厳格 validation / retry / 競合制御）ではないこと
+  - Review / Detailed Rules / compile history の最小保存導線を「MVP達成」とするかの最終判断
+- 後続送り:
+  - backend 契約の真正な一本化（`backend/src/contracts` と `schemas/reviewCompile/*` の単一ソース化）
+  - compile 本処理の高度化と runtime への本体反映
+
 ### Done criteria
 - 実装と docs のズレが大きくない
 - 再開しやすい状態である

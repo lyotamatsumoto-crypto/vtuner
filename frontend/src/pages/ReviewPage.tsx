@@ -5,7 +5,7 @@ import type {
   ReviewPatchQueueItem,
   ReviewPatchStatus,
   ReviewPatchType,
-} from "../../../backend/src/contracts/queue";
+} from "../../../schemas";
 import type { CreateReviewPatchCandidateInput } from "../reviewCompileBridge";
 
 type ReviewState = "unknown" | "skipped" | "displayed" | "ignored";
@@ -1029,3 +1029,4 @@ const patchCandidateStyle = {
   display: "grid",
   gap: "8px",
 } as const;
+

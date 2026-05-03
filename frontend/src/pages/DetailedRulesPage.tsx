@@ -2,11 +2,11 @@ import { useMemo, useState } from "react";
 import type {
   AdoptedChangeItem,
   ReviewPatchQueueItem,
-} from "../../../backend/src/contracts/queue";
+} from "../../../schemas";
 import type {
   CompilePlanItem,
   CompileRecord,
-} from "../../../backend/src/contracts/compile";
+} from "../../../schemas";
 
 type EntryKind = "rule" | "definition";
 type RuleSource = "初期プリセット" | "手動追加" | "Review由来" | "AI採用済み" | "派生編集";
@@ -709,7 +709,7 @@ export function DetailedRulesPage({
                   )}
                 </div>
                 <div style={inlineNoticeStyle}>
-                  ここでの compile は frontend 内の最小確認版です。現段階では `success` 固定で履歴表示までを扱い、queue 保存や backend 実行、本体反映はまだ行いません。
+                  ここでの compile は frontend 内の最小確認版です。現段階では `success` 固定で履歴表示までを扱い、backend 保存は行いますが、本体反映はまだ行いません。
                 </div>
                 <div style={inlineNoticeStyle}>
                   保存状態: Detailed Rules は採用と compile 前確認の画面です。backend 保存結果は下の各行で確認します。
@@ -1076,3 +1076,4 @@ function pillStyle(background: string, color: string) {
     fontWeight: 800,
   } as const;
 }
+

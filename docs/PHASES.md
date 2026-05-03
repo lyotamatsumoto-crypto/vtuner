@@ -20,10 +20,10 @@
 
 ## Current Status
 
-- Current phase: Phase 1 Project Foundation
-- Current status: 正式文書再構築と仕様固定が完了しつつある
-- Next phase: Phase 2 Workspace and Contract Baseline
-- Last completed phase: Phase 0 Concept Clarification
+- Current phase: Phase 10 Validation and Consistency
+- Current status: Phase 9.6 の最小 write 導線は実装済み。Phase 10-1/10-2/10-3 を経て、現在は Completion Review 前の残課題整理を実施中
+- Next phase: Phase 11 Completion Review（Phase 10 の残課題整理後）
+- Last completed phase: Phase 9 Review to Compile Flow（最小導線）
 
 ---
 

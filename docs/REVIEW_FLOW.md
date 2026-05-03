@@ -171,3 +171,4 @@ Patch Candidate Area では、少なくとも次が分かる必要がある。
 - Review は JSON 生成の主画面ではない
 - Review は patch candidate を作る場である
 - compile は Review ではなく全体反映処理である
+- 実装現在地では、Review candidate 生成 / Detailed Rules 採用・compile に伴う queue 状態更新時に、backend 経由で最小保存導線がある（確認版）

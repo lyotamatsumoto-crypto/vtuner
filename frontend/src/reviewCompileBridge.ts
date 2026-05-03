@@ -6,12 +6,12 @@ import type {
   ReviewPatchQueueItem,
   ReviewPatchStatus,
   ReviewPatchType,
-} from "../../backend/src/contracts/queue";
+} from "../../schemas";
 import type {
   CompilePlanItem,
   CompileRecord,
   CompileTargetKind,
-} from "../../backend/src/contracts/compile";
+} from "../../schemas";
 
 export interface CreateReviewPatchCandidateInput {
   session_id: string;
@@ -233,3 +233,4 @@ function toCompileTargetKind(patchType: ReviewPatchType): CompileTargetKind {
 
   return "formal_definitions";
 }
+
