@@ -151,6 +151,8 @@ export function DetailedRulesPage({
   onRunCompile,
   storageReadStatus,
   storageReadMessage,
+  adoptedChangesWriteMessage,
+  compileHistoryWriteMessage,
 }: {
   reviewPatchQueue: ReviewPatchQueueItem[];
   adoptedChanges: AdoptedChangeItem[];
@@ -163,6 +165,8 @@ export function DetailedRulesPage({
   onRunCompile: () => void;
   storageReadStatus: "idle" | "loading" | "loaded" | "backend_empty" | "fallback";
   storageReadMessage: string;
+  adoptedChangesWriteMessage: string;
+  compileHistoryWriteMessage: string;
 }) {
   const [selectedEntryId, setSelectedEntryId] = useState("rule-first-time");
   const [searchText, setSearchText] = useState("");
@@ -707,6 +711,8 @@ export function DetailedRulesPage({
                 <div style={inlineNoticeStyle}>
                   ここでの compile は frontend 内の最小確認版です。現段階では `success` 固定で履歴表示までを扱い、queue 保存や backend 実行、本体反映はまだ行いません。
                 </div>
+                <div style={inlineNoticeStyle}>{adoptedChangesWriteMessage}</div>
+                <div style={inlineNoticeStyle}>{compileHistoryWriteMessage}</div>
               </section>
             </div>
           </aside>

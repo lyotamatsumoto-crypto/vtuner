@@ -170,11 +170,13 @@ export function ReviewPage({
   onCreateReviewPatchCandidate,
   storageReadStatus,
   storageReadMessage,
+  reviewPatchWriteMessage,
 }: {
   reviewPatchQueue: ReviewPatchQueueItem[];
   onCreateReviewPatchCandidate: (input: CreateReviewPatchCandidateInput) => void;
   storageReadStatus: "idle" | "loading" | "loaded" | "backend_empty" | "fallback";
   storageReadMessage: string;
+  reviewPatchWriteMessage: string;
 }) {
   const [sessions, setSessions] = useState(initialSessions);
   const [comments] = useState(initialComments);
@@ -551,6 +553,7 @@ export function ReviewPage({
                 <div style={inlineNoticeStyle}>
                   ここではコメントの仕分けと差分候補づくりだけを行います。正式編集や compile 前確認は後段です。
                 </div>
+                <div style={inlineNoticeStyle}>{reviewPatchWriteMessage}</div>
               </section>
 
               <section style={cardInsetStyle}>

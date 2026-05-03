@@ -13,6 +13,60 @@ export interface ReviewCompileReadModel {
   backendOrigin: string;
 }
 
+export async function saveReviewPatchQueue(
+  backendOrigin: string,
+  reviewPatchQueue: ReviewPatchQueueItem[],
+): Promise<void> {
+  const response = await fetch(`${backendOrigin}/review-patch-queue`, {
+    method: "PUT",
+    mode: "cors",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(reviewPatchQueue),
+  });
+
+  if (!response.ok) {
+    throw new Error(`Request failed: /review-patch-queue (${response.status})`);
+  }
+}
+
+export async function saveAdoptedChanges(
+  backendOrigin: string,
+  adoptedChanges: AdoptedChangeItem[],
+): Promise<void> {
+  const response = await fetch(`${backendOrigin}/adopted-changes`, {
+    method: "PUT",
+    mode: "cors",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(adoptedChanges),
+  });
+
+  if (!response.ok) {
+    throw new Error(`Request failed: /adopted-changes (${response.status})`);
+  }
+}
+
+export async function saveCompileHistory(
+  backendOrigin: string,
+  compileHistory: CompileRecord[],
+): Promise<void> {
+  const response = await fetch(`${backendOrigin}/compile-history`, {
+    method: "PUT",
+    mode: "cors",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(compileHistory),
+  });
+
+  if (!response.ok) {
+    throw new Error(`Request failed: /compile-history (${response.status})`);
+  }
+}
+
 export async function loadReviewCompileReadModel(): Promise<ReviewCompileReadModel> {
   const backendOrigin =
     (import.meta.env.VITE_BACKEND_ORIGIN as string | undefined) ??

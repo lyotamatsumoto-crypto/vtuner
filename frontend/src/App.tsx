@@ -29,7 +29,12 @@ import {
   runCompileFromAdoptedChanges,
   updateReviewPatchStatus,
 } from "./reviewCompileBridge";
-import { loadReviewCompileReadModel } from "./reviewCompileApi";
+import {
+  loadReviewCompileReadModel,
+  saveAdoptedChanges,
+  saveCompileHistory,
+  saveReviewPatchQueue,
+} from "./reviewCompileApi";
 
 type StorageReadStatus =
   | "idle"
@@ -52,6 +57,16 @@ export function App() {
     useState<StorageReadStatus>("idle");
   const [storageReadMessage, setStorageReadMessage] = useState(
     "backend read はまだ読み込んでいません。frontend の初期表示を使っています。",
+  );
+  const [backendOrigin, setBackendOrigin] = useState("http://localhost:3001");
+  const [reviewPatchWriteMessage, setReviewPatchWriteMessage] = useState(
+    "Review Patch Queue write は未実行です。",
+  );
+  const [adoptedChangesWriteMessage, setAdoptedChangesWriteMessage] = useState(
+    "Adopted Changes write は未実行です。",
+  );
+  const [compileHistoryWriteMessage, setCompileHistoryWriteMessage] = useState(
+    "compile history write は未実行です。",
   );
 
   const compilePrecheckPlanItems: CompilePlanItem[] =
@@ -92,6 +107,7 @@ export function App() {
         setReviewPatchQueue(nextReviewPatchQueue);
         setAdoptedChanges(nextAdoptedChanges);
         setCompileHistory(nextCompileHistory);
+        setBackendOrigin(result.backendOrigin);
 
         if (emptySources.length === 3) {
           setStorageReadStatus("backend_empty");
@@ -134,7 +150,23 @@ export function App() {
     input: Parameters<typeof createReviewPatchQueueItem>[0],
   ) {
     const nextPatch = createReviewPatchQueueItem(input);
-    setReviewPatchQueue((current) => [nextPatch, ...current]);
+    setReviewPatchQueue((current) => {
+      const nextQueue = [nextPatch, ...current];
+
+      saveReviewPatchQueue(backendOrigin, nextQueue)
+        .then(() => {
+          setReviewPatchWriteMessage(
+            `Review Patch Queue を backend へ保存しました。(${backendOrigin})`,
+          );
+        })
+        .catch(() => {
+          setReviewPatchWriteMessage(
+            "Review Patch Queue の backend 保存に失敗しました。画面上の候補は保持されています。",
+          );
+        });
+
+      return nextQueue;
+    });
   }
 
   function handleSetReviewPatchStatus(
@@ -155,14 +187,40 @@ export function App() {
           return current;
         }
 
-        return [createAdoptedChangeFromReviewPatch(patch), ...current];
+        const nextAdoptedChanges = [createAdoptedChangeFromReviewPatch(patch), ...current];
+        saveAdoptedChanges(backendOrigin, nextAdoptedChanges)
+          .then(() => {
+            setAdoptedChangesWriteMessage(
+              `Adopted Changes を backend へ保存しました。(${backendOrigin})`,
+            );
+          })
+          .catch(() => {
+            setAdoptedChangesWriteMessage(
+              "Adopted Changes の backend 保存に失敗しました。画面上の変更は保持されています。",
+            );
+          });
+        return nextAdoptedChanges;
       });
       return;
     }
 
-    setAdoptedChanges((current) =>
-      current.filter((item) => item.id !== `adopted-${patchId}`),
-    );
+    setAdoptedChanges((current) => {
+      const nextAdoptedChanges = current.filter(
+        (item) => item.id !== `adopted-${patchId}`,
+      );
+      saveAdoptedChanges(backendOrigin, nextAdoptedChanges)
+        .then(() => {
+          setAdoptedChangesWriteMessage(
+            `Adopted Changes を backend へ保存しました。(${backendOrigin})`,
+          );
+        })
+        .catch(() => {
+          setAdoptedChangesWriteMessage(
+            "Adopted Changes の backend 保存に失敗しました。画面上の変更は保持されています。",
+          );
+        });
+      return nextAdoptedChanges;
+    });
   }
 
   function handleRunCompile() {
@@ -176,9 +234,10 @@ export function App() {
     }
 
     const nextCompileRecord = result.compileRecord;
+    const nextCompileHistory = [nextCompileRecord, ...compileHistory];
 
     setAdoptedChanges(result.nextAdoptedChanges);
-    setCompileHistory((current) => [nextCompileRecord, ...current]);
+    setCompileHistory(nextCompileHistory);
     setReviewPatchQueue((current) =>
       markCompiledReviewPatchQueueItems(
         current,
@@ -186,6 +245,18 @@ export function App() {
         compilePrecheckPlanItems,
       ),
     );
+
+    saveCompileHistory(backendOrigin, nextCompileHistory)
+      .then(() => {
+        setCompileHistoryWriteMessage(
+          `compile history を backend へ保存しました。(${backendOrigin})`,
+        );
+      })
+      .catch(() => {
+        setCompileHistoryWriteMessage(
+          "compile history の backend 保存に失敗しました。画面上の履歴は保持されています。",
+        );
+      });
   }
 
   return (
@@ -205,6 +276,7 @@ export function App() {
           onCreateReviewPatchCandidate={handleCreateReviewPatchCandidate}
           storageReadStatus={storageReadStatus}
           storageReadMessage={storageReadMessage}
+          reviewPatchWriteMessage={reviewPatchWriteMessage}
         />
       ) : null}
       {currentScreen === "detailed_rules" ? (
@@ -217,6 +289,8 @@ export function App() {
           onRunCompile={handleRunCompile}
           storageReadStatus={storageReadStatus}
           storageReadMessage={storageReadMessage}
+          adoptedChangesWriteMessage={adoptedChangesWriteMessage}
+          compileHistoryWriteMessage={compileHistoryWriteMessage}
         />
       ) : null}
       {currentScreen === "ai_json_studio" ? <AiJsonStudioPage /> : null}

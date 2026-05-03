@@ -4,15 +4,19 @@ import { LOCAL_STORAGE_LAYOUT } from "./storage/fileLayout";
 import {
   readAdoptedChanges,
   readReviewPatchQueue,
+  writeAdoptedChanges,
+  writeReviewPatchQueue,
 } from "./storage/queueStorage";
-import { readCompileHistory } from "./storage/compileStorage";
+import { readCompileHistory, writeCompileHistory } from "./storage/compileStorage";
+import type { AdoptedChangeItem, ReviewPatchQueueItem } from "./contracts/queue";
+import type { CompileRecord } from "./contracts/compile";
 
 const DEFAULT_PORT = 3001;
 const port = Number(process.env.PORT ?? DEFAULT_PORT);
 
 const DEFAULT_CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Methods": "GET, OPTIONS",
+  "Access-Control-Allow-Methods": "GET, PUT, OPTIONS",
   "Access-Control-Allow-Headers": "Content-Type",
 } as const;
 
@@ -46,13 +50,64 @@ const server = createServer(async (request, response) => {
       return;
     }
 
+    if (request.method === "PUT" && request.url === "/review-patch-queue") {
+      const payload = await readJsonBody(request);
+      if (!Array.isArray(payload)) {
+        sendJson(response, 400, {
+          error: "invalid_queue_payload",
+          message: "Review Patch Queue payload must be an array.",
+        });
+        return;
+      }
+
+      await writeReviewPatchQueue(payload as ReviewPatchQueueItem[]);
+      sendJson(response, 200, {
+        saved: (payload as ReviewPatchQueueItem[]).length,
+      });
+      return;
+    }
+
     if (request.method === "GET" && request.url === "/adopted-changes") {
       sendJson(response, 200, await readAdoptedChanges());
       return;
     }
 
+    if (request.method === "PUT" && request.url === "/adopted-changes") {
+      const payload = await readJsonBody(request);
+      if (!Array.isArray(payload)) {
+        sendJson(response, 400, {
+          error: "invalid_queue_payload",
+          message: "Adopted Changes payload must be an array.",
+        });
+        return;
+      }
+
+      await writeAdoptedChanges(payload as AdoptedChangeItem[]);
+      sendJson(response, 200, {
+        saved: (payload as AdoptedChangeItem[]).length,
+      });
+      return;
+    }
+
     if (request.method === "GET" && request.url === "/compile-history") {
       sendJson(response, 200, await readCompileHistory());
+      return;
+    }
+
+    if (request.method === "PUT" && request.url === "/compile-history") {
+      const payload = await readJsonBody(request);
+      if (!Array.isArray(payload)) {
+        sendJson(response, 400, {
+          error: "invalid_compile_payload",
+          message: "Compile history payload must be an array.",
+        });
+        return;
+      }
+
+      await writeCompileHistory(payload as CompileRecord[]);
+      sendJson(response, 200, {
+        saved: (payload as CompileRecord[]).length,
+      });
       return;
     }
 
@@ -83,4 +138,23 @@ function sendJson(
     ...DEFAULT_CORS_HEADERS,
   });
   response.end(JSON.stringify(payload));
+}
+
+async function readJsonBody(request: import("node:http").IncomingMessage) {
+  const chunks: Buffer[] = [];
+
+  for await (const chunk of request) {
+    chunks.push(typeof chunk === "string" ? Buffer.from(chunk) : chunk);
+  }
+
+  if (chunks.length === 0) {
+    return null;
+  }
+
+  const text = Buffer.concat(chunks).toString("utf8").trim();
+  if (!text) {
+    return null;
+  }
+
+  return JSON.parse(text) as unknown;
 }
