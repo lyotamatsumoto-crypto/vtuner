@@ -553,6 +553,9 @@ export function ReviewPage({
                 <div style={inlineNoticeStyle}>
                   ここではコメントの仕分けと差分候補づくりだけを行います。正式編集や compile 前確認は後段です。
                 </div>
+                <div style={inlineNoticeStyle}>
+                  保存状態: Review は candidate 作成の画面です。backend 保存結果は次の行で確認します。
+                </div>
                 <div style={inlineNoticeStyle}>{reviewPatchWriteMessage}</div>
               </section>
 

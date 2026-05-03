@@ -56,17 +56,17 @@ export function App() {
   const [storageReadStatus, setStorageReadStatus] =
     useState<StorageReadStatus>("idle");
   const [storageReadMessage, setStorageReadMessage] = useState(
-    "backend read はまだ読み込んでいません。frontend の初期表示を使っています。",
+    "backend 読込は未実行です。いまは frontend 確認版の初期表示です。",
   );
   const [backendOrigin, setBackendOrigin] = useState("http://localhost:3001");
   const [reviewPatchWriteMessage, setReviewPatchWriteMessage] = useState(
-    "Review Patch Queue write は未実行です。",
+    "Review Patch Queue の backend 保存は未実行です（frontend 確認版の候補表示のみ）。",
   );
   const [adoptedChangesWriteMessage, setAdoptedChangesWriteMessage] = useState(
-    "Adopted Changes write は未実行です。",
+    "Adopted Changes の backend 保存は未実行です（frontend 確認版の採用表示のみ）。",
   );
   const [compileHistoryWriteMessage, setCompileHistoryWriteMessage] = useState(
-    "compile history write は未実行です。",
+    "compile history の backend 保存は未実行です（frontend 確認版の履歴表示のみ）。",
   );
 
   const compilePrecheckPlanItems: CompilePlanItem[] =
@@ -77,7 +77,7 @@ export function App() {
 
     setStorageReadStatus("loading");
     setStorageReadMessage(
-      "backend から Review Patch Queue / Adopted Changes / compile 履歴を読み込み中です。",
+      "backend 読込中です: Review Patch Queue / Adopted Changes / compile 履歴",
     );
 
     loadReviewCompileReadModel()
@@ -112,7 +112,7 @@ export function App() {
         if (emptySources.length === 3) {
           setStorageReadStatus("backend_empty");
           setStorageReadMessage(
-            `backend read は成功しましたが、backend 側は空配列でした。skeleton 確認のため frontend seed を維持しています。(${result.backendOrigin})`,
+            `backend 読込は成功しましたが、backend 側は空配列でした。frontend 確認版 seed を維持しています。(${result.backendOrigin})`,
           );
           return;
         }
@@ -120,14 +120,14 @@ export function App() {
         if (emptySources.length > 0) {
           setStorageReadStatus("backend_empty");
           setStorageReadMessage(
-            `backend read を反映しています。一部は backend 側が空のため frontend seed を維持しています: ${emptySources.join(" / ")} (${result.backendOrigin})`,
+            `backend 読込値を反映中です。一部は backend 側が空のため frontend 確認版 seed を維持しています: ${emptySources.join(" / ")} (${result.backendOrigin})`,
           );
           return;
         }
 
         setStorageReadStatus("loaded");
         setStorageReadMessage(
-          `backend read を初期表示へ反映しています。(${result.backendOrigin})`,
+          `backend 読込値を初期表示へ反映しています。(${result.backendOrigin})`,
         );
       })
       .catch(() => {
@@ -137,7 +137,7 @@ export function App() {
 
         setStorageReadStatus("fallback");
         setStorageReadMessage(
-          "backend read に失敗したため、frontend の初期表示をそのまま使っています。",
+          "backend 読込に失敗したため、frontend 確認版の初期表示を継続しています。",
         );
       });
 
@@ -156,12 +156,12 @@ export function App() {
       saveReviewPatchQueue(backendOrigin, nextQueue)
         .then(() => {
           setReviewPatchWriteMessage(
-            `Review Patch Queue を backend へ保存しました。(${backendOrigin})`,
+            `Review Patch Queue を backend へ保存しました。frontend 候補表示と backend 保存値は同期しています。(${backendOrigin})`,
           );
         })
         .catch(() => {
           setReviewPatchWriteMessage(
-            "Review Patch Queue の backend 保存に失敗しました。画面上の候補は保持されています。",
+            "Review Patch Queue の backend 保存に失敗しました。frontend 候補表示は保持されています（backend 未反映）。",
           );
         });
 
@@ -191,12 +191,12 @@ export function App() {
         saveAdoptedChanges(backendOrigin, nextAdoptedChanges)
           .then(() => {
             setAdoptedChangesWriteMessage(
-              `Adopted Changes を backend へ保存しました。(${backendOrigin})`,
+              `Adopted Changes を backend へ保存しました。frontend 採用表示と backend 保存値は同期しています。(${backendOrigin})`,
             );
           })
           .catch(() => {
             setAdoptedChangesWriteMessage(
-              "Adopted Changes の backend 保存に失敗しました。画面上の変更は保持されています。",
+              "Adopted Changes の backend 保存に失敗しました。frontend 採用表示は保持されています（backend 未反映）。",
             );
           });
         return nextAdoptedChanges;
@@ -211,12 +211,12 @@ export function App() {
       saveAdoptedChanges(backendOrigin, nextAdoptedChanges)
         .then(() => {
           setAdoptedChangesWriteMessage(
-            `Adopted Changes を backend へ保存しました。(${backendOrigin})`,
+            `Adopted Changes を backend へ保存しました。frontend 採用表示と backend 保存値は同期しています。(${backendOrigin})`,
           );
         })
         .catch(() => {
           setAdoptedChangesWriteMessage(
-            "Adopted Changes の backend 保存に失敗しました。画面上の変更は保持されています。",
+            "Adopted Changes の backend 保存に失敗しました。frontend 採用表示は保持されています（backend 未反映）。",
           );
         });
       return nextAdoptedChanges;
@@ -249,12 +249,12 @@ export function App() {
     saveCompileHistory(backendOrigin, nextCompileHistory)
       .then(() => {
         setCompileHistoryWriteMessage(
-          `compile history を backend へ保存しました。(${backendOrigin})`,
+          `compile history を backend へ保存しました。frontend 履歴表示と backend 保存値は同期しています。(${backendOrigin})`,
         );
       })
       .catch(() => {
         setCompileHistoryWriteMessage(
-          "compile history の backend 保存に失敗しました。画面上の履歴は保持されています。",
+          "compile history の backend 保存に失敗しました。frontend 履歴表示は保持されています（backend 未反映）。",
         );
       });
   }

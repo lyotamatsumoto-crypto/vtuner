@@ -711,6 +711,9 @@ export function DetailedRulesPage({
                 <div style={inlineNoticeStyle}>
                   ここでの compile は frontend 内の最小確認版です。現段階では `success` 固定で履歴表示までを扱い、queue 保存や backend 実行、本体反映はまだ行いません。
                 </div>
+                <div style={inlineNoticeStyle}>
+                  保存状態: Detailed Rules は採用と compile 前確認の画面です。backend 保存結果は下の各行で確認します。
+                </div>
                 <div style={inlineNoticeStyle}>{adoptedChangesWriteMessage}</div>
                 <div style={inlineNoticeStyle}>{compileHistoryWriteMessage}</div>
               </section>
