@@ -5,6 +5,7 @@ type BackgroundVariant = "mint" | "studio" | "night";
 
 export interface CharacterStageProps {
   transparent_background: boolean;
+  show_stage_label?: boolean;
   show_preview_overlay_label: boolean;
   stage_label?: string;
   subtitle?: string;
@@ -29,6 +30,7 @@ const stageBackgrounds: Record<BackgroundVariant, string> = {
 
 export function CharacterStage({
   transparent_background,
+  show_stage_label = true,
   show_preview_overlay_label,
   stage_label = "Main Preview",
   subtitle,
@@ -61,26 +63,28 @@ export function CharacterStage({
           }}
         />
       )}
-      <div
-        style={{
-          position: "absolute",
-          left: "14px",
-          top: "14px",
-          zIndex: 4,
-          display: "inline-flex",
-          alignItems: "center",
-          gap: "8px",
-          padding: "8px 12px",
-          borderRadius: "999px",
-          border: "1px solid rgba(255,255,255,0.72)",
-          background: "rgba(255,255,255,0.92)",
-          color: "#357F91",
-          fontSize: "12px",
-          fontWeight: 800,
-        }}
-      >
-        {stage_label}
-      </div>
+      {show_stage_label ? (
+        <div
+          style={{
+            position: "absolute",
+            left: "14px",
+            top: "14px",
+            zIndex: 4,
+            display: "inline-flex",
+            alignItems: "center",
+            gap: "8px",
+            padding: "8px 12px",
+            borderRadius: "999px",
+            border: "1px solid rgba(255,255,255,0.72)",
+            background: "rgba(255,255,255,0.92)",
+            color: "#357F91",
+            fontSize: "12px",
+            fontWeight: 800,
+          }}
+        >
+          {stage_label}
+        </div>
+      ) : null}
       {subtitle ? (
         <div
           style={{

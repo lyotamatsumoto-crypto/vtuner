@@ -303,9 +303,11 @@
 
 ### Check items
 - `ROADMAP_TO_EXTENSION.md` の優先順に沿っている
+- Completion 基盤課題を扱う場合は `ROADMAP_TO_COMPLETION.md` を参照している
 - 5画面責務（Basic Settings / Preview / Review / Detailed Rules / AI JSON Studio）を崩していない
 - MVP範囲と拡張範囲の境界が docs 上で明示されている
 - compile 確認版と本処理高度化の区別が維持されている
+- Overlay は表示専用ルートで、Preview / Test の確認UIを含めない
 
 ### Done criteria
 - 追加対象が最小単位で導入され、既存導線を壊していない

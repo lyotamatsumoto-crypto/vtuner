@@ -157,8 +157,37 @@ VS Code 上の AI は、docs 内文書に従って次を行います。
 
 - Project status: 条件付きMVP完了（Phase 11 Completion Review の判定整理段階）
 - Current phase: Phase 11 Completion Review
-- Next focus: Completion Review 判定の確定と、拡張ロードマップ（Phase 12+）への接続整理
+- Next focus: Completion Review 判定の確定と、Completion / Extension の二系統ロードマップ接続整理
+- Completion roadmap: `docs/ROADMAP_TO_COMPLETION.md`（Conditional MVP Complete から Full Completion への基盤強化）
 - Extension roadmap: `docs/ROADMAP_TO_EXTENSION.md`（MVP後の拡張計画）
+
+---
+
+## Quick Start
+
+最小起動順:
+
+1. backend: `npm run dev:backend`
+2. frontend: `npm run dev:frontend`
+3. 確認: `npm run check`
+
+Overlay 表示専用入口:
+
+- `http://localhost:5173/overlay/character`
+
+保存ファイル:
+
+- `data/queues/review-patch-queue.json`
+- `data/queues/adopted-changes.json`
+- `data/compile/history.json`
+
+---
+
+## Known Constraints
+
+- compile は段階実装中で、確認版導線と本処理導線を分離して扱う
+- Overlay は表示専用の最小導線であり、AppShell / テストUI / 履歴は表示しない
+- YouTube Live Chat 本接続、OBS 自動設定、音声合成は未実装
 
 ---
 

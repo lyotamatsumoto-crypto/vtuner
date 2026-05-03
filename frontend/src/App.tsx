@@ -7,6 +7,7 @@ import {
 } from "./basicPreviewBridge";
 import type {
   AdoptedChangeItem,
+  AiJsonImportQueueItem,
   ReviewPatchQueueItem,
 } from "../../schemas";
 import type {
@@ -16,13 +17,17 @@ import type {
 import { AiJsonStudioPage } from "./pages/AiJsonStudioPage";
 import { BasicSettingsPage } from "./pages/BasicSettingsPage";
 import { DetailedRulesPage } from "./pages/DetailedRulesPage";
+import { OverlayCharacterPage } from "./pages/OverlayCharacterPage";
 import { PreviewTestPage } from "./pages/PreviewTestPage";
 import { ReviewPage } from "./pages/ReviewPage";
 import {
   buildCompilePrecheckPlanItems,
+  type CompiledRuntimeEntry,
+  createAiJsonImportQueueItem,
   createAdoptedChangeFromReviewPatch,
   createReviewPatchQueueItem,
   initialAdoptedChanges,
+  initialAiJsonImportQueue,
   initialCompileHistory,
   initialReviewPatchQueue,
   markCompiledReviewPatchQueueItems,
@@ -44,6 +49,9 @@ type StorageReadStatus =
   | "fallback";
 
 export function App() {
+  const isOverlayCharacterRoute =
+    typeof window !== "undefined" &&
+    window.location.pathname === "/overlay/character";
   const [currentScreen, setCurrentScreen] = useState<AppScreen>("preview_test");
   const [basicPreviewBridgeSettings, setBasicPreviewBridgeSettings] =
     useState<BasicPreviewBridgeSettings>(defaultBasicPreviewBridgeSettings);
@@ -68,6 +76,11 @@ export function App() {
   const [compileHistoryWriteMessage, setCompileHistoryWriteMessage] = useState(
     "compile history の backend 保存は未実行です（frontend 確認版の履歴表示のみ）。",
   );
+  const [aiJsonImportQueue, setAiJsonImportQueue] =
+    useState<AiJsonImportQueueItem[]>(initialAiJsonImportQueue);
+  const [compiledRuntimeEntries, setCompiledRuntimeEntries] = useState<
+    CompiledRuntimeEntry[]
+  >([]);
 
   const compilePrecheckPlanItems: CompilePlanItem[] =
     buildCompilePrecheckPlanItems(adoptedChanges);
@@ -258,6 +271,7 @@ export function App() {
     setAdoptedChanges(result.nextAdoptedChanges);
     setCompileHistory(nextCompileHistory);
     setReviewPatchQueue(nextCompiledReviewPatchQueue);
+    setCompiledRuntimeEntries(result.compiledRuntimeEntries);
 
     saveAdoptedChanges(backendOrigin, result.nextAdoptedChanges)
       .then(() => {
@@ -296,6 +310,35 @@ export function App() {
       });
   }
 
+  function handleRegisterPersonaImportQueueDraft(input: {
+    sourceNaturalText: string;
+    promptText: string;
+    returnedJson: unknown;
+    validationErrors: string[];
+  }) {
+    const queueItem = createAiJsonImportQueueItem({
+      generation_target: "persona",
+      source_natural_text: input.sourceNaturalText,
+      prompt_text: input.promptText,
+      returned_json: input.returnedJson,
+      validation_ok: input.validationErrors.length === 0,
+      error_messages: input.validationErrors,
+    });
+
+    setAiJsonImportQueue((current) => [queueItem, ...current].slice(0, 20));
+    return queueItem;
+  }
+
+  if (isOverlayCharacterRoute) {
+    return (
+      <OverlayCharacterPage
+        sharedSettings={basicPreviewBridgeSettings}
+        compiledRuntimeEntries={compiledRuntimeEntries}
+        lastCompileRecord={compileHistory[0] ?? null}
+      />
+    );
+  }
+
   return (
     <AppShell currentScreen={currentScreen} onSelectScreen={setCurrentScreen}>
       {currentScreen === "basic_settings" ? (
@@ -305,7 +348,11 @@ export function App() {
         />
       ) : null}
       {currentScreen === "preview_test" ? (
-        <PreviewTestPage sharedSettings={basicPreviewBridgeSettings} />
+        <PreviewTestPage
+          sharedSettings={basicPreviewBridgeSettings}
+          compiledRuntimeEntries={compiledRuntimeEntries}
+          lastCompileRecord={compileHistory[0] ?? null}
+        />
       ) : null}
       {currentScreen === "review" ? (
         <ReviewPage
@@ -330,7 +377,11 @@ export function App() {
           compileHistoryWriteMessage={compileHistoryWriteMessage}
         />
       ) : null}
-      {currentScreen === "ai_json_studio" ? <AiJsonStudioPage /> : null}
+      {currentScreen === "ai_json_studio" ? (
+        <AiJsonStudioPage
+          onRegisterPersonaImportQueueDraft={handleRegisterPersonaImportQueueDraft}
+        />
+      ) : null}
     </AppShell>
   );
 }

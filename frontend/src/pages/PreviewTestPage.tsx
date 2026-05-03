@@ -11,6 +11,8 @@ import { decidePreviewTestEvent } from "../features/previewTest/decidePreviewTes
 import type { PreviewOnlyReaction } from "../features/previewTest/previewOnlyCommentRuntime";
 import { decideRuntimeEvent } from "../runtime/decideRuntimeEvent";
 import type { CommentInput, RuntimeDecision, TestEventInput } from "../../../schemas/runtime/runtimeTypes";
+import type { CompileRecord } from "../../../schemas";
+import type { CompiledRuntimeEntry } from "../reviewCompileBridge";
 
 type BackgroundVariant = PreviewBackgroundVariant;
 type SampleKey = "compliment" | "greeting" | "question" | "quiet";
@@ -118,8 +120,12 @@ const initialSample = sampleDefinitions.compliment;
 
 export function PreviewTestPage({
   sharedSettings,
+  compiledRuntimeEntries,
+  lastCompileRecord,
 }: {
   sharedSettings: BasicPreviewBridgeSettings;
+  compiledRuntimeEntries: CompiledRuntimeEntry[];
+  lastCompileRecord: CompileRecord | null;
 }) {
   // Basic Settings からの反映は最小接続に限定する。双方向同期や正式保存はまだ行わない。
   const [orientation, setOrientation] = useState<Orientation>(sharedSettings.defaultFacing);
@@ -319,6 +325,12 @@ export function PreviewTestPage({
             <span style={{ color: "#5F747A", lineHeight: 1.7, fontSize: "12px" }}>
               条件イベントは `TestEventInput` を使う preview-only の簡易入口を通し、正式 runtime 本体とは分離したまま確認します。
             </span>
+            <span style={{ color: "#357F91", lineHeight: 1.7, fontSize: "12px", fontWeight: 700 }}>
+              compile 後参照（確認版）: {compiledRuntimeEntries.length} 件 /{" "}
+              {lastCompileRecord
+                ? new Date(lastCompileRecord.executed_at).toLocaleString("ja-JP")
+                : "未実行"}
+            </span>
           </div>
         </section>
 
@@ -425,7 +437,29 @@ export function PreviewTestPage({
                   <span style={resultLabelStyle}>反映中の口調</span>
                   <strong>{`${sharedSettings.toneLabel} / ${sharedSettings.endingStyle}`}</strong>
                 </div>
+                <div style={resultCardStyle}>
+                  <span style={resultLabelStyle}>compile reflected_to</span>
+                  <strong>
+                    {lastCompileRecord
+                      ? lastCompileRecord.reflected_to.join(" / ")
+                      : "未実行"}
+                  </strong>
+                </div>
               </section>
+
+              {compiledRuntimeEntries.length > 0 ? (
+                <section style={controlPanelStyle}>
+                  <strong>compile 後の最小 runtime 参照スナップショット</strong>
+                  <div style={{ display: "grid", gap: "6px" }}>
+                    {compiledRuntimeEntries.slice(0, 5).map((entry) => (
+                      <span key={entry.adopted_change_id} style={cardBodyTextStyle}>
+                        {entry.target_name} / {entry.target_kind} / {entry.speech_target} /{" "}
+                        {entry.display_facing}
+                      </span>
+                    ))}
+                  </div>
+                </section>
+              ) : null}
 
               <section style={controlGridStyle}>
                 <div style={controlPanelStyle}>

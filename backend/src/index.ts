@@ -116,6 +116,16 @@ const server = createServer(async (request, response) => {
       message: "Phase 2 backend baseline is ready.",
     });
   } catch (error) {
+    if (isStorageValidationError(error)) {
+      sendJson(response, 400, {
+        error: "storage_validation_failed",
+        message:
+          "Local JSON storage shape is invalid or payload validation failed.",
+        details: error.message,
+      });
+      return;
+    }
+
     sendJson(response, 500, {
       error: "storage_read_failed",
       message: "Local JSON storage could not be read.",
@@ -157,4 +167,16 @@ async function readJsonBody(request: import("node:http").IncomingMessage) {
   }
 
   return JSON.parse(text) as unknown;
+}
+
+function isStorageValidationError(
+  error: unknown,
+): error is Error & { code: string } {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "code" in error &&
+    typeof (error as { code: unknown }).code === "string" &&
+    (error as { code: string }).code === "STORAGE_VALIDATION_ERROR"
+  );
 }

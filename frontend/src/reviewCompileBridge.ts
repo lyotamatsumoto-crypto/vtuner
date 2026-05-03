@@ -1,5 +1,7 @@
 import type {
   AdoptedChangeItem,
+  AiJsonImportQueueItem,
+  AiJsonImportStatus,
   ReviewCommentSourceRef,
   ReviewCommentState,
   ReviewPatchAction,
@@ -12,6 +14,7 @@ import type {
   CompileRecord,
   CompileTargetKind,
 } from "../../schemas";
+import type { DisplayFacing, SpeechTarget } from "../../schemas";
 
 export interface CreateReviewPatchCandidateInput {
   session_id: string;
@@ -94,6 +97,43 @@ export const initialAdoptedChanges: AdoptedChangeItem[] = [
 ];
 
 export const initialCompileHistory: CompileRecord[] = [];
+export const initialAiJsonImportQueue: AiJsonImportQueueItem[] = [];
+export interface CompiledRuntimeEntry {
+  adopted_change_id: string;
+  target_name: string;
+  target_kind: CompileTargetKind;
+  speech_target: SpeechTarget;
+  display_facing: DisplayFacing;
+}
+
+export interface CreateAiJsonImportQueueItemInput {
+  generation_target: AiJsonImportQueueItem["generation_target"];
+  source_natural_text: string;
+  prompt_text: string;
+  returned_json: unknown;
+  validation_ok: boolean;
+  error_messages: string[];
+}
+
+export function createAiJsonImportQueueItem(
+  input: CreateAiJsonImportQueueItemInput,
+): AiJsonImportQueueItem {
+  const status: AiJsonImportStatus = input.validation_ok
+    ? "validated"
+    : "validation_failed";
+
+  return {
+    id: `ai-json-import-${Date.now()}`,
+    generation_target: input.generation_target,
+    source_natural_text: input.source_natural_text,
+    prompt_text: input.prompt_text,
+    returned_json: input.returned_json,
+    validation_ok: input.validation_ok,
+    status,
+    error_messages: input.error_messages,
+    created_at: new Date().toISOString(),
+  };
+}
 
 export function createReviewPatchQueueItem(
   input: CreateReviewPatchCandidateInput,
@@ -154,6 +194,7 @@ export function runCompileFromAdoptedChanges(
 ): {
   nextAdoptedChanges: AdoptedChangeItem[];
   compileRecord: CompileRecord | null;
+  compiledRuntimeEntries: CompiledRuntimeEntry[];
 } {
   // Phase 9 の compile は frontend 内の最小確認版だけを扱う。
   // queue 保存や backend 実行、本体反映はまだここに含めない。
@@ -161,6 +202,7 @@ export function runCompileFromAdoptedChanges(
     return {
       nextAdoptedChanges: adoptedChanges,
       compileRecord: null,
+      compiledRuntimeEntries: [],
     };
   }
 
@@ -170,6 +212,20 @@ export function runCompileFromAdoptedChanges(
   const reflectedTo = Array.from(
     new Set(compilePrecheckPlanItems.map((item) => item.target_kind)),
   );
+
+  const compiledRuntimeEntries = compilePrecheckPlanItems.map((item) => ({
+    adopted_change_id: item.adopted_change_id,
+    target_name: item.target_name,
+    target_kind: item.target_kind,
+    speech_target:
+      item.target_kind === "formal_rules"
+        ? ("viewer" as const)
+        : ("streamer" as const),
+    display_facing:
+      item.target_kind === "formal_rules"
+        ? ("front" as const)
+        : ("side" as const),
+  }));
 
   return {
     nextAdoptedChanges: adoptedChanges.map((item) =>
@@ -185,6 +241,7 @@ export function runCompileFromAdoptedChanges(
       status: "success",
       reflected_to: reflectedTo,
     },
+    compiledRuntimeEntries,
   };
 }
 

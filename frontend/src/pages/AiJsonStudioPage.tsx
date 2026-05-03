@@ -1,4 +1,6 @@
 import { useMemo, useState } from "react";
+import type { AiJsonImportQueueItem, PersonaJsonV1Draft } from "../../../schemas";
+import { validatePersonaJsonV1Draft } from "../../../schemas";
 
 type TargetTab =
   | "人格"
@@ -24,6 +26,13 @@ interface HistoryItem {
   timeLabel: string;
   revisionCount: number;
   presetPromoted?: boolean;
+}
+
+interface RegisterPersonaImportQueueDraftInput {
+  sourceNaturalText: string;
+  promptText: string;
+  returnedJson: unknown;
+  validationErrors: string[];
 }
 
 const targetTabs: TargetTab[] = [
@@ -162,7 +171,13 @@ const historyItems: HistoryItem[] = [
   },
 ];
 
-export function AiJsonStudioPage() {
+export function AiJsonStudioPage({
+  onRegisterPersonaImportQueueDraft,
+}: {
+  onRegisterPersonaImportQueueDraft?: (
+    input: RegisterPersonaImportQueueDraftInput,
+  ) => AiJsonImportQueueItem;
+}) {
   const [activeTarget, setActiveTarget] = useState<TargetTab>("人格");
   const [workStartSource, setWorkStartSource] = useState<WorkStartSource>("new");
   const [promptExpanded, setPromptExpanded] = useState(false);
@@ -172,7 +187,11 @@ export function AiJsonStudioPage() {
   );
   const [relatedPreset, setRelatedPreset] = useState("既存プリセット: ヴィヴィ基本人格");
   const [jsonText, setJsonText] = useState(JSON.stringify(personaSampleObject, null, 2));
-  const [validationMode, setValidationMode] = useState<"warning" | "success">("warning");
+  const [validationErrors, setValidationErrors] = useState<string[]>([]);
+  const [validatedPersona, setValidatedPersona] = useState<PersonaJsonV1Draft | null>(null);
+  const [importQueueMessage, setImportQueueMessage] = useState(
+    "AI JSON Import Queue への登録は未実行です。",
+  );
 
   const promptText = useMemo(() => {
     const header =
@@ -281,6 +300,77 @@ export function AiJsonStudioPage() {
 
     setJsonText(`{\n  "draft_note": "${activeTarget} の理想スキーマ骨格は後続で強化"\n}`);
   }
+
+  function runPersonaValidation() {
+    if (activeTarget !== "人格") {
+      setValidationErrors([
+        "人格 JSON 以外の厳格検証は後続 Phase で扱います。現在は人格 JSON を優先しています。",
+      ]);
+      setValidatedPersona(null);
+      return;
+    }
+
+    let parsedJson: unknown;
+    try {
+      parsedJson = JSON.parse(jsonText);
+    } catch {
+      setValidationErrors(["root: JSON parse failed"]);
+      setValidatedPersona(null);
+      return;
+    }
+
+    const result = validatePersonaJsonV1Draft(parsedJson);
+    if (!result.ok) {
+      setValidationErrors(result.errors);
+      setValidatedPersona(null);
+      return;
+    }
+
+    setValidationErrors([]);
+    setValidatedPersona(result.value);
+  }
+
+  function createRepairPrompt() {
+    if (validationErrors.length === 0) {
+      return `前回の JSON は人格契約に整合しています。必要なら差分だけ最小変更で返してください。\n\n- JSON だけを返す`;
+    }
+
+    return `前回の JSON を次の点だけ直してください。\n\n${validationErrors
+      .map((error) => `- ${error}`)
+      .join("\n")}\n- それ以外の構造はなるべく変えない\n- JSON だけを返す`;
+  }
+
+  function registerImportQueueDraft() {
+    if (!onRegisterPersonaImportQueueDraft) {
+      setImportQueueMessage(
+        "AI JSON Import Queue の登録先が未接続です。App 側の接続準備が必要です。",
+      );
+      return;
+    }
+
+    let parsedJson: unknown;
+    try {
+      parsedJson = JSON.parse(jsonText);
+    } catch {
+      setImportQueueMessage(
+        "JSON parse に失敗したため、Import Queue へ登録できませんでした。",
+      );
+      return;
+    }
+
+    const queued = onRegisterPersonaImportQueueDraft({
+      sourceNaturalText: `${simpleInput}\n${detailInput}`,
+      promptText,
+      returnedJson: parsedJson,
+      validationErrors,
+    });
+
+    setImportQueueMessage(
+      `AI JSON Import Queue へ下書き登録しました。status=${queued.status} / id=${queued.id}`,
+    );
+  }
+
+  const validationOk = validatedPersona !== null && validationErrors.length === 0;
 
   return (
     <main
@@ -519,11 +609,12 @@ export function AiJsonStudioPage() {
                       <button style={secondaryButtonStyle}>JSON を読み込む</button>
                       <button
                         style={coralButtonStyle}
-                        onClick={() =>
-                          setValidationMode((current) => (current === "warning" ? "success" : "warning"))
-                        }
+                        onClick={runPersonaValidation}
                       >
                         検証する
+                      </button>
+                      <button style={secondaryButtonStyle} onClick={registerImportQueueDraft}>
+                        Import Queue へ登録（準備）
                       </button>
                     </div>
                     <span style={{ ...pageTextStyle, fontSize: "12px" }}>
@@ -538,26 +629,28 @@ export function AiJsonStudioPage() {
                     <p style={{ ...pageTextStyle, fontSize: "12px" }}>不足や不整合があればここに出します。</p>
                   </div>
 
-                  {validationMode === "warning" ? (
+                  {!validationOk ? (
                     <div style={{ display: "grid", gap: "10px" }}>
                       <div style={warningBoxStyle}>
                         <div style={{ display: "flex", gap: "8px", alignItems: "center", flexWrap: "wrap" }}>
                           <span style={pillStyle("#FFF0D8", "#A96E22")}>不足</span>
-                          <strong>required: meta.created_from がありません</strong>
+                          <strong>人格 JSON に未整合があります</strong>
                         </div>
                         <span style={{ ...pageTextStyle, fontSize: "12px" }}>
-                          作業開始元を示す必須項目が不足しています。
+                          最小検証の結果、修正が必要な項目があります。
                         </span>
                       </div>
-                      <div style={errorBoxStyle}>
-                        <div style={{ display: "flex", gap: "8px", alignItems: "center", flexWrap: "wrap" }}>
-                          <span style={pillStyle("#FFE2E2", "#B94D4D")}>型違い</span>
-                          <strong>persona_core.traits は配列である必要があります</strong>
+                      {validationErrors.length > 0 ? (
+                        <div style={errorBoxStyle}>
+                          <div style={{ display: "grid", gap: "6px" }}>
+                            {validationErrors.slice(0, 5).map((error) => (
+                              <span key={error} style={{ ...pageTextStyle, fontSize: "12px" }}>
+                                {error}
+                              </span>
+                            ))}
+                          </div>
                         </div>
-                        <span style={{ ...pageTextStyle, fontSize: "12px" }}>
-                          文字列ではなく、文字列配列で返してください。
-                        </span>
-                      </div>
+                      ) : null}
                       <div style={infoBoxStyle}>
                         <div style={{ display: "flex", gap: "8px", alignItems: "center", flexWrap: "wrap" }}>
                           <span style={pillStyle("#DFF3F6", "#357F91")}>注意</span>
@@ -575,10 +668,11 @@ export function AiJsonStudioPage() {
                         <strong>人格 JSON Contract (v1 draft) に整合しています</strong>
                       </div>
                       <span style={{ ...pageTextStyle, fontSize: "12px" }}>
-                        差分要約を確認してから基本本採用へ進める想定です。
+                        差分要約を確認してから Import Queue / 採用判断へ進める想定です。
                       </span>
                     </div>
                   )}
+                  <div style={inlineNoticeStyle}>{importQueueMessage}</div>
                 </section>
 
                 <section style={cardInsetStyle}>
@@ -586,14 +680,7 @@ export function AiJsonStudioPage() {
                     <h3 style={{ margin: 0, fontSize: "18px", fontWeight: 800 }}>再修正プロンプト</h3>
                     <p style={{ ...pageTextStyle, fontSize: "12px" }}>不足や型違いを直してもらうための再依頼文です。</p>
                   </div>
-                  <pre style={codeBoxStyle}>{`前回の JSON を次の点だけ直してください。
-
-- meta.created_from を必須項目として追加する
-- persona_core.traits は文字列ではなく配列にする
-- schema_version は persona_json_v1_draft を使う
-- 想定外キーを含めない
-- それ以外の構造はなるべく変えない
-- JSON だけを返す`}</pre>
+                  <pre style={codeBoxStyle}>{createRepairPrompt()}</pre>
                   <div style={{ display: "flex", justifyContent: "space-between", gap: "10px", alignItems: "center", flexWrap: "wrap" }}>
                     <button style={secondaryButtonStyle}>再修正プロンプトをコピー</button>
                     <span style={{ ...pageTextStyle, fontSize: "12px" }}>そのまま外部ブラウザ AI に渡します。</span>

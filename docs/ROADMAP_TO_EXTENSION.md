@@ -2,7 +2,7 @@
 
 ## Purpose
 
-本書は、VTuner の条件付き MVP 完了後に追加していく拡張機能の実装順と判断基準を整理するための文書である。
+本書は、VTuner の条件付き MVP 完了後に追加していく**機能拡張（使い勝手・表現・運用拡張）**の実装順と判断基準を整理するための文書である。
 
 現在の VTuner は、以下の5画面構成を前提とする。
 
@@ -31,17 +31,10 @@ VTuner は現時点で、**条件付き MVP 完了** とみなす。
 - Review Patch Queue / Adopted Changes / compile history の最小保存導線
 - frontend 側の共有 contract を `schemas/` 経由に寄せる整理
 
-ただし、次は未完である。
+完成基盤側の未完（Contract SSOT、AI JSON Import Queue 本接続、compile 本処理、storage safety、Overlay / OBS、runbook 強化）は、本書では主対象にしない。  
+これらは `ROADMAP_TO_COMPLETION.md` 側で扱う。
 
-- compile の本処理高度化
-- runtime への正式反映
-- AI JSON Import Queue の本接続
-- backend 契約の真正な一本化
-- 保存処理の堅牢化
-- Overlay / OBS 実用出力
-- 実運用向け runbook の強化
-
-そのため、本書は「MVP 後に何を優先して追加するか」の実装計画として扱う。
+そのため、本書は「MVP 後の機能拡張」を優先順で整理する実装計画として扱う。
 
 ---
 
@@ -140,6 +133,8 @@ AI / JSON Studio:
 ---
 
 ## Recommended Next Phases
+
+以下は **Extension Track（機能拡張側の Phase 12+）** として扱う。
 
 ## Phase 12: Character Profile Foundation
 
