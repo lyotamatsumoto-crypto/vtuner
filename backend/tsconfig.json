@@ -6,10 +6,11 @@
     "moduleResolution": "Node",
     "lib": ["ES2022"],
     "types": ["node"],
-    "rootDir": "./src",
+    "rootDir": "..",
     "outDir": "./dist"
   },
   "include": [
-    "./src/**/*.ts"
+    "./src/**/*.ts",
+    "../schemas/reviewCompile/**/*.ts"
   ]
 }
