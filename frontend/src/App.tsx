@@ -178,7 +178,21 @@ export function App() {
       return;
     }
 
-    setReviewPatchQueue((current) => updateReviewPatchStatus(current, patchId, status));
+    setReviewPatchQueue((current) => {
+      const nextQueue = updateReviewPatchStatus(current, patchId, status);
+      saveReviewPatchQueue(backendOrigin, nextQueue)
+        .then(() => {
+          setReviewPatchWriteMessage(
+            `Review Patch Queue を backend へ保存しました。frontend 候補表示と backend 保存値は同期しています。(${backendOrigin})`,
+          );
+        })
+        .catch(() => {
+          setReviewPatchWriteMessage(
+            "Review Patch Queue の backend 保存に失敗しました。frontend 候補表示は保持されています（backend 未反映）。",
+          );
+        });
+      return nextQueue;
+    });
 
     if (status === "adopted") {
       setAdoptedChanges((current) => {
@@ -235,16 +249,39 @@ export function App() {
 
     const nextCompileRecord = result.compileRecord;
     const nextCompileHistory = [nextCompileRecord, ...compileHistory];
+    const nextCompiledReviewPatchQueue = markCompiledReviewPatchQueueItems(
+      reviewPatchQueue,
+      adoptedChanges,
+      compilePrecheckPlanItems,
+    );
 
     setAdoptedChanges(result.nextAdoptedChanges);
     setCompileHistory(nextCompileHistory);
-    setReviewPatchQueue((current) =>
-      markCompiledReviewPatchQueueItems(
-        current,
-        adoptedChanges,
-        compilePrecheckPlanItems,
-      ),
-    );
+    setReviewPatchQueue(nextCompiledReviewPatchQueue);
+
+    saveAdoptedChanges(backendOrigin, result.nextAdoptedChanges)
+      .then(() => {
+        setAdoptedChangesWriteMessage(
+          `Adopted Changes を backend へ保存しました。frontend 採用表示と backend 保存値は同期しています。(${backendOrigin})`,
+        );
+      })
+      .catch(() => {
+        setAdoptedChangesWriteMessage(
+          "Adopted Changes の backend 保存に失敗しました。frontend 採用表示は保持されています（backend 未反映）。",
+        );
+      });
+
+    saveReviewPatchQueue(backendOrigin, nextCompiledReviewPatchQueue)
+      .then(() => {
+        setReviewPatchWriteMessage(
+          `Review Patch Queue を backend へ保存しました。frontend 候補表示と backend 保存値は同期しています。(${backendOrigin})`,
+        );
+      })
+      .catch(() => {
+        setReviewPatchWriteMessage(
+          "Review Patch Queue の backend 保存に失敗しました。frontend 候補表示は保持されています（backend 未反映）。",
+        );
+      });
 
     saveCompileHistory(backendOrigin, nextCompileHistory)
       .then(() => {
