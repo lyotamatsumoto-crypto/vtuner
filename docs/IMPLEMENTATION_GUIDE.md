@@ -6,6 +6,8 @@
 
 `PHASES.md` が開発段階の中核文書であるのに対し、本書はより実装寄りの順序整理を担う。
 
+運用再開・起動・復旧の手順は `docs/RUNBOOK.md` を正とする。
+
 ---
 
 ## Implementation Order Policy

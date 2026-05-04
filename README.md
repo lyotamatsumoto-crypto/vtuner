@@ -139,6 +139,7 @@ VS Code 上の AI は、docs 内文書に従って次を行います。
 - `docs/PHASES.md`
 - `docs/CHECKPOINTS.md`
 - `docs/COMPLETION_CRITERIA.md`
+- `docs/RUNBOOK.md`（後日再開・起動・確認・復旧の運用入口）
 
 新規重要文書は次のとおりです。
 

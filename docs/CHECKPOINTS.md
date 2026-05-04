@@ -449,6 +449,35 @@
 
 ---
 
+## Completion Roadmap C6 Checkpoints: Runbook / Documentation Hardening（最小完了）
+
+### Check items
+- 後日再開時の入口が docs で分かる
+- backend / frontend 起動手順が分かる
+- check / build 手順が分かる
+- data 保存場所と recovery 入口が分かる
+- 5画面責務と Overlay 境界が分かる
+- Review / AI JSON / Adopted Changes / compile の流れが分かる
+- Overlay / OBS の読み込み手順が分かる
+- 既知制限と次候補が分かる
+
+### Verified snapshot（C6 close patch 時点）
+- `docs/RUNBOOK.md` を新規作成し、運用再開情報を集約
+- 保存場所（`data/queues/*`, `data/compile/history.json`）を実装準拠で明記
+- fail-close / missing file / 手動 backup / 手動復旧の方針を明記
+- Full Completion 未達と後続課題を明記
+
+### Done criteria（C6 最小完了）
+- 実装変更なしで、再開・起動・確認・復旧・次作業判断が docs だけで可能
+- 「最小完了」と「Full Completion」の差が誤解なく説明できる
+
+### Stop if
+- package.json と手順が一致しない
+- storage path が実装と一致しない
+- 実装変更なしでは運用説明が成立しない
+
+---
+
 ## Phase 12+ Checkpoints: Extension Roadmap
 
 ### Check items
