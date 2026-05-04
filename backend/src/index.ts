@@ -10,12 +10,17 @@ import {
   writeReviewPatchQueue,
 } from "./storage/queueStorage";
 import { readCompileHistory, writeCompileHistory } from "./storage/compileStorage";
+import {
+  readAdoptedReplyTemplates,
+  writeAdoptedReplyTemplates,
+} from "./storage/adoptedReplyTemplatesStorage";
 import type {
   AdoptedChangeItem,
   AiJsonImportQueueItem,
   ReviewPatchQueueItem,
 } from "./contracts/queue";
 import type { CompileRecord } from "./contracts/compile";
+import type { AdoptedReplyTemplatesItem } from "./contracts/replyTemplates";
 
 const DEFAULT_PORT = 3001;
 const port = Number(process.env.PORT ?? DEFAULT_PORT);
@@ -135,6 +140,28 @@ const server = createServer(async (request, response) => {
       await writeCompileHistory(payload as CompileRecord[]);
       sendJson(response, 200, {
         saved: (payload as CompileRecord[]).length,
+      });
+      return;
+    }
+
+    if (request.method === "GET" && request.url === "/adopted-reply-templates") {
+      sendJson(response, 200, await readAdoptedReplyTemplates());
+      return;
+    }
+
+    if (request.method === "PUT" && request.url === "/adopted-reply-templates") {
+      const payload = await readJsonBody(request);
+      if (!Array.isArray(payload)) {
+        sendJson(response, 400, {
+          error: "invalid_reply_templates_payload",
+          message: "Adopted Reply Templates payload must be an array.",
+        });
+        return;
+      }
+
+      await writeAdoptedReplyTemplates(payload as AdoptedReplyTemplatesItem[]);
+      sendJson(response, 200, {
+        saved: (payload as AdoptedReplyTemplatesItem[]).length,
       });
       return;
     }

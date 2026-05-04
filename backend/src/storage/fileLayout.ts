@@ -14,9 +14,15 @@ export const COMPILE_FILE_PATHS = {
   history: `${DATA_ROOT}/compile/history.json`,
 } as const;
 
+export const REPLY_TEMPLATE_FILE_PATHS = {
+  adopted_reply_templates:
+    `${DATA_ROOT}/reply-templates/adopted-reply-templates.json`,
+} as const;
+
 export const LOCAL_STORAGE_LAYOUT = {
   queues: QUEUE_FILE_PATHS,
   compile: COMPILE_FILE_PATHS,
+  reply_templates: REPLY_TEMPLATE_FILE_PATHS,
 } as const;
 
 export function resolveStoragePath(relativePath: string) {
