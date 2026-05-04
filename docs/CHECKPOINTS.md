@@ -605,3 +605,43 @@
 - CharacterStage / CharacterDisplay の props 変更が必要になる
 - backend / schemas / compile / Overlay 変更が必要になる
 - `blocked` / `ignored` の表示方向更新なし方針を維持できない
+
+---
+
+## Extension Phase 15-1 Checkpoints: Reaction Control Preview Foundation（最小完了）
+
+### Check items
+- `reactionFrequencyMode` / `replyLengthMode` / `defaultCharacterState` が Basic Settings の shared settings として設定できる
+- Basic Settings に「反応コントロール（Preview 基礎）」UI があり、3項目を選択できる
+- Preview / Test で反応頻度モード、発話長モード、現在のキャラ状態、状態理由を確認できる
+- 状態ラベルが `blocked` / `ignored` / `read_aloud` / `runtime reply` / `defaultCharacterState` 優先順で決まる
+- runtime 本格制御（実行間引き / 返答文加工）に進んでいない
+- Phase 13 の `blocked` / `ignored` / `read_aloud` 挙動を壊していない
+- Phase 14 の targetFacing / orientation / mirror 挙動を壊していない
+- backend / schemas / compile / Overlay へ波及していない
+
+### Verified snapshot（Phase 15-1 implementation patch 時点）
+- `BasicPreviewBridgeSettings` に以下を追加済み:
+  - `reactionFrequencyMode: "low" | "normal" | "high"`
+  - `replyLengthMode: "short" | "normal" | "long"`
+  - `defaultCharacterState: "normal" | "idle" | "reacting"`
+- Basic Settings に「反応コントロール（Preview 基礎）」セクションを追加済み
+- Preview / Test に reaction control の表示確認（モード / 状態 / 理由）を追加済み
+- `resolveCharacterStateLabel.ts` を追加し、状態ラベル決定を集約済み
+- `reactionFrequencyMode` は表示用途のみで runtime gate 未実装
+- `replyLengthMode` は表示用途のみで返答文加工未実装
+- `decideRuntimeEvent` 未変更、runtime schema 未変更
+- backend / schemas / compile / Overlay は未変更
+- `npm run check` passed
+
+### Done criteria（Phase 15-1 最小完了）
+- Basic Settings と Preview / Test の範囲で reaction control 基礎を確認できる
+- runtime 本格制御へ踏み込まず、表示確認レイヤーとして説明できる
+- Phase 13 / 14 の既存挙動（executionKind 区別と向き反映）を維持している
+- 後続 Phase 15-2 / 15-3 へ安全に引き継げる
+
+### Stop if
+- reactionFrequency 反映のため runtime 実行間引きが必須になる
+- replyLength 反映のため返答文加工が必須になる
+- `decideRuntimeEvent` や runtime schema 変更が必要になる
+- backend / schemas / compile / Overlay 変更が必要になる

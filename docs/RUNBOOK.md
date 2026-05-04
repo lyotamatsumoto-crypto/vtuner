@@ -8,7 +8,7 @@
 
 - 現在地: Conditional MVP Complete+
 - Completion Roadmap: C1〜C5 は最小完了
-- Extension: Phase 12 local foundation（Character Profile の local state 基礎）、Phase 13（Read Aloud and Shared Blocking Rules）、Phase 14（Speech Target and Visual Direction）を最小完了
+- Extension: Phase 12 local foundation（Character Profile の local state 基礎）、Phase 13（Read Aloud and Shared Blocking Rules）、Phase 14（Speech Target and Visual Direction）、Phase 15-1（Reaction Control Preview Foundation）を最小完了
 - Full Completion は未達（後続課題あり）
 
 ## Startup
@@ -102,6 +102,14 @@ Preview / Test の Phase 14 現在地（最小）:
 - `blocked` / `ignored` は向き更新なし
 - Overlay 反映と画像差し替え本実装は未対応
 
+Preview / Test の Phase 15-1 現在地（最小）:
+
+- Basic Settings で反応頻度、発話長、基本状態を選べる
+- Preview / Test で現在のキャラ状態と状態理由を確認できる
+- reactionFrequency の runtime 間引きは未対応
+- replyLength の返答文制御は未対応
+- 表示確認レイヤーの基礎段階として運用する
+
 ## Flow (Review / AI JSON / Compile)
 
 1. Review Patch Queue（Review 由来）
@@ -143,6 +151,8 @@ Preview / Test の Phase 14 現在地（最小）:
 
 ## Next Candidates
 
+- Phase 15-2: reaction frequency runtime gate（段階導入）
+- Phase 15-3: reply length template/control（段階導入）
 - production compile engine 高度化
 - runtime config 永続保存
 - YouTube Live Chat 接続

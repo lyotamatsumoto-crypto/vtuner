@@ -242,6 +242,16 @@
 * CharacterStage / CharacterDisplay は既存 props のまま再利用する
 * Overlay には未反映（後続）
 
+実装現在地メモ（Extension Phase 15-1 implementation patch 時点）:
+* `reactionFrequencyMode` / `replyLengthMode` / `defaultCharacterState` は `BasicPreviewBridgeSettings` の shared settings として扱う
+* Basic Settings の「反応コントロール（Preview 基礎）」で上記 3 項目を設定する
+* Preview / Test では reaction control を表示確認用途に限定する
+* `resolveCharacterStateLabel()` で現在状態ラベルと状態理由を決定する
+* `reactionFrequencyMode` は runtime gate に未使用（表示のみ）
+* `replyLengthMode` は返答文加工に未使用（表示のみ）
+* runtime 本格制御は Phase 15-2 / 15-3 以降で扱う
+* backend / schemas / compile / Overlay は未変更
+
 build 確認:
 * `npm run build:schemas`
 * `npm run build:backend`
