@@ -194,6 +194,13 @@
   * lock file / 競合制御
   * 複数プロセス・複数ユーザー同時編集対応
 
+実装現在地メモ（Completion Roadmap C5-1 close patch 時点）:
+* Overlay は `/overlay/character` を表示専用ルートとして扱う
+* Overlay は AppShell を通さず、背景透明 + キャラクター + 吹き出し中心の表示に限定する
+* `show_stage_label=false` / `show_preview_overlay_label=false` を維持する
+* compile 前は「反映待ち」表示、compile 後は `compiledRuntimeEntries` を参照した表示になる
+* Preview / Test は確認 UI、Overlay は OBS 出力用ルートとして責務を分離する
+
 build 確認:
 * `npm run build:schemas`
 * `npm run build:backend`
@@ -301,6 +308,22 @@ UI 推奨ラベル:
 
 * 本体に反映
 * 変更を確定して反映
+
+---
+
+## Overlay / OBS Guidance（C5-1）
+
+* OBS Browser Source には Preview / Test 画面全体ではなく `/overlay/character` を指定する
+* URL 例: `http://localhost:5173/overlay/character`
+* frontend dev server 起動中に OBS から読み込む
+* 背景は透明を想定し、OBS 側で幅・高さを配信レイアウトに合わせて調整する
+* Overlay はキャラクターと吹き出しのみを中心に表示する（操作 UI は表示しない）
+* compile 前は Overlay に反映待ち文言が表示される
+* compile 後は `compiledRuntimeEntries` を参照した表示に切り替わる
+* 既知制限:
+  * YouTube Live Chat 本接続は未対応
+  * 音声合成は未対応
+  * 複数キャラ同時表示は未対応
 
 ---
 

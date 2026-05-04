@@ -420,6 +420,35 @@
 
 ---
 
+## Completion Roadmap C5 Checkpoints: Overlay / OBS Output（最小完了）
+
+### Check items
+- `/overlay/character` が表示専用ルートとして分離されている
+- Overlay は AppShell / サイドバー / TopBar を表示しない
+- 背景透明でキャラクターと吹き出し中心の表示になっている
+- `show_stage_label=false` / `show_preview_overlay_label=false` を維持している
+- compile 前反映待ち / compile 後反映済みの見方を説明できる
+- OBS Browser Source 手順が docs にある
+
+### Verified snapshot（C5-1 close patch 時点）
+- App は `/overlay/character` のとき AppShell ではなく `OverlayCharacterPage` を直接表示する
+- Overlay は `CharacterStage` を再利用し、透明背景で表示専用の最小出力を維持
+- compile 後 entry がある場合は `compiledRuntimeEntries` を参照して表示する
+- Preview / Test は確認 UI、Overlay は表示専用出力という境界を docs に明記
+- OBS Browser Source の URL 例と最小手順を docs に追加
+
+### Done criteria（C5 最小完了）
+- OBS 用表示専用ルートとして `/overlay/character` を説明できる
+- Preview / Test と Overlay の責務境界を docs と実装で説明できる
+- 後続課題（YouTube 連携 / 音声合成 / 複数キャラ等）を未実装として明示できる
+
+### Stop if
+- Overlay に操作 UI を追加しないと成立しない
+- Preview / Test をそのまま OBS 用に流用しないと成立しない
+- backend / schemas 変更が必要になる
+
+---
+
 ## Phase 12+ Checkpoints: Extension Roadmap
 
 ### Check items
