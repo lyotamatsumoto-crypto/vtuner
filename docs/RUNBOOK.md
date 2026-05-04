@@ -8,7 +8,7 @@
 
 - 現在地: Conditional MVP Complete+
 - Completion Roadmap: C1〜C6 は最小完了
-- Extension: Phase 12 local foundation（Character Profile の local state 基礎）、Phase 13（Read Aloud and Shared Blocking Rules）、Phase 14（Speech Target and Visual Direction）、Phase 15-1（Reaction Control Preview Foundation）、Phase 15-2（Reaction Frequency Runtime Gate）、Phase 15-3（Reply Template Length Selection Foundation）を最小完了
+- Extension: Phase 12 local foundation（Character Profile の local state 基礎）、Phase 13（Read Aloud and Shared Blocking Rules）、Phase 14（Speech Target and Visual Direction）、Phase 15-1（Reaction Control Preview Foundation）、Phase 15-2（Reaction Frequency Runtime Gate）、Phase 15-3（Reply Template Length Selection Foundation）、Phase 16-1（Reply Templates JSON Schema and Validation）を最小完了
 - Full Completion は未達（後続課題あり）
 
 ## Startup
@@ -126,6 +126,15 @@ Preview / Test の Phase 15-3 現在地（最小）:
 - Preview / Test で `templateApplied` / `templateCategory` / `templateLength` / `templateReasonLabel` を確認できる
 - まだユーザー編集、JSON import/export、Detailed Rules 連携は未対応
 
+Phase 16-1 の現在地（最小）:
+
+- replyTemplates JSON の schema / validation 土台を `schemas/replyTemplates/` に追加済み
+- `validateReplyTemplatesJson()` で fail-close validation を実施できる
+- `validReplyTemplatesJsonSample` / `invalidReplyTemplatesJsonSample` を参照できる
+- まだ UI から import / export はできない
+- まだ AI / JSON Studio には接続していない
+- まだ Detailed Rules / compile 連携は未対応
+
 ## Flow (Review / AI JSON / Compile)
 
 1. Review Patch Queue（Review 由来）
@@ -168,7 +177,8 @@ Preview / Test の Phase 15-3 現在地（最小）:
 ## Next Candidates
 
 - replyTemplates の JSON schema / validation / import-export 導線整理
-- Phase 16 側の JSON 導線整理
+- Phase 16-2: AI / JSON Studio validation 接続
+- replyTemplates import/export 導線（段階導入）
 - production compile engine 高度化
 - runtime config 永続保存
 - YouTube Live Chat 接続

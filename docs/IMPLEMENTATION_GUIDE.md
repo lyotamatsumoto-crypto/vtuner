@@ -285,6 +285,19 @@
 * JSON import / export、Detailed Rules、AI / JSON Studio、compile 連携は後続で扱う
 * runtime schema / backend / compile / Overlay は未変更
 
+実装現在地メモ（Extension Phase 16-1 implementation patch 時点）:
+* replyTemplates JSON の schema / type / validation は `schemas/replyTemplates/` に集約する
+* `schemas/runtime/` には混ぜず、runtime decision 契約とは分離する
+* `frontend/src/features/previewTest/replyTemplates.ts` は default fallback として維持する
+* `validateReplyTemplatesJson()` は fail-close で実装する
+* valid の場合のみ `parsed` を返す
+* invalid の場合は `errors` を返し、採用しない
+* category は部分定義可だが、存在する category では `short` / `normal` / `long` を全必須にする
+* unknown key / unknown category / unknown length は拒否する
+* AI / JSON Studio では将来この validator を利用して validation / error_messages へ接続する想定
+* import / export、Detailed Rules、compile 連携は後続で扱う
+* Preview / Test の既存挙動は変更しない
+
 build 確認:
 * `npm run build:schemas`
 * `npm run build:backend`

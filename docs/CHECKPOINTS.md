@@ -725,3 +725,45 @@
 - `replyTemplates` 構造ではなく固定 if 直書き分岐に依存しないと成立しない
 - `normal` の既存挙動を大きく壊す
 - `blocked` / `read_aloud` / `ignored` / low gate ignored の保護が維持できない
+
+---
+
+## Extension Phase 16-1 Checkpoints: Reply Templates JSON Schema and Validation（最小完了）
+
+### Check items
+- `schemas/replyTemplates` 配下に type / validator / samples が存在する
+- `validateReplyTemplatesJson()` が存在する
+- replyTemplates JSON が自由形式ではなく許可 shape のみを通す
+- fail-close validation で invalid payload を採用しない
+- unknown key / unknown category / unknown length を拒否する
+- category は部分定義可、ただし category 内は `short` / `normal` / `long` 全必須
+- 配列制約（empty array 禁止、最大件数、string 要素、trim 後空文字禁止、最大文字数）を満たす
+- Preview / Test 挙動を変更していない
+- backend / compile / Overlay へ広げていない
+
+### Verified snapshot（Phase 16-1 implementation patch 時点）
+- `schemas/replyTemplates/replyTemplateTypes.ts` を追加済み
+- `schemas/replyTemplates/validateReplyTemplatesJson.ts` を追加済み
+- `schemas/replyTemplates/samples.ts` を追加済み
+- `schemas/replyTemplates/index.ts` を追加済み
+- `schemas/index.ts` から `replyTemplates` を export 済み
+- `validReplyTemplatesJsonSample` / `invalidReplyTemplatesJsonSample` を追加済み
+- `npm run check` passed
+
+### Done criteria（Phase 16-1 最小完了）
+- replyTemplates JSON の schema / type / validation 土台が `schemas/replyTemplates` に集約されている
+- fail-close で invalid JSON を拒否できる
+- 自由形式 JSON を許可していない
+- Preview / Test の Phase 15-3 挙動を壊していない
+- 後続の AI / JSON Studio 接続・import/export 導線へ引き継げる
+
+### Stop if
+- runtime schema 変更が必要になる
+- backend / compile / Overlay 変更が必要になる
+- fail-close を維持できない
+- 自由形式 JSON を許可しないと成立しない
+- Preview / Test 挙動変更が必須になる
+
+### Next candidates
+- Phase 16-2: AI / JSON Studio validation 接続（validator 呼び出しと error_messages 反映）
+- replyTemplates import / export 導線（UI と queue 接続は段階導入）
