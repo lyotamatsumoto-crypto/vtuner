@@ -19,7 +19,7 @@
 
 - 通常画面: `http://localhost:5173`
 - Overlay 表示専用: `http://localhost:5173/overlay/character`
-- backend baseline: `http://localhost:3001/storage-layout`
+- backend baseline: `http://localhost:3001/baseline`
 
 ## Check / Build
 
