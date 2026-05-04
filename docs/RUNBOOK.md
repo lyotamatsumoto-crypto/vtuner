@@ -8,7 +8,7 @@
 
 - 現在地: Conditional MVP Complete+
 - Completion Roadmap: C1〜C6 は最小完了
-- Extension: Phase 12 local foundation（Character Profile の local state 基礎）、Phase 13（Read Aloud and Shared Blocking Rules）、Phase 14（Speech Target and Visual Direction）、Phase 15-1（Reaction Control Preview Foundation）、Phase 15-2（Reaction Frequency Runtime Gate）、Phase 15-3（Reply Template Length Selection Foundation）、Phase 16-1（Reply Templates JSON Schema and Validation）、Phase 16-2（Reply Templates JSON Validation in AI / JSON Studio）を最小完了
+- Extension: Phase 12 local foundation（Character Profile の local state 基礎）、Phase 13（Read Aloud and Shared Blocking Rules）、Phase 14（Speech Target and Visual Direction）、Phase 15-1（Reaction Control Preview Foundation）、Phase 15-2（Reaction Frequency Runtime Gate）、Phase 15-3（Reply Template Length Selection Foundation）、Phase 16-1（Reply Templates JSON Schema and Validation）、Phase 16-2（Reply Templates JSON Validation in AI / JSON Studio）、Phase 16-3（replyTemplates Import Queue 前段接続）を最小完了
 - Full Completion は未達（後続課題あり）
 
 ## Startup
@@ -145,6 +145,14 @@ Phase 16-2 の現在地（最小）:
 - まだ Import Queue 登録はできない（replyTemplates target では無効化）
 - まだ Adopted Changes / compile / runtime反映は未対応
 
+Phase 16-3 の現在地（最小）:
+
+- AI / JSON Studio で `返答テンプレートJSON` を validation し、OKなら AI JSON Import Queue に登録できる
+- Queue 一覧で `人格JSON` / `返答テンプレートJSON` を区別できる
+- `返答テンプレートJSON` の Import Queue item はまだ採用不可（Adopted Changes へ進まない）
+- persona item の採用導線は維持している
+- まだ compile / runtime反映は未対応
+
 ## Flow (Review / AI JSON / Compile)
 
 1. Review Patch Queue（Review 由来）
@@ -187,7 +195,7 @@ Phase 16-2 の現在地（最小）:
 ## Next Candidates
 
 - replyTemplates の JSON schema / validation / import-export 導線整理
-- Phase 16-3: replyTemplates Import Queue 前段接続
+- Phase 16-4: replyTemplates 採用先設計（Import Queue 以降の責務分離）
 - replyTemplates JSON import/export 導線（段階導入）
 - production compile engine 高度化
 - runtime config 永続保存

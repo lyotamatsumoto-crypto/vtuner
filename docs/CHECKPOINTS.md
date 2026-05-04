@@ -806,3 +806,41 @@
 - persona validation を壊す
 - Preview / Test runtime 挙動変更が必要になる
 - UI 大改修が必要になる
+
+---
+
+## Extension Phase 16-3 Checkpoints: replyTemplates Import Queue 前段接続（最小完了）
+
+### Check items
+- `generation_target` に `reply_templates` が存在する
+- validation OK の `返答テンプレートJSON` を AI JSON Import Queue に登録できる
+- validation NG / JSON parse error / schema validation error の場合は登録できない
+- Queue 一覧で target（`persona` / `reply_templates`）を区別表示できる
+- replyTemplates item は Adopted Changes 採用不可である
+- UI + App 側の二重ガードで `generation_target !== "persona"` 採用を防いでいる
+- persona validation / queue登録 / 採用導線を壊していない
+- backend / compile / PreviewTest / Overlay へ広げていない
+
+### Verified snapshot（Phase 16-3 implementation patch 時点）
+- `schemas/reviewCompile/queueContracts.ts` を更新済み（`generation_target` に `reply_templates` 追加）
+- `frontend/src/App.tsx` / `frontend/src/pages/AiJsonStudioPage.tsx` を更新済み
+- `返答テンプレートJSON` は validation OK 時のみ Import Queue 登録可能
+- Queue 一覧で `人格JSON` / `返答テンプレートJSON` を区別表示可能
+- `generation_target !== "persona"` は UI 側 disabled + App 側 return ガードで採用不可
+- persona 導線は維持
+- backend / compile / PreviewTest / Overlay は未変更
+- `npm run check` passed
+
+### Done criteria（Phase 16-3 最小完了）
+- replyTemplates JSON 候補を Import Queue 前段へ安全に載せられる
+- validation 未通過データを登録しない fail-close 導線を維持できる
+- replyTemplates item が誤って Adopted Changes 採用されない
+- persona の既存 queue / adoption 導線を維持できる
+- 後続（Detailed Rules / compile / runtime反映）へ責務を広げていない
+
+### Stop if
+- queue 拡張のために backend API 新設が必要になる
+- replyTemplates validator 仕様変更が必要になる
+- replyTemplates 採用 / compile / runtime反映まで同時変更しないと成立しない
+- persona の既存登録 / 採用導線を維持できない
+- storage validation の fail-close を維持できない

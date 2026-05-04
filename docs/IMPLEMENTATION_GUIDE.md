@@ -309,6 +309,18 @@
 * Queue 登録 / 採用 / compile / runtime反映は Phase 16-3 以降で扱う
 * backend / compile / Overlay / PreviewTest は未変更
 
+実装現在地メモ（Extension Phase 16-3 implementation patch 時点）:
+* AI JSON Import Queue は persona だけでなく `reply_templates` も候補として持てる
+* queue item の種類は `generation_target` で区別する
+* `返答テンプレートJSON` は validation OK のときだけ Import Queue 登録可能
+* `validation_ok` / `error_messages` / `status` は既存 queue item 仕様を継続利用する
+* replyTemplates item は Import Queue 候補であり、正式採用ではない
+* Adopted Changes 採用は persona のみを維持する
+* replyTemplates item は UI と App 側の二重ガードで採用不可にする
+* `schemas/replyTemplates` validator は未変更
+* Detailed Rules / compile / runtime反映は後続で扱う
+* backend / compile / Overlay / PreviewTest は未変更
+
 build 確認:
 * `npm run build:schemas`
 * `npm run build:backend`
