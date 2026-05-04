@@ -164,6 +164,14 @@ Basic Settings を、単なる項目編集画面ではなく、**キャラクタ
 - 変更後に「未保存」が分かる
 - 保存済み / 未保存 / 最終保存時刻が表示できる
 
+### Phase 12 local foundation status
+
+- Basic Settings 上部に Character Profile 管理 UI（選択 / 保存 / 複製）を追加済み
+- local state で Profile 保存・読込・複製・未保存表示・最終保存時刻表示を実装済み
+- 保存対象は `BasicPreviewBridgeSettings` 相当の共有設定に限定
+- Preview / Test 反映元（shared settings）は維持し、既存反映を壊していない
+- backend 永続保存 / JSON import-export / 完全 schema 化は後続で扱う
+
 ---
 
 ## Phase 13: Read Aloud and Shared Blocking Rules

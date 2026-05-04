@@ -50,6 +50,31 @@ type StorageReadStatus =
   | "backend_empty"
   | "fallback";
 
+interface CharacterProfileDraft {
+  id: string;
+  name: string;
+  savedAt: string;
+  settings: BasicPreviewBridgeSettings;
+}
+
+function cloneBasicPreviewBridgeSettings(
+  settings: BasicPreviewBridgeSettings,
+): BasicPreviewBridgeSettings {
+  return JSON.parse(JSON.stringify(settings)) as BasicPreviewBridgeSettings;
+}
+
+function buildInitialCharacterProfile(
+  settings: BasicPreviewBridgeSettings,
+): CharacterProfileDraft {
+  const timestamp = new Date().toISOString();
+  return {
+    id: "character-profile-default",
+    name: "Default Character",
+    savedAt: timestamp,
+    settings: cloneBasicPreviewBridgeSettings(settings),
+  };
+}
+
 export function App() {
   const isOverlayCharacterRoute =
     typeof window !== "undefined" &&
@@ -83,9 +108,22 @@ export function App() {
   const [compiledRuntimeEntries, setCompiledRuntimeEntries] = useState<
     CompiledRuntimeEntry[]
   >([]);
+  const [characterProfiles, setCharacterProfiles] = useState<CharacterProfileDraft[]>(
+    () => [buildInitialCharacterProfile(defaultBasicPreviewBridgeSettings)],
+  );
+  const [activeCharacterProfileId, setActiveCharacterProfileId] = useState(
+    "character-profile-default",
+  );
 
   const compilePrecheckPlanItems: CompilePlanItem[] =
     buildCompilePrecheckPlanItems(adoptedChanges);
+  const activeCharacterProfile =
+    characterProfiles.find((profile) => profile.id === activeCharacterProfileId) ??
+    characterProfiles[0];
+  const isCharacterProfileDirty =
+    activeCharacterProfile !== undefined &&
+    JSON.stringify(activeCharacterProfile.settings) !==
+      JSON.stringify(basicPreviewBridgeSettings);
 
   useEffect(() => {
     let cancelled = false;
@@ -399,6 +437,58 @@ export function App() {
     });
   }
 
+  function handleSelectCharacterProfile(profileId: string) {
+    const profile = characterProfiles.find((item) => item.id === profileId);
+    if (!profile) {
+      return;
+    }
+
+    setActiveCharacterProfileId(profileId);
+    setBasicPreviewBridgeSettings(cloneBasicPreviewBridgeSettings(profile.settings));
+  }
+
+  function handleSaveCharacterProfile() {
+    const currentProfile =
+      characterProfiles.find((item) => item.id === activeCharacterProfileId) ??
+      characterProfiles[0];
+    if (!currentProfile) {
+      return;
+    }
+
+    const savedAt = new Date().toISOString();
+    setCharacterProfiles((current) =>
+      current.map((item) =>
+        item.id === currentProfile.id
+          ? {
+              ...item,
+              savedAt,
+              settings: cloneBasicPreviewBridgeSettings(basicPreviewBridgeSettings),
+            }
+          : item,
+      ),
+    );
+  }
+
+  function handleDuplicateCharacterProfile() {
+    const currentProfile =
+      characterProfiles.find((item) => item.id === activeCharacterProfileId) ??
+      characterProfiles[0];
+    if (!currentProfile) {
+      return;
+    }
+
+    const id = `character-profile-${Date.now()}`;
+    const duplicated: CharacterProfileDraft = {
+      id,
+      name: `${currentProfile.name} Copy`,
+      savedAt: new Date().toISOString(),
+      settings: cloneBasicPreviewBridgeSettings(basicPreviewBridgeSettings),
+    };
+
+    setCharacterProfiles((current) => [duplicated, ...current]);
+    setActiveCharacterProfileId(id);
+  }
+
   if (isOverlayCharacterRoute) {
     return (
       <OverlayCharacterPage
@@ -415,6 +505,12 @@ export function App() {
         <BasicSettingsPage
           sharedSettings={basicPreviewBridgeSettings}
           onSharedSettingsChange={setBasicPreviewBridgeSettings}
+          characterProfiles={characterProfiles}
+          activeCharacterProfileId={activeCharacterProfile?.id ?? null}
+          isCharacterProfileDirty={Boolean(isCharacterProfileDirty)}
+          onSelectCharacterProfile={handleSelectCharacterProfile}
+          onSaveCharacterProfile={handleSaveCharacterProfile}
+          onDuplicateCharacterProfile={handleDuplicateCharacterProfile}
         />
       ) : null}
       {currentScreen === "preview_test" ? (

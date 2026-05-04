@@ -8,6 +8,7 @@
 
 - 現在地: Conditional MVP Complete+
 - Completion Roadmap: C1〜C5 は最小完了
+- Extension: Phase 12 local foundation（Character Profile の local state 基礎）を実装済み
 - Full Completion は未達（後続課題あり）
 
 ## Startup
@@ -129,5 +130,5 @@
 - runtime config 永続保存
 - YouTube Live Chat 接続
 - 音声合成
-- Character Profile Foundation
+- Character Profile の backend 永続保存 / JSON import-export
 - Extension Phase 12+

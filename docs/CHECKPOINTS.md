@@ -495,3 +495,30 @@
 ### Stop if
 - 画面責務が混線する
 - 拡張のためにMVP基盤を大規模に崩す必要がある
+
+---
+
+## Extension Phase 12 Checkpoints: Character Profile Foundation（local foundation）
+
+### Check items
+- Character Profile 管理 UI が Basic Settings 上部にある
+- local state で保存 / 読み込み / 複製ができる
+- 保存済み / 未保存 / 最終保存時刻が表示される
+- 保存対象が `BasicPreviewBridgeSettings` の共有設定に限定されている
+- Preview / Test への既存反映が維持されている
+
+### Verified snapshot（Phase 12 local foundation 時点）
+- `App.tsx` に Character Profile 最小型（id / name / savedAt / settings）を追加
+- `BasicSettingsPage` に profile 選択・保存・複製 UI を追加
+- 未保存判定は active profile settings と shared settings の比較で実装
+- backend / schemas / compile / Overlay は未変更
+- `npm run check` passed
+
+### Done criteria（Phase 12 local foundation）
+- Basic Settings 責務内で Character Profile 基礎運用ができる
+- local foundation と後続課題（永続化・JSON連携）が区別して説明できる
+
+### Stop if
+- Basic Settings 以外へ大規模波及する
+- shared settings を壊さないと成立しない
+- backend API / schemas 変更が必要になる

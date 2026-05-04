@@ -203,6 +203,13 @@
 * compile 前は「反映待ち」表示、compile 後は `compiledRuntimeEntries` を参照した表示になる
 * Preview / Test は確認 UI、Overlay は OBS 出力用ルートとして責務を分離する
 
+実装現在地メモ（Extension Phase 12 local foundation 時点）:
+* Character Profile 管理 UI は Basic Settings 上部に配置する
+* local state で profile 保存 / 読み込み / 複製 / 未保存表示を扱う
+* 保存対象はまず `BasicPreviewBridgeSettings` の共有設定に限定する
+* Preview / Test 反映は既存 shared settings を継続利用する
+* backend 永続保存 / JSON import-export / 完全 schema 化は後続 Phase で扱う
+
 build 確認:
 * `npm run build:schemas`
 * `npm run build:backend`

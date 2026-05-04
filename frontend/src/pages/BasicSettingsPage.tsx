@@ -28,12 +28,30 @@ const categoryMeta: Array<{ key: CategoryKey; label: string; description: string
   { key: "regular", label: "常連反応", description: "よく来る視聴者への返答" },
 ];
 
+interface CharacterProfileSummary {
+  id: string;
+  name: string;
+  savedAt: string;
+}
+
 export function BasicSettingsPage({
   sharedSettings,
   onSharedSettingsChange,
+  characterProfiles,
+  activeCharacterProfileId,
+  isCharacterProfileDirty,
+  onSelectCharacterProfile,
+  onSaveCharacterProfile,
+  onDuplicateCharacterProfile,
 }: {
   sharedSettings: BasicPreviewBridgeSettings;
   onSharedSettingsChange: (next: BasicPreviewBridgeSettings) => void;
+  characterProfiles: CharacterProfileSummary[];
+  activeCharacterProfileId: string | null;
+  isCharacterProfileDirty: boolean;
+  onSelectCharacterProfile: (profileId: string) => void;
+  onSaveCharacterProfile: () => void;
+  onDuplicateCharacterProfile: () => void;
 }) {
   const [profileSummary, setProfileSummary] = useState(
     "少し落ち着いた雰囲気で、配信の空気を整えながら視聴者と配信者の間をやわらかくつなぐ仲介キャラクター。",
@@ -78,6 +96,8 @@ export function BasicSettingsPage({
   } = sharedSettings;
   const previewSubtitle =
     bubbleEnabled === "使う" ? `${firstPerson}、${viewerCall}。今日もゆっくり進めます。` : undefined;
+  const activeCharacterProfile =
+    characterProfiles.find((item) => item.id === activeCharacterProfileId) ?? null;
 
   function updateSharedSettings(patch: Partial<BasicPreviewBridgeSettings>) {
     onSharedSettingsChange({
@@ -125,6 +145,66 @@ export function BasicSettingsPage({
             VTuner 名、人格の土台、話し方、音声、見た目、吹き出し、反応カテゴリの ON / OFF をまとめます。
             Detailed Rules の正式追加や AI / JSON Studio の生成操作はここへ混ぜません。
           </span>
+        </section>
+
+        <section style={cardStyle}>
+          <div style={sectionHeaderStyle}>
+            <div style={{ display: "grid", gap: "6px" }}>
+              <h2 style={cardTitleStyle}>Character Profile</h2>
+              <p style={pageTextStyle}>
+                Basic Settings の共有設定を 1 体分の Profile として扱う local foundation です。
+              </p>
+            </div>
+          </div>
+          <div style={{ padding: "16px 18px", display: "grid", gap: "14px" }}>
+            <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+              <span style={summaryChipStyle(true)}>
+                現在: {activeCharacterProfile?.name ?? "未選択"}
+              </span>
+              <span style={summaryChipStyle(!isCharacterProfileDirty)}>
+                {isCharacterProfileDirty ? "未保存" : "保存済み"}
+              </span>
+              <span style={summaryChipStyle(false)}>
+                最終保存:{" "}
+                {activeCharacterProfile
+                  ? new Date(activeCharacterProfile.savedAt).toLocaleString("ja-JP")
+                  : "未保存"}
+              </span>
+            </div>
+            <FieldGrid columns={3}>
+              <Field label="Profile 一覧">
+                <select
+                  style={inputStyle}
+                  value={activeCharacterProfileId ?? ""}
+                  onChange={(event) => onSelectCharacterProfile(event.target.value)}
+                >
+                  {characterProfiles.map((profile) => (
+                    <option key={profile.id} value={profile.id}>
+                      {profile.name}
+                    </option>
+                  ))}
+                </select>
+              </Field>
+              <Field label="保存">
+                <button type="button" style={actionButtonStyle} onClick={onSaveCharacterProfile}>
+                  現在設定を保存
+                </button>
+              </Field>
+              <Field label="複製">
+                <button
+                  type="button"
+                  style={secondaryActionButtonStyle}
+                  onClick={onDuplicateCharacterProfile}
+                >
+                  現在 Profile を複製
+                </button>
+              </Field>
+            </FieldGrid>
+            <InlineNotice>
+              この段階では `BasicPreviewBridgeSettings` の共有設定のみを Profile 保存対象にしています。
+              backend 永続保存と JSON import/export は後続 Phase で扱います。
+            </InlineNotice>
+          </div>
         </section>
 
         <section
@@ -776,6 +856,26 @@ const inlineReadonlyStyle = {
   alignItems: "center",
   background: "#F7FCFC",
   color: "#5F747A",
+} as const;
+
+const actionButtonStyle = {
+  border: "1px solid #4AAEB6",
+  borderRadius: "12px",
+  padding: "10px 12px",
+  background: "#4AAEB6",
+  color: "#FFFFFF",
+  fontWeight: 800,
+  cursor: "pointer",
+} as const;
+
+const secondaryActionButtonStyle = {
+  border: "1px solid #BFDCDD",
+  borderRadius: "12px",
+  padding: "10px 12px",
+  background: "#FFFFFF",
+  color: "#2F3E46",
+  fontWeight: 800,
+  cursor: "pointer",
 } as const;
 
 const toggleCardStyle = {
