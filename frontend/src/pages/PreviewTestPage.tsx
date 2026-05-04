@@ -9,6 +9,7 @@ import {
 import { CharacterStage } from "../components/display";
 import { decidePreviewTestEvent } from "../features/previewTest/decidePreviewTestEvent";
 import type { PreviewOnlyReaction } from "../features/previewTest/previewOnlyCommentRuntime";
+import { resolveVisualDirection } from "../features/previewTest/resolveVisualDirection";
 import { decideRuntimeEvent } from "../runtime/decideRuntimeEvent";
 import type { CommentInput, RuntimeDecision, TestEventInput } from "../../../schemas/runtime/runtimeTypes";
 import type { CompileRecord } from "../../../schemas";
@@ -146,6 +147,9 @@ export function PreviewTestPage({
   const [commentText, setCommentText] = useState(initialSample.text);
   const [readAloudOnlyMode, setReadAloudOnlyMode] = useState(false);
   const [historyItems, setHistoryItems] = useState<PreviewHistoryItem[]>([]);
+  const [directionReasonLabel, setDirectionReasonLabel] = useState(
+    "未実行: 発話対象に応じた向き変換はまだ行っていません。",
+  );
   const [lastRuntimeDecision, setLastRuntimeDecision] = useState<RuntimeDecision | null>(null);
   const [previewResult, setPreviewResult] = useState<PreviewOnlyReaction>({
     result_label: "未実行",
@@ -178,6 +182,7 @@ export function PreviewTestPage({
     );
     if (blockedExpression) {
       setLastRuntimeDecision(null);
+      setDirectionReasonLabel("blocked: NG一致のため表示方向は更新していません。");
       appendHistory([
         {
           id: `${Date.now()}-blocked`,
@@ -193,8 +198,16 @@ export function PreviewTestPage({
     }
 
     if (readAloudOnlyMode) {
+      const resolvedDirection = resolveVisualDirection({
+        speechTarget: "viewer",
+        sideImageFacing: sharedSettings.sideImageFacing,
+        defaultFacing: sharedSettings.defaultFacing,
+        mirrorEnabled: sharedSettings.mirrorEnabled,
+      });
       setLastRuntimeDecision(null);
-      setOrientation(sharedSettings.defaultFacing);
+      setOrientation(resolvedDirection.orientation);
+      setMirror(resolvedDirection.mirror);
+      setDirectionReasonLabel(`read_aloud: ${resolvedDirection.reasonLabel}`);
       setPreviewResult({
         result_label: "read_aloud",
         category_label: "unknown",
@@ -202,7 +215,7 @@ export function PreviewTestPage({
         reaction_name: "read_aloud_direct",
         adoption_label: "採用",
         target_label: "viewer",
-        orientation: sharedSettings.defaultFacing,
+        orientation: resolvedDirection.orientation,
         bubble_text: commentText,
       });
       appendHistory([
@@ -230,8 +243,24 @@ export function PreviewTestPage({
     const executionKind: PreviewExecutionKind =
       runtimeDecision.kind === "ignore" ? "ignored" : "runtime";
 
+    if (runtimeDecision.kind === "ignore") {
+      setDirectionReasonLabel("ignored: runtime ignore 結果のため表示方向は更新していません。");
+    } else {
+      const speechTarget =
+        runtimeDecision.kind === "reply" ? runtimeDecision.speech_target : "viewer";
+      const resolvedDirection = resolveVisualDirection({
+        speechTarget,
+        sideImageFacing: sharedSettings.sideImageFacing,
+        defaultFacing: sharedSettings.defaultFacing,
+        mirrorEnabled: sharedSettings.mirrorEnabled,
+      });
+      setOrientation(resolvedDirection.orientation);
+      setMirror(resolvedDirection.mirror);
+      setDirectionReasonLabel(`runtime: ${resolvedDirection.reasonLabel}`);
+      nextResult.orientation = resolvedDirection.orientation;
+    }
+
     setLastRuntimeDecision(runtimeDecision);
-    setOrientation(nextResult.orientation);
     setPreviewResult(nextResult);
     appendHistory([
       {
@@ -265,8 +294,24 @@ export function PreviewTestPage({
     const runtimeDecision = decidePreviewTestEvent(runtimeInput);
     const nextResult = mapRuntimeDecisionToPreviewReaction(runtimeDecision, sharedSettings);
 
+    if (runtimeDecision.kind === "ignore") {
+      setDirectionReasonLabel("ignored: runtime ignore 結果のため表示方向は更新していません。");
+    } else if (runtimeDecision.kind === "reply") {
+      const resolvedDirection = resolveVisualDirection({
+        speechTarget: runtimeDecision.speech_target,
+        sideImageFacing: sharedSettings.sideImageFacing,
+        defaultFacing: sharedSettings.defaultFacing,
+        mirrorEnabled: sharedSettings.mirrorEnabled,
+      });
+      setOrientation(resolvedDirection.orientation);
+      setMirror(resolvedDirection.mirror);
+      setDirectionReasonLabel(`runtime: ${resolvedDirection.reasonLabel}`);
+      nextResult.orientation = resolvedDirection.orientation;
+    } else {
+      setDirectionReasonLabel("runtime: reply以外の結果のため表示方向は維持しています。");
+    }
+
     setLastRuntimeDecision(runtimeDecision);
-    setOrientation(nextResult.orientation);
     setPreviewResult(nextResult);
     appendHistory([
       {
@@ -477,6 +522,18 @@ export function PreviewTestPage({
                 <div style={resultCardStyle}>
                   <span style={resultLabelStyle}>表示向き</span>
                   <strong>{previewResult.orientation}</strong>
+                </div>
+                <div style={resultCardStyle}>
+                  <span style={resultLabelStyle}>mirror 適用</span>
+                  <strong>{mirror ? "on" : "off"}</strong>
+                </div>
+                <div style={resultCardStyle}>
+                  <span style={resultLabelStyle}>横向き画像の向き設定</span>
+                  <strong>{sharedSettings.sideImageFacing}</strong>
+                </div>
+                <div style={resultCardStyle}>
+                  <span style={resultLabelStyle}>向き変換理由</span>
+                  <strong>{directionReasonLabel}</strong>
                 </div>
                 <div style={resultCardStyle}>
                   <span style={resultLabelStyle}>Runtime entry</span>

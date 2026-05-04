@@ -86,6 +86,7 @@ export function BasicSettingsPage({
     toneLabel,
     endingStyle,
     bannedExpressions,
+    sideImageFacing,
     defaultFacing,
     mirrorEnabled,
     displaySize,
@@ -408,6 +409,20 @@ export function BasicSettingsPage({
                     <option>小さめ</option>
                     <option>標準</option>
                     <option>やや大きめ</option>
+                  </select>
+                </Field>
+                <Field label="横向き画像の向き">
+                  <select
+                    style={inputStyle}
+                    value={sideImageFacing}
+                    onChange={(event) =>
+                      updateSharedSettings({
+                        sideImageFacing: event.target.value as "viewer" | "streamer",
+                      })
+                    }
+                  >
+                    <option value="viewer">視聴者・コメント側を向いている</option>
+                    <option value="streamer">配信者側を向いている</option>
                   </select>
                 </Field>
               </FieldGrid>

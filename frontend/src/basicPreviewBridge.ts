@@ -1,4 +1,5 @@
 export type SharedOrientation = "front" | "side";
+export type SideImageFacingTarget = "viewer" | "streamer";
 export type PreviewBackgroundVariant = "mint" | "studio" | "night";
 export type DisplaySizeOption = "小さめ" | "標準" | "やや大きめ";
 export type BubbleToggle = "使う" | "使わない";
@@ -11,6 +12,7 @@ export interface BasicPreviewBridgeSettings {
   toneLabel: string;
   endingStyle: string;
   bannedExpressions: string;
+  sideImageFacing: SideImageFacingTarget;
   defaultFacing: SharedOrientation;
   mirrorEnabled: boolean;
   displaySize: DisplaySizeOption;
@@ -28,6 +30,7 @@ export const defaultBasicPreviewBridgeSettings: BasicPreviewBridgeSettings = {
   toneLabel: "丁寧で落ち着いた口調",
   endingStyle: "〜ですね / 〜ですよ",
   bannedExpressions: "暴言、差別的表現、過度に攻撃的な言い回し",
+  sideImageFacing: "viewer",
   defaultFacing: "front",
   mirrorEnabled: true,
   displaySize: "標準",
