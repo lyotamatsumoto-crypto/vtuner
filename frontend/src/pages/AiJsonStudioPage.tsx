@@ -173,10 +173,12 @@ const historyItems: HistoryItem[] = [
 
 export function AiJsonStudioPage({
   onRegisterPersonaImportQueueDraft,
+  aiJsonImportQueueItems,
 }: {
   onRegisterPersonaImportQueueDraft?: (
     input: RegisterPersonaImportQueueDraftInput,
   ) => AiJsonImportQueueItem;
+  aiJsonImportQueueItems: AiJsonImportQueueItem[];
 }) {
   const [activeTarget, setActiveTarget] = useState<TargetTab>("人格");
   const [workStartSource, setWorkStartSource] = useState<WorkStartSource>("new");
@@ -705,6 +707,52 @@ export function AiJsonStudioPage({
                       <p style={miniLabelStyle}>採用後の位置</p>
                       <strong>採用後は Detailed Rules で正式編集できます</strong>
                     </div>
+                  </div>
+                </section>
+
+                <section style={cardInsetStyle}>
+                  <div>
+                    <h3 style={{ margin: 0, fontSize: "18px", fontWeight: 800 }}>
+                      AI JSON Import Queue（前段）
+                    </h3>
+                    <p style={{ ...pageTextStyle, fontSize: "12px" }}>
+                      ここは Adopted Changes 接続前の保管レーンです。Review Patch Queue とは別に扱います。
+                    </p>
+                  </div>
+                  <div style={{ display: "grid", gap: "8px" }}>
+                    {aiJsonImportQueueItems.length === 0 ? (
+                      <div style={subCardStyle}>
+                        <span style={pageTextStyle}>
+                          まだ queue 登録はありません。検証後に「Import Queue へ登録（準備）」を実行してください。
+                        </span>
+                      </div>
+                    ) : (
+                      aiJsonImportQueueItems.slice(0, 5).map((item) => (
+                        <article key={item.id} style={subCardStyle}>
+                          <div
+                            style={{
+                              display: "flex",
+                              justifyContent: "space-between",
+                              gap: "8px",
+                              alignItems: "center",
+                              flexWrap: "wrap",
+                            }}
+                          >
+                            <strong>{item.generation_target}</strong>
+                            <span style={pillStyle("#EAF7F7", "#357F91")}>
+                              {item.status}
+                            </span>
+                          </div>
+                          <span style={{ ...pageTextStyle, fontSize: "12px" }}>
+                            source: {item.source_natural_text.slice(0, 48)}
+                            {item.source_natural_text.length > 48 ? "..." : ""}
+                          </span>
+                          <span style={{ ...pageTextStyle, fontSize: "12px" }}>
+                            errors: {item.error_messages.length}
+                          </span>
+                        </article>
+                      ))
+                    )}
                   </div>
                 </section>
 

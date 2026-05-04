@@ -3,6 +3,7 @@ import { dirname } from "node:path";
 
 import type {
   AdoptedChangeItem,
+  AiJsonImportQueueItem,
   ReviewPatchQueueItem,
 } from "../contracts/queue";
 import {
@@ -94,6 +95,21 @@ export function writeAdoptedChanges(items: AdoptedChangeItem[]) {
   );
 }
 
+export function readAiJsonImportQueue() {
+  return readJsonArrayFile<AiJsonImportQueueItem>(
+    QUEUE_FILE_PATHS.ai_json_import_queue,
+    isAiJsonImportQueueItem,
+  );
+}
+
+export function writeAiJsonImportQueue(items: AiJsonImportQueueItem[]) {
+  return writeJsonArrayFile(
+    QUEUE_FILE_PATHS.ai_json_import_queue,
+    items,
+    isAiJsonImportQueueItem,
+  );
+}
+
 function isMissingFileError(error: unknown) {
   return (
     typeof error === "object" &&
@@ -139,5 +155,26 @@ function isAdoptedChangeItem(value: unknown): value is AdoptedChangeItem {
     typeof value.target_name === "string" &&
     typeof value.target_kind === "string" &&
     typeof value.compile_wait_status === "string"
+  );
+}
+
+function isAiJsonImportQueueItem(
+  value: unknown,
+): value is AiJsonImportQueueItem {
+  if (!isRecord(value)) {
+    return false;
+  }
+
+  return (
+    typeof value.id === "string" &&
+    typeof value.generation_target === "string" &&
+    typeof value.source_natural_text === "string" &&
+    typeof value.prompt_text === "string" &&
+    typeof value.validation_ok === "boolean" &&
+    typeof value.status === "string" &&
+    Array.isArray(value.error_messages) &&
+    value.error_messages.every((item) => typeof item === "string") &&
+    typeof value.created_at === "string" &&
+    "returned_json" in value
   );
 }

@@ -3,12 +3,18 @@ import { createServer, type ServerResponse } from "node:http";
 import { LOCAL_STORAGE_LAYOUT } from "./storage/fileLayout";
 import {
   readAdoptedChanges,
+  readAiJsonImportQueue,
   readReviewPatchQueue,
   writeAdoptedChanges,
+  writeAiJsonImportQueue,
   writeReviewPatchQueue,
 } from "./storage/queueStorage";
 import { readCompileHistory, writeCompileHistory } from "./storage/compileStorage";
-import type { AdoptedChangeItem, ReviewPatchQueueItem } from "./contracts/queue";
+import type {
+  AdoptedChangeItem,
+  AiJsonImportQueueItem,
+  ReviewPatchQueueItem,
+} from "./contracts/queue";
 import type { CompileRecord } from "./contracts/compile";
 
 const DEFAULT_PORT = 3001;
@@ -72,6 +78,11 @@ const server = createServer(async (request, response) => {
       return;
     }
 
+    if (request.method === "GET" && request.url === "/ai-json-import-queue") {
+      sendJson(response, 200, await readAiJsonImportQueue());
+      return;
+    }
+
     if (request.method === "PUT" && request.url === "/adopted-changes") {
       const payload = await readJsonBody(request);
       if (!Array.isArray(payload)) {
@@ -85,6 +96,23 @@ const server = createServer(async (request, response) => {
       await writeAdoptedChanges(payload as AdoptedChangeItem[]);
       sendJson(response, 200, {
         saved: (payload as AdoptedChangeItem[]).length,
+      });
+      return;
+    }
+
+    if (request.method === "PUT" && request.url === "/ai-json-import-queue") {
+      const payload = await readJsonBody(request);
+      if (!Array.isArray(payload)) {
+        sendJson(response, 400, {
+          error: "invalid_queue_payload",
+          message: "AI JSON Import Queue payload must be an array.",
+        });
+        return;
+      }
+
+      await writeAiJsonImportQueue(payload as AiJsonImportQueueItem[]);
+      sendJson(response, 200, {
+        saved: (payload as AiJsonImportQueueItem[]).length,
       });
       return;
     }

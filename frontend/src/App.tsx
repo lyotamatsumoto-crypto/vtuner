@@ -37,6 +37,7 @@ import {
 import {
   loadReviewCompileReadModel,
   saveAdoptedChanges,
+  saveAiJsonImportQueue,
   saveCompileHistory,
   saveReviewPatchQueue,
 } from "./reviewCompileApi";
@@ -111,18 +112,24 @@ export function App() {
           result.compileHistory.length > 0
             ? result.compileHistory
             : initialCompileHistory;
+        const nextAiJsonImportQueue =
+          result.aiJsonImportQueue.length > 0
+            ? result.aiJsonImportQueue
+            : initialAiJsonImportQueue;
         const emptySources = [
           result.reviewPatchQueue.length === 0 ? "Review Patch Queue" : null,
           result.adoptedChanges.length === 0 ? "Adopted Changes" : null,
+          result.aiJsonImportQueue.length === 0 ? "AI JSON Import Queue" : null,
           result.compileHistory.length === 0 ? "compile 履歴" : null,
         ].filter((item): item is string => item !== null);
 
         setReviewPatchQueue(nextReviewPatchQueue);
         setAdoptedChanges(nextAdoptedChanges);
+        setAiJsonImportQueue(nextAiJsonImportQueue);
         setCompileHistory(nextCompileHistory);
         setBackendOrigin(result.backendOrigin);
 
-        if (emptySources.length === 3) {
+        if (emptySources.length === 4) {
           setStorageReadStatus("backend_empty");
           setStorageReadMessage(
             `backend 読込は成功しましたが、backend 側は空配列でした。frontend 確認版 seed を維持しています。(${result.backendOrigin})`,
@@ -325,7 +332,13 @@ export function App() {
       error_messages: input.validationErrors,
     });
 
-    setAiJsonImportQueue((current) => [queueItem, ...current].slice(0, 20));
+    setAiJsonImportQueue((current) => {
+      const nextQueue = [queueItem, ...current].slice(0, 20);
+      saveAiJsonImportQueue(backendOrigin, nextQueue).catch(() => {
+        // Keep frontend queue state even when backend is unavailable.
+      });
+      return nextQueue;
+    });
     return queueItem;
   }
 
@@ -380,6 +393,7 @@ export function App() {
       {currentScreen === "ai_json_studio" ? (
         <AiJsonStudioPage
           onRegisterPersonaImportQueueDraft={handleRegisterPersonaImportQueueDraft}
+          aiJsonImportQueueItems={aiJsonImportQueue}
         />
       ) : null}
     </AppShell>

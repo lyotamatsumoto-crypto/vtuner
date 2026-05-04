@@ -1,5 +1,6 @@
 import type {
   AdoptedChangeItem,
+  AiJsonImportQueueItem,
   ReviewPatchQueueItem,
 } from "../../schemas";
 import type { CompileRecord } from "../../schemas";
@@ -9,6 +10,7 @@ const DEFAULT_BACKEND_ORIGIN = "http://localhost:3001";
 export interface ReviewCompileReadModel {
   reviewPatchQueue: ReviewPatchQueueItem[];
   adoptedChanges: AdoptedChangeItem[];
+  aiJsonImportQueue: AiJsonImportQueueItem[];
   compileHistory: CompileRecord[];
   backendOrigin: string;
 }
@@ -67,20 +69,40 @@ export async function saveCompileHistory(
   }
 }
 
+export async function saveAiJsonImportQueue(
+  backendOrigin: string,
+  aiJsonImportQueue: AiJsonImportQueueItem[],
+): Promise<void> {
+  const response = await fetch(`${backendOrigin}/ai-json-import-queue`, {
+    method: "PUT",
+    mode: "cors",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(aiJsonImportQueue),
+  });
+
+  if (!response.ok) {
+    throw new Error(`Request failed: /ai-json-import-queue (${response.status})`);
+  }
+}
+
 export async function loadReviewCompileReadModel(): Promise<ReviewCompileReadModel> {
   const backendOrigin =
     (import.meta.env.VITE_BACKEND_ORIGIN as string | undefined) ??
     DEFAULT_BACKEND_ORIGIN;
 
-  const [reviewPatchQueue, adoptedChanges, compileHistory] = await Promise.all([
+  const [reviewPatchQueue, adoptedChanges, aiJsonImportQueue, compileHistory] = await Promise.all([
     fetchJsonArray<ReviewPatchQueueItem>(backendOrigin, "/review-patch-queue"),
     fetchJsonArray<AdoptedChangeItem>(backendOrigin, "/adopted-changes"),
+    fetchJsonArray<AiJsonImportQueueItem>(backendOrigin, "/ai-json-import-queue"),
     fetchJsonArray<CompileRecord>(backendOrigin, "/compile-history"),
   ]);
 
   return {
     reviewPatchQueue,
     adoptedChanges,
+    aiJsonImportQueue,
     compileHistory,
     backendOrigin,
   };
