@@ -522,3 +522,37 @@
 - Basic Settings 以外へ大規模波及する
 - shared settings を壊さないと成立しない
 - backend API / schemas 変更が必要になる
+
+---
+
+## Extension Phase 13 Checkpoints: Read Aloud and Shared Blocking Rules（最小完了）
+
+### Check items
+- Preview / Test で読み上げのみモード ON / OFF を切り替えられる
+- 読み上げのみ ON では runtime decide を通さず、入力文をそのまま吹き出し表示できる
+- Basic Settings の既存禁止表現入力が shared settings に接続されている
+- 通常モード / 読み上げのみモードの両方で NG 一致時に共通 block される
+- NG 一致は `blocked`、runtime ignore は `ignored` として区別される
+- Preview 履歴で `runtime` / `read_aloud` / `blocked` / `ignored` を区別表示できる
+- 読み上げのみモードは Preview / Test の確認機能に限定され、Review へ送らない
+
+### Verified snapshot（Phase 13 implementation patch 時点）
+- `BasicPreviewBridgeSettings` に `bannedExpressions` を追加済み
+- Basic Settings の既存「禁止表現」入力は shared settings 更新に接続済み
+- Preview / Test に読み上げのみモード ON / OFF を追加済み
+- NG 一致時は `blocked` として runtime 未実行・表示更新なし
+- runtime decide の `ignore` は `ignored` として履歴で分離済み
+- backend / schemas / compile / Overlay は未変更
+- `npm run check` passed
+
+### Done criteria（Phase 13 最小完了）
+- Preview / Test 内で読み上げのみ確認経路が成立している
+- 共通 NG block が通常モード / 読み上げのみモードに同じ基準で適用される
+- `blocked` と `ignored` の意味が履歴上で混線せず説明できる
+- Review / Detailed Rules / AI / JSON Studio / compile / Overlay へ責務を広げていない
+
+### Stop if
+- 読み上げのみ機能を Review 送信導線へ接続しないと成立しない
+- NG block のために backend API / schemas 変更が必要になる
+- `blocked` と `ignored` の境界が UI / docs で説明できなくなる
+- 5 画面責務分離（Preview / Test と他画面）が崩れる

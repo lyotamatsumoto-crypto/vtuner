@@ -210,6 +210,21 @@
 * Preview / Test 反映は既存 shared settings を継続利用する
 * backend 永続保存 / JSON import-export / 完全 schema 化は後続 Phase で扱う
 
+実装現在地メモ（Extension Phase 13 implementation patch 時点）:
+* `bannedExpressions` は `BasicPreviewBridgeSettings` の shared settings として扱う
+* Basic Settings の既存「禁止表現」入力を shared settings 更新に接続する（新規 UI は増やさない）
+* Preview / Test のコメント実行順は次のとおり:
+  * 入力
+  * NG 判定
+  * NG 一致なら `blocked`
+  * NG 非一致かつ読み上げのみ ON なら runtime を通さず表示（`read_aloud`）
+  * NG 非一致かつ通常モードなら runtime decide
+  * runtime decide の `ignore` は `ignored`
+* `blocked` は runtime 未実行
+* `read_aloud` は runtime 未実行
+* `ignored` は runtime decide の結果
+* 音声合成本実装は未対応（表示確認のみ）
+
 build 確認:
 * `npm run build:schemas`
 * `npm run build:backend`

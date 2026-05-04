@@ -8,7 +8,7 @@
 
 - 現在地: Conditional MVP Complete+
 - Completion Roadmap: C1〜C5 は最小完了
-- Extension: Phase 12 local foundation（Character Profile の local state 基礎）を実装済み
+- Extension: Phase 12 local foundation（Character Profile の local state 基礎）と Phase 13（Read Aloud and Shared Blocking Rules）を最小完了
 - Full Completion は未達（後続課題あり）
 
 ## Startup
@@ -84,6 +84,14 @@
 - Detailed Rules: 正式編集と採用
 - AI / JSON Studio: 外部ブラウザAI支援 / JSON検証 / Import Queue
 - Overlay: 5画面とは別の表示専用ルート
+
+Preview / Test の Phase 13 現在地（最小）:
+
+- 読み上げのみモード ON / OFF を確認できる
+- Basic Settings の禁止表現（shared settings）を共通 block 判定に使う
+- 履歴で `runtime` / `read_aloud` / `blocked` / `ignored` を区別表示できる
+- `blocked` は NG 一致による runtime 未実行
+- `ignored` は runtime decide の ignore 結果
 
 ## Flow (Review / AI JSON / Compile)
 
