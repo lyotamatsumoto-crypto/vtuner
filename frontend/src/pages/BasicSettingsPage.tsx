@@ -62,7 +62,6 @@ export function BasicSettingsPage({
   const [viewerPolicy, setViewerPolicy] = useState("礼儀正しく、常連には少しやわらかく接する");
   const [streamerPolicy, setStreamerPolicy] = useState("困っているときは助け舟を出す");
   const [favoritePhrases, setFavoritePhrases] = useState("ありがとうございます / なるほどです / それは良いですね");
-  const [bannedExpressions, setBannedExpressions] = useState("暴言、差別的表現、過度に攻撃的な言い回し");
   const [voiceEnabled, setVoiceEnabled] = useState("使う");
   const [voiceType, setVoiceType] = useState("落ち着いた女性声");
   const [voiceSpeed, setVoiceSpeed] = useState("標準");
@@ -86,6 +85,7 @@ export function BasicSettingsPage({
     streamerCall,
     toneLabel,
     endingStyle,
+    bannedExpressions,
     defaultFacing,
     mirrorEnabled,
     displaySize,
@@ -329,7 +329,9 @@ export function BasicSettingsPage({
                   <input
                     style={inputStyle}
                     value={bannedExpressions}
-                    onChange={(event) => setBannedExpressions(event.target.value)}
+                    onChange={(event) =>
+                      updateSharedSettings({ bannedExpressions: event.target.value })
+                    }
                   />
                 </Field>
               </FieldGrid>

@@ -10,6 +10,7 @@ export interface BasicPreviewBridgeSettings {
   streamerCall: string;
   toneLabel: string;
   endingStyle: string;
+  bannedExpressions: string;
   defaultFacing: SharedOrientation;
   mirrorEnabled: boolean;
   displaySize: DisplaySizeOption;
@@ -26,6 +27,7 @@ export const defaultBasicPreviewBridgeSettings: BasicPreviewBridgeSettings = {
   streamerCall: "マスター",
   toneLabel: "丁寧で落ち着いた口調",
   endingStyle: "〜ですね / 〜ですよ",
+  bannedExpressions: "暴言、差別的表現、過度に攻撃的な言い回し",
   defaultFacing: "front",
   mirrorEnabled: true,
   displaySize: "標準",

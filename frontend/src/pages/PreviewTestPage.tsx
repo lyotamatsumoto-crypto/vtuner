@@ -17,10 +17,12 @@ import type { CompiledRuntimeEntry } from "../reviewCompileBridge";
 type BackgroundVariant = PreviewBackgroundVariant;
 type SampleKey = "compliment" | "greeting" | "question" | "quiet";
 type Orientation = SharedOrientation;
+type PreviewExecutionKind = "runtime" | "read_aloud" | "blocked" | "ignored";
 
 interface PreviewHistoryItem {
   id: string;
   kind: "comment" | "reply" | "event";
+  executionKind: PreviewExecutionKind;
   label: string;
   name?: string;
   text: string;
@@ -142,6 +144,7 @@ export function PreviewTestPage({
   const [authorName, setAuthorName] = useState(initialSample.author);
   const [selectedSample, setSelectedSample] = useState<SampleKey>("compliment");
   const [commentText, setCommentText] = useState(initialSample.text);
+  const [readAloudOnlyMode, setReadAloudOnlyMode] = useState(false);
   const [historyItems, setHistoryItems] = useState<PreviewHistoryItem[]>([]);
   const [lastRuntimeDecision, setLastRuntimeDecision] = useState<RuntimeDecision | null>(null);
   const [previewResult, setPreviewResult] = useState<PreviewOnlyReaction>({
@@ -169,6 +172,53 @@ export function PreviewTestPage({
   }
 
   function runCommentTest(source: "manual" | "sample") {
+    const blockedExpression = detectBlockedExpression(
+      commentText,
+      sharedSettings.bannedExpressions,
+    );
+    if (blockedExpression) {
+      setLastRuntimeDecision(null);
+      appendHistory([
+        {
+          id: `${Date.now()}-blocked`,
+          kind: "comment",
+          executionKind: "blocked",
+          label: "blocked",
+          name: authorName,
+          text: commentText,
+          detail: `禁止表現一致: ${blockedExpression}`,
+        },
+      ]);
+      return;
+    }
+
+    if (readAloudOnlyMode) {
+      setLastRuntimeDecision(null);
+      setOrientation(sharedSettings.defaultFacing);
+      setPreviewResult({
+        result_label: "read_aloud",
+        category_label: "unknown",
+        reason_label: "読み上げのみモード",
+        reaction_name: "read_aloud_direct",
+        adoption_label: "採用",
+        target_label: "viewer",
+        orientation: sharedSettings.defaultFacing,
+        bubble_text: commentText,
+      });
+      appendHistory([
+        {
+          id: `${Date.now()}-read-aloud`,
+          kind: "comment",
+          executionKind: "read_aloud",
+          label: "read_aloud",
+          name: authorName,
+          text: commentText,
+          detail: source === "sample" ? "単発サンプル / 読み上げのみ" : "手入力 / 読み上げのみ",
+        },
+      ]);
+      return;
+    }
+
     const runtimeInput: CommentInput = {
       kind: "comment_input",
       user_name: authorName,
@@ -177,6 +227,8 @@ export function PreviewTestPage({
     };
     const runtimeDecision = decideRuntimeEvent(runtimeInput);
     const nextResult = mapRuntimeDecisionToPreviewReaction(runtimeDecision, sharedSettings);
+    const executionKind: PreviewExecutionKind =
+      runtimeDecision.kind === "ignore" ? "ignored" : "runtime";
 
     setLastRuntimeDecision(runtimeDecision);
     setOrientation(nextResult.orientation);
@@ -185,6 +237,7 @@ export function PreviewTestPage({
       {
         id: `${Date.now()}-comment`,
         kind: "comment",
+        executionKind,
         label: source === "sample" ? "単発サンプル" : "コメント",
         name: authorName,
         text: commentText,
@@ -193,6 +246,7 @@ export function PreviewTestPage({
       {
         id: `${Date.now()}-reply`,
         kind: "reply",
+        executionKind,
         label: "VTuner返答",
         text: nextResult.bubble_text,
         detail: buildReplyHistoryDetail(runtimeDecision, nextResult),
@@ -218,6 +272,7 @@ export function PreviewTestPage({
       {
         id: `${Date.now()}-${preset.id}`,
         kind: "event",
+        executionKind: "runtime",
         label: preset.condition_label,
         text: `${preset.title} を実行: ${preset.value_label}`,
         detail: buildRuntimeHistoryDetail(runtimeDecision, nextResult),
@@ -225,6 +280,7 @@ export function PreviewTestPage({
       {
         id: `${Date.now()}-${preset.id}-reply`,
         kind: "reply",
+        executionKind: runtimeDecision.kind === "ignore" ? "ignored" : "runtime",
         label: "VTuner返答",
         text: nextResult.bubble_text,
         detail: buildReplyHistoryDetail(runtimeDecision, nextResult),
@@ -324,6 +380,9 @@ export function PreviewTestPage({
             </span>
             <span style={{ color: "#5F747A", lineHeight: 1.7, fontSize: "12px" }}>
               条件イベントは `TestEventInput` を使う preview-only の簡易入口を通し、正式 runtime 本体とは分離したまま確認します。
+            </span>
+            <span style={{ color: "#5F747A", lineHeight: 1.7, fontSize: "12px" }}>
+              コメント入力は runtime / read_aloud / blocked / ignored を履歴で区別して確認できます。
             </span>
             <span style={{ color: "#357F91", lineHeight: 1.7, fontSize: "12px", fontWeight: 700 }}>
               compile 後参照（確認版）: {compiledRuntimeEntries.length} 件 /{" "}
@@ -559,6 +618,9 @@ export function PreviewTestPage({
                     >
                       <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", alignItems: "center" }}>
                         <span style={historyBadgeStyle(item.kind)}>{item.label}</span>
+                        <span style={executionBadgeStyle(item.executionKind)}>
+                          {item.executionKind}
+                        </span>
                         {item.name ? <strong style={{ color: "#3F8A63", fontSize: "13px" }}>{item.name}</strong> : null}
                       </div>
                       <div style={{ lineHeight: 1.65 }}>{item.text}</div>
@@ -574,6 +636,25 @@ export function PreviewTestPage({
                 <p style={{ margin: 0, color: "#5F747A", fontSize: "12px", lineHeight: 1.7 }}>
                   ここは手入力テスト用です。コメント入力は最小の正式 runtime decide を通しますが、見え方は Preview / Test 用の表示整形です。正式ルール編集や JSON 生成は他画面の責務です。
                 </p>
+                <label style={fieldStyle}>
+                  <span style={fieldLabelStyle}>読み上げのみモード</span>
+                  <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                    <button
+                      type="button"
+                      style={toggleButtonStyle(!readAloudOnlyMode)}
+                      onClick={() => setReadAloudOnlyMode(false)}
+                    >
+                      OFF
+                    </button>
+                    <button
+                      type="button"
+                      style={toggleButtonStyle(readAloudOnlyMode)}
+                      onClick={() => setReadAloudOnlyMode(true)}
+                    >
+                      ON
+                    </button>
+                  </div>
+                </label>
                 <label style={fieldStyle}>
                   <span style={fieldLabelStyle}>投稿者名</span>
                   <input style={inputStyle} value={authorName} onChange={(event) => setAuthorName(event.target.value)} />
@@ -971,4 +1052,39 @@ function historyBadgeStyle(kind: PreviewHistoryItem["kind"]) {
     fontSize: "11px",
     fontWeight: 800,
   } as const;
+}
+
+function executionBadgeStyle(kind: PreviewExecutionKind) {
+  if (kind === "blocked") {
+    return badgeColor("#FEE2E2", "#B91C1C");
+  }
+  if (kind === "ignored") {
+    return badgeColor("#F3F4F6", "#4B5563");
+  }
+  if (kind === "read_aloud") {
+    return badgeColor("#E0F2FE", "#0369A1");
+  }
+  return badgeColor("#DCFCE7", "#166534");
+}
+
+function badgeColor(background: string, color: string) {
+  return {
+    padding: "5px 9px",
+    borderRadius: "999px",
+    background,
+    color,
+    fontSize: "11px",
+    fontWeight: 800,
+  } as const;
+}
+
+function detectBlockedExpression(commentText: string, bannedExpressions: string) {
+  const fragments = bannedExpressions
+    .split(/[,\n\/、，]/)
+    .map((item) => item.trim())
+    .filter((item) => item.length > 0);
+  const normalizedComment = commentText.toLowerCase();
+  return (
+    fragments.find((fragment) => normalizedComment.includes(fragment.toLowerCase())) ?? null
+  );
 }
