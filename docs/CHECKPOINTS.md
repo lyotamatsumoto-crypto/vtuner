@@ -767,3 +767,42 @@
 ### Next candidates
 - Phase 16-2: AI / JSON Studio validation 接続（validator 呼び出しと error_messages 反映）
 - replyTemplates import / export 導線（UI と queue 接続は段階導入）
+
+---
+
+## Extension Phase 16-2 Checkpoints: Reply Templates JSON Validation in AI / JSON Studio（最小完了）
+
+### Check items
+- AI / JSON Studio に `返答テンプレートJSON` target が存在する
+- `validateReplyTemplatesJson()` が AI / JSON Studio validation に接続されている
+- JSON parse error と schema validation error が分離されている
+- valid 時に `category count` / `category names` を表示できる
+- invalid 時に validator errors を表示できる
+- Import Queue 登録に進んでいない（replyTemplates target で無効化される）
+- persona validation / persona Import Queue 登録を壊していない
+- backend / compile / Overlay / PreviewTest へ広げていない
+
+### Verified snapshot（Phase 16-2 implementation patch 時点）
+- `frontend/src/pages/AiJsonStudioPage.tsx` のみ更新済み
+- `TargetTab` に `返答テンプレートJSON` を追加済み
+- validation 分岐:
+  - `人格` -> `validatePersonaJsonV1Draft()`
+  - `返答テンプレートJSON` -> `validateReplyTemplatesJson()`
+  - その他 target -> 暫定案内
+- `validReplyTemplatesJsonSample` / `invalidReplyTemplatesJsonSample` 挿入導線を追加済み
+- `返答テンプレートJSON` では Import Queue 登録ボタンを無効化し、登録処理を呼ばない
+- `npm run check` passed
+
+### Done criteria（Phase 16-2 最小完了）
+- AI / JSON Studio 上で replyTemplates JSON の validation が確認できる
+- parse error / schema validation error を区別して再修正に使える
+- Queue 登録や採用・compile・runtime 反映へ広げていない
+- persona 導線（validation / Import Queue）を維持している
+
+### Stop if
+- backend API 変更が必要になる
+- validator 仕様変更が必要になる
+- Queue 登録まで進めないと成立しない
+- persona validation を壊す
+- Preview / Test runtime 挙動変更が必要になる
+- UI 大改修が必要になる

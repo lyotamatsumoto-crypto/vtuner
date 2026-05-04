@@ -298,6 +298,17 @@
 * import / export、Detailed Rules、compile 連携は後続で扱う
 * Preview / Test の既存挙動は変更しない
 
+実装現在地メモ（Extension Phase 16-2 implementation patch 時点）:
+* replyTemplates JSON validation は AI / JSON Studio 上の `返答テンプレートJSON` target で行う
+* validator は `schemas/replyTemplates/validateReplyTemplatesJson()` を使う
+* parse error は JSON parse 段階で止める（`JSON parse error`）
+* schema validation error は validator errors を表示する
+* valid 時は parsed summary（`category count` / `category names`）を表示する
+* `返答テンプレートJSON` では Import Queue 登録をしない（UI で無効化）
+* persona target の validation / Import Queue 登録は既存維持
+* Queue 登録 / 採用 / compile / runtime反映は Phase 16-3 以降で扱う
+* backend / compile / Overlay / PreviewTest は未変更
+
 build 確認:
 * `npm run build:schemas`
 * `npm run build:backend`
