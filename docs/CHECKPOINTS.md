@@ -645,3 +645,42 @@
 - replyLength 反映のため返答文加工が必須になる
 - `decideRuntimeEvent` や runtime schema 変更が必要になる
 - backend / schemas / compile / Overlay 変更が必要になる
+
+---
+
+## Extension Phase 15-2 Checkpoints: Reaction Frequency Runtime Gate（最小完了）
+
+### Check items
+- `applyReactionFrequencyGate()` が Preview / Test 専用 helper として存在する
+- `reactionFrequencyMode=low` のときだけ deterministic gate を適用する
+- `reactionFrequencyMode=normal` / `high` は既存挙動を維持する
+- low gate は `runtimeDecision.kind=reply` のみを対象にする
+- low gate 対象キーワード（雰囲気 / 共感 / 静か / 褒め）を持つ低優先度 reply のみに限定する
+- 保護条件（question / greeting / `speech_target=streamer` / `test_event_input` / blocked / read_aloud / 既存 ignore）を維持する
+- gate 適用時は `IgnoreDecision` へ変換し、runtime schema を変更しない
+- gate による ignored と通常 ignored を detail / reason で区別できる
+- runtime schema / backend / compile / Overlay へ広げていない
+
+### Verified snapshot（Phase 15-2 implementation patch 時点）
+- `frontend/src/features/previewTest/applyReactionFrequencyGate.ts` を追加済み
+- Preview / Test のコメント runtime フローで `decideRuntimeEvent()` 直後に gate を適用済み
+- `reactionFrequencyMode=low` のみ gate 適用、`normal` / `high` は透過
+- gate 適用時は `IgnoreDecision` 形へ変換（`related_rule: reaction_frequency_low_gate`）
+- Preview / Test で `gateApplied` / `gateReasonLabel` を表示済み
+- 履歴 detail で gate 理由を追跡可能
+- `decideRuntimeEvent` 本体は未変更
+- runtime schema / backend / compile / Overlay は未変更
+- `npm run check` passed
+
+### Done criteria（Phase 15-2 最小完了）
+- low mode のみ runtime gate が deterministic に動作する
+- normal / high の既存挙動が維持される
+- 保護対象（question / greeting / streamer / event / blocked / read_aloud）を潰していない
+- ignored の見え方で gate 適用有無を説明できる
+- Phase 15-3（reply length 制御）へ境界を保ったまま引き継げる
+
+### Stop if
+- low gate 実装のため runtime schema 変更が必要になる
+- gate 実装のため backend / compile / Overlay 変更が必要になる
+- deterministic 判定を維持できない
+- 保護条件（question / greeting / streamer / event / blocked / read_aloud）を維持できない

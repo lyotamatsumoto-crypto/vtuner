@@ -252,6 +252,21 @@
 * runtime 本格制御は Phase 15-2 / 15-3 以降で扱う
 * backend / schemas / compile / Overlay は未変更
 
+実装現在地メモ（Extension Phase 15-2 implementation patch 時点）:
+* `reactionFrequencyMode` は Phase 15-2 で `low` のみ runtime gate に使う
+* `reactionFrequencyMode=normal` / `high` は透過（既存挙動維持）
+* `applyReactionFrequencyGate()` は Preview / Test 専用 helper として実装する
+* コメント runtime フローの適用順:
+  * NG 判定
+  * read_aloud 判定
+  * `decideRuntimeEvent()`
+  * `applyReactionFrequencyGate()`
+  * `mapRuntimeDecisionToPreviewReaction()`
+* low gate は低優先度 reply を `IgnoreDecision` へ変換する
+* question / greeting / streamer / event / blocked / read_aloud は保護対象として gate しない
+* `replyLengthMode` はまだ使わない（返答文加工なし）
+* runtime schema / backend / compile / Overlay は未変更
+
 build 確認:
 * `npm run build:schemas`
 * `npm run build:backend`

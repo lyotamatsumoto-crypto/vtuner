@@ -8,7 +8,7 @@
 
 - 現在地: Conditional MVP Complete+
 - Completion Roadmap: C1〜C5 は最小完了
-- Extension: Phase 12 local foundation（Character Profile の local state 基礎）、Phase 13（Read Aloud and Shared Blocking Rules）、Phase 14（Speech Target and Visual Direction）、Phase 15-1（Reaction Control Preview Foundation）を最小完了
+- Extension: Phase 12 local foundation（Character Profile の local state 基礎）、Phase 13（Read Aloud and Shared Blocking Rules）、Phase 14（Speech Target and Visual Direction）、Phase 15-1（Reaction Control Preview Foundation）、Phase 15-2（Reaction Frequency Runtime Gate）を最小完了
 - Full Completion は未達（後続課題あり）
 
 ## Startup
@@ -110,6 +110,14 @@ Preview / Test の Phase 15-1 現在地（最小）:
 - replyLength の返答文制御は未対応
 - 表示確認レイヤーの基礎段階として運用する
 
+Preview / Test の Phase 15-2 現在地（最小）:
+
+- Basic Settings で反応頻度を `控えめ`（low）にすると、低優先度 reply を ignored 化する runtime gate が有効になる
+- Preview / Test で `gateApplied` / `gateReasonLabel` を確認できる
+- question / greeting / streamer / event / blocked / read_aloud は保護対象として gate しない
+- `normal` / `high` は現時点では既存挙動を維持する
+- replyLength 制御は未対応（後続）
+
 ## Flow (Review / AI JSON / Compile)
 
 1. Review Patch Queue（Review 由来）
@@ -151,7 +159,6 @@ Preview / Test の Phase 15-1 現在地（最小）:
 
 ## Next Candidates
 
-- Phase 15-2: reaction frequency runtime gate（段階導入）
 - Phase 15-3: reply length template/control（段階導入）
 - production compile engine 高度化
 - runtime config 永続保存
