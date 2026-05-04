@@ -225,6 +225,20 @@
 * `ignored` は runtime decide の結果
 * 音声合成本実装は未対応（表示確認のみ）
 
+実装現在地メモ（Extension Phase 14 implementation patch 時点）:
+* `sideImageFacing` は `BasicPreviewBridgeSettings` の shared settings として扱う
+* `sideImageFacing` は Basic Settings の見た目設定から指定する
+* `resolveVisualDirection()` は Preview / Test 専用 helper として実装する
+* 変換ルール:
+  * `viewer`: `orientation=side` + side画像が viewer 向きなら mirror なし、streamer 向きなら mirror 反転
+  * `streamer`: `orientation=side` + side画像が streamer 向きなら mirror なし、viewer 向きなら mirror 反転
+  * `all`: `orientation=front` + `mirror=mirrorEnabled`（runtime schema 追加なしの表示上扱い）
+* `read_aloud` は `viewer` 扱いで向き変換する
+* `blocked` は表示方向更新なし
+* `ignored` は表示方向更新なし
+* CharacterStage / CharacterDisplay は既存 props のまま再利用する
+* Overlay には未反映（後続）
+
 build 確認:
 * `npm run build:schemas`
 * `npm run build:backend`

@@ -8,7 +8,7 @@
 
 - 現在地: Conditional MVP Complete+
 - Completion Roadmap: C1〜C5 は最小完了
-- Extension: Phase 12 local foundation（Character Profile の local state 基礎）と Phase 13（Read Aloud and Shared Blocking Rules）を最小完了
+- Extension: Phase 12 local foundation（Character Profile の local state 基礎）、Phase 13（Read Aloud and Shared Blocking Rules）、Phase 14（Speech Target and Visual Direction）を最小完了
 - Full Completion は未達（後続課題あり）
 
 ## Startup
@@ -92,6 +92,14 @@ Preview / Test の Phase 13 現在地（最小）:
 - 履歴で `runtime` / `read_aloud` / `blocked` / `ignored` を区別表示できる
 - `blocked` は NG 一致による runtime 未実行
 - `ignored` は runtime decide の ignore 結果
+
+Preview / Test の Phase 14 現在地（最小）:
+
+- Basic Settings で横向き画像の向き解釈（`sideImageFacing`）を選べる
+- Preview / Test で発話対象に応じた向き変化（`orientation` / `mirror`）を確認できる
+- `read_aloud` は `viewer` 扱いで向きを決める
+- `blocked` / `ignored` は向き更新なし
+- Overlay 反映と画像差し替え本実装は未対応
 
 ## Flow (Review / AI JSON / Compile)
 
