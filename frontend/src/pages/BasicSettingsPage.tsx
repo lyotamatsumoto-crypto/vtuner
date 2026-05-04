@@ -90,6 +90,9 @@ export function BasicSettingsPage({
     viewerTargetFacing,
     streamerTargetFacing,
     allTargetFacing,
+    reactionFrequencyMode,
+    replyLengthMode,
+    defaultCharacterState,
     defaultFacing,
     mirrorEnabled,
     displaySize,
@@ -577,6 +580,59 @@ export function BasicSettingsPage({
               <InlineNotice>
                 新しいカテゴリの正式追加は Detailed Rules または AI / JSON Studio 側で扱い、ここでは採用済みカテゴリの ON / OFF に留めます。
               </InlineNotice>
+            </SettingsSection>
+
+            <SettingsSection
+              title="反応コントロール（Preview 基礎）"
+              description="この段階では Preview / Test の表示確認にのみ使います。runtime 本格制御には使いません。"
+            >
+              <FieldGrid columns={3}>
+                <Field label="反応頻度">
+                  <select
+                    style={inputStyle}
+                    value={reactionFrequencyMode}
+                    onChange={(event) =>
+                      updateSharedSettings({
+                        reactionFrequencyMode: event.target.value as "low" | "normal" | "high",
+                      })
+                    }
+                  >
+                    <option value="low">控えめ</option>
+                    <option value="normal">標準</option>
+                    <option value="high">よく反応する</option>
+                  </select>
+                </Field>
+                <Field label="発話の長さ">
+                  <select
+                    style={inputStyle}
+                    value={replyLengthMode}
+                    onChange={(event) =>
+                      updateSharedSettings({
+                        replyLengthMode: event.target.value as "short" | "normal" | "long",
+                      })
+                    }
+                  >
+                    <option value="short">短い</option>
+                    <option value="normal">標準</option>
+                    <option value="long">やや長め</option>
+                  </select>
+                </Field>
+                <Field label="基本状態">
+                  <select
+                    style={inputStyle}
+                    value={defaultCharacterState}
+                    onChange={(event) =>
+                      updateSharedSettings({
+                        defaultCharacterState: event.target.value as "normal" | "idle" | "reacting",
+                      })
+                    }
+                  >
+                    <option value="normal">通常</option>
+                    <option value="idle">待機中</option>
+                    <option value="reacting">反応中</option>
+                  </select>
+                </Field>
+              </FieldGrid>
             </SettingsSection>
           </div>
 

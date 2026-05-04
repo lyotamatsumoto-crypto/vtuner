@@ -16,6 +16,9 @@ export interface BasicPreviewBridgeSettings {
   viewerTargetFacing: SharedOrientation;
   streamerTargetFacing: SharedOrientation;
   allTargetFacing: SharedOrientation;
+  reactionFrequencyMode: "low" | "normal" | "high";
+  replyLengthMode: "short" | "normal" | "long";
+  defaultCharacterState: "normal" | "idle" | "reacting";
   defaultFacing: SharedOrientation;
   mirrorEnabled: boolean;
   displaySize: DisplaySizeOption;
@@ -37,6 +40,9 @@ export const defaultBasicPreviewBridgeSettings: BasicPreviewBridgeSettings = {
   viewerTargetFacing: "front",
   streamerTargetFacing: "side",
   allTargetFacing: "front",
+  reactionFrequencyMode: "normal",
+  replyLengthMode: "normal",
+  defaultCharacterState: "normal",
   defaultFacing: "front",
   mirrorEnabled: true,
   displaySize: "標準",

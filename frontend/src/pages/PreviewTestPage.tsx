@@ -9,6 +9,7 @@ import {
 import { CharacterStage } from "../components/display";
 import { decidePreviewTestEvent } from "../features/previewTest/decidePreviewTestEvent";
 import type { PreviewOnlyReaction } from "../features/previewTest/previewOnlyCommentRuntime";
+import { resolveCharacterStateLabel } from "../features/previewTest/resolveCharacterStateLabel";
 import { resolveVisualDirection } from "../features/previewTest/resolveVisualDirection";
 import { decideRuntimeEvent } from "../runtime/decideRuntimeEvent";
 import type { CommentInput, RuntimeDecision, TestEventInput } from "../../../schemas/runtime/runtimeTypes";
@@ -147,6 +148,9 @@ export function PreviewTestPage({
   const [commentText, setCommentText] = useState(initialSample.text);
   const [readAloudOnlyMode, setReadAloudOnlyMode] = useState(false);
   const [historyItems, setHistoryItems] = useState<PreviewHistoryItem[]>([]);
+  const [currentExecutionKind, setCurrentExecutionKind] = useState<
+    PreviewExecutionKind | null
+  >(null);
   const [directionReasonLabel, setDirectionReasonLabel] = useState(
     "未実行: 発話対象に応じた向き変換はまだ行っていません。",
   );
@@ -161,6 +165,12 @@ export function PreviewTestPage({
     orientation: "front",
     bubble_text:
       "ここでは Main Preview、キャラクター表示、吹き出し表示、Bottom Test Area の骨格を確認できます。",
+  });
+  const characterState = resolveCharacterStateLabel({
+    executionKind: currentExecutionKind,
+    speechTarget: previewResult.target_label,
+    defaultCharacterState: sharedSettings.defaultCharacterState,
+    isRuntimeReply: lastRuntimeDecision?.kind === "reply",
   });
 
   function applySample(sampleKey: SampleKey) {
@@ -182,6 +192,7 @@ export function PreviewTestPage({
     );
     if (blockedExpression) {
       setLastRuntimeDecision(null);
+      setCurrentExecutionKind("blocked");
       setDirectionReasonLabel("blocked: NG一致のため表示方向は更新していません。");
       appendHistory([
         {
@@ -207,6 +218,7 @@ export function PreviewTestPage({
         mirrorEnabled: sharedSettings.mirrorEnabled,
       });
       setLastRuntimeDecision(null);
+      setCurrentExecutionKind("read_aloud");
       setOrientation(resolvedDirection.orientation);
       setMirror(resolvedDirection.mirror);
       setDirectionReasonLabel(`read_aloud: ${resolvedDirection.reasonLabel}`);
@@ -265,6 +277,7 @@ export function PreviewTestPage({
     }
 
     setLastRuntimeDecision(runtimeDecision);
+    setCurrentExecutionKind(executionKind);
     setPreviewResult(nextResult);
     appendHistory([
       {
@@ -318,6 +331,9 @@ export function PreviewTestPage({
     }
 
     setLastRuntimeDecision(runtimeDecision);
+    setCurrentExecutionKind(
+      runtimeDecision.kind === "ignore" ? "ignored" : "runtime",
+    );
     setPreviewResult(nextResult);
     appendHistory([
       {
@@ -540,6 +556,22 @@ export function PreviewTestPage({
                 <div style={resultCardStyle}>
                   <span style={resultLabelStyle}>向き変換理由</span>
                   <strong>{directionReasonLabel}</strong>
+                </div>
+                <div style={resultCardStyle}>
+                  <span style={resultLabelStyle}>反応頻度モード</span>
+                  <strong>{sharedSettings.reactionFrequencyMode}</strong>
+                </div>
+                <div style={resultCardStyle}>
+                  <span style={resultLabelStyle}>発話長モード</span>
+                  <strong>{sharedSettings.replyLengthMode}</strong>
+                </div>
+                <div style={resultCardStyle}>
+                  <span style={resultLabelStyle}>現在のキャラ状態</span>
+                  <strong>{characterState.stateLabel}</strong>
+                </div>
+                <div style={resultCardStyle}>
+                  <span style={resultLabelStyle}>状態理由</span>
+                  <strong>{characterState.reasonLabel}</strong>
                 </div>
                 <div style={resultCardStyle}>
                   <span style={resultLabelStyle}>Runtime entry</span>
