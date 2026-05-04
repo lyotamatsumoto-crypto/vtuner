@@ -684,3 +684,44 @@
 - gate 実装のため backend / compile / Overlay 変更が必要になる
 - deterministic 判定を維持できない
 - 保護条件（question / greeting / streamer / event / blocked / read_aloud）を維持できない
+
+---
+
+## Extension Phase 15-3 Checkpoints: Reply Template Length Selection Foundation（最小完了）
+
+### Check items
+- `replyTemplates.ts` が存在し、`category × length` の plain object で構成されている
+- `applyReplyLengthTemplate()` が Preview / Test 専用 helper として存在する
+- `replyLengthMode=normal` は既存 `reply_text` を維持する
+- `replyLengthMode=short` / `long` のときのみ template 適用を試みる
+- template 適用時は `reply_text` だけを差し替え、他 field は維持する
+- category 未解決または template 欠落時は既存文を維持する
+- `blocked` / `read_aloud` / `ignored` / low gate ignored を template 適用対象外として保護する
+- Preview / Test で `templateApplied` / `templateCategory` / `templateLength` / `templateReasonLabel` を確認できる
+- runtime schema / backend / compile / Overlay へ広げていない
+
+### Verified snapshot（Phase 15-3 implementation patch 時点）
+- `frontend/src/features/previewTest/replyTemplates.ts` を追加済み
+- `frontend/src/features/previewTest/applyReplyLengthTemplate.ts` を追加済み
+- `replyTemplates` は `greeting` / `compliment` / `question` / `empathy` × `short` / `normal` / `long` の構造
+- コメント runtime フローで `applyReactionFrequencyGate()` の後に `applyReplyLengthTemplate()` を適用済み
+- `replyLengthMode=normal` は既存 `reply_text` を維持する実装
+- `replyLengthMode=short` / `long` は category 解決時のみ `reply_text` を差し替える
+- schema 変更なし、`reply_text` 以外の field 変更なし
+- `decideRuntimeEvent` / `applyReactionFrequencyGate` 本体は未変更
+- runtime schema / backend / compile / Overlay は未変更
+- `npm run check` passed
+
+### Done criteria（Phase 15-3 最小完了）
+- `replyTemplates[category][length]` から選ぶ土台が成立している
+- `normal` 既存維持で挙動差分を最小化できている
+- `short` / `long` のみ段階導入できている
+- template 適用有無を Preview / Test で確認できる
+- JSON 化しやすい構造として後続（import/export・validation）へ引き継げる
+
+### Stop if
+- template 適用のために runtime schema 変更が必要になる
+- backend / compile / Overlay 変更が必要になる
+- `replyTemplates` 構造ではなく固定 if 直書き分岐に依存しないと成立しない
+- `normal` の既存挙動を大きく壊す
+- `blocked` / `read_aloud` / `ignored` / low gate ignored の保護が維持できない

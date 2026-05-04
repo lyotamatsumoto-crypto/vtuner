@@ -267,6 +267,24 @@
 * `replyLengthMode` はまだ使わない（返答文加工なし）
 * runtime schema / backend / compile / Overlay は未変更
 
+実装現在地メモ（Extension Phase 15-3 implementation patch 時点）:
+* `replyLengthMode` は Phase 15-3 で `short` / `long` の template 選択に使う
+* `replyLengthMode=normal` は既存 `reply_text` を維持する
+* `replyTemplates` は Preview / Test 専用の default template foundation として扱う
+* `replyTemplates[category][length]`（category × length）から template を選ぶ
+* `applyReplyLengthTemplate()` は Preview / Test 専用 helper として実装する
+* コメント runtime フローの適用順:
+  * NG 判定
+  * read_aloud 判定
+  * `decideRuntimeEvent()`
+  * `applyReactionFrequencyGate()`
+  * `applyReplyLengthTemplate()`
+  * `mapRuntimeDecisionToPreviewReaction()`
+* template 適用時は `reply_text` のみ差し替える
+* category 解決できない場合 / template 欠落時は既存文を維持する
+* JSON import / export、Detailed Rules、AI / JSON Studio、compile 連携は後続で扱う
+* runtime schema / backend / compile / Overlay は未変更
+
 build 確認:
 * `npm run build:schemas`
 * `npm run build:backend`

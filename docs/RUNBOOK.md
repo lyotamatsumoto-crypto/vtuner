@@ -8,7 +8,7 @@
 
 - 現在地: Conditional MVP Complete+
 - Completion Roadmap: C1〜C5 は最小完了
-- Extension: Phase 12 local foundation（Character Profile の local state 基礎）、Phase 13（Read Aloud and Shared Blocking Rules）、Phase 14（Speech Target and Visual Direction）、Phase 15-1（Reaction Control Preview Foundation）、Phase 15-2（Reaction Frequency Runtime Gate）を最小完了
+- Extension: Phase 12 local foundation（Character Profile の local state 基礎）、Phase 13（Read Aloud and Shared Blocking Rules）、Phase 14（Speech Target and Visual Direction）、Phase 15-1（Reaction Control Preview Foundation）、Phase 15-2（Reaction Frequency Runtime Gate）、Phase 15-3（Reply Template Length Selection Foundation）を最小完了
 - Full Completion は未達（後続課題あり）
 
 ## Startup
@@ -118,6 +118,14 @@ Preview / Test の Phase 15-2 現在地（最小）:
 - `normal` / `high` は現時点では既存挙動を維持する
 - replyLength 制御は未対応（後続）
 
+Preview / Test の Phase 15-3 現在地（最小）:
+
+- Basic Settings で発話の長さを `短い` / `標準` / `やや長め` に切り替えられる
+- `標準`（`replyLengthMode=normal`）は既存文を維持する
+- `短い` / `やや長め` は category × length template による差し替えを試みる
+- Preview / Test で `templateApplied` / `templateCategory` / `templateLength` / `templateReasonLabel` を確認できる
+- まだユーザー編集、JSON import/export、Detailed Rules 連携は未対応
+
 ## Flow (Review / AI JSON / Compile)
 
 1. Review Patch Queue（Review 由来）
@@ -159,7 +167,8 @@ Preview / Test の Phase 15-2 現在地（最小）:
 
 ## Next Candidates
 
-- Phase 15-3: reply length template/control（段階導入）
+- replyTemplates の JSON schema / validation / import-export 導線整理
+- Phase 16 側の JSON 導線整理
 - production compile engine 高度化
 - runtime config 永続保存
 - YouTube Live Chat 接続
