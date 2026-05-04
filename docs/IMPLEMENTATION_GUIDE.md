@@ -157,6 +157,13 @@
 * validation_failed item は採用不可、adopted / discarded item は再操作不可の最小制御がある
 * この段階は採用前段の接続までであり、compile 本処理整理は C3 で扱う
 
+実装現在地メモ（Completion Roadmap C3-2 close patch 時点）:
+* `compiledRuntimeEntries` は、最新 compile 実行の runtime config 相当データ（frontend 確認版）として扱う
+* 各 runtime entry は `compile_record_id` を持ち、最新 compile history レコードと最小対応づけできる
+* Detailed Rules / Preview で compile 後反映結果（source_lane / target_kind / target_name）を確認できる
+* 過去履歴ごとの runtime entry 復元と正式 runtime config 永続保存は未対応
+* backend compile API / backend compile 実行 / production compile engine 化は後続 Phase で扱う
+
 build 確認:
 * `npm run build:schemas`
 * `npm run build:backend`

@@ -355,6 +355,39 @@
 
 ---
 
+## Completion Roadmap C3 Checkpoints: Compile Production Path（最小完了）
+
+### Check items
+- Adopted Changes から compile 入力（precheck）を作れる
+- compile 実行で runtime config 相当データ（`compiledRuntimeEntries`）を生成できる
+- runtime entry が最新 compile 実行ID（`compile_record_id`）を持つ
+- Detailed Rules で compile history と runtime entry の対応を最小確認できる
+- Preview / Test で最新 compile 反映結果を確認できる
+- Overlay は既存の表示専用参照を維持している
+
+### Verified snapshot（C3-2 close patch 時点）
+- C3-1: `compiledRuntimeEntries` を compile 後 runtime 参照データとして可視化済み（source_lane 含む）
+- C3-2: 各 runtime entry に `compile_record_id` を付与し、最新 compile レコードとの対応を UI で確認可能
+- compile history 保存導線は維持
+- `npm run check` passed
+
+### Done criteria（C3 最小完了）
+- compile 後反映先を frontend 確認版として説明できる
+- compile history と runtime entry の関係を最小で説明できる
+- production compile engine 未実装である境界を docs/UI で明示できる
+
+### Out of scope（C3 時点）
+- backend compile API
+- backend compile 実行
+- runtime config 永続保存
+- 過去履歴ごとの runtime entry 復元
+
+### Stop if
+- compile の意味（確認版 / 本処理）が曖昧になる
+- 5 画面責務分離を崩す必要が出る
+
+---
+
 ## Phase 12+ Checkpoints: Extension Roadmap
 
 ### Check items

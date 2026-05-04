@@ -450,10 +450,13 @@ export function PreviewTestPage({
               {compiledRuntimeEntries.length > 0 ? (
                 <section style={controlPanelStyle}>
                   <strong>compile 後の最小 runtime 参照スナップショット</strong>
+                  <span style={cardBodyTextStyle}>
+                    frontend 確認版の runtime config 相当データです。最新 compile 実行結果のみを参照し、過去履歴別の entry 復元は未対応です。
+                  </span>
                   <div style={{ display: "grid", gap: "6px" }}>
                     {compiledRuntimeEntries.slice(0, 5).map((entry) => (
                       <span key={entry.adopted_change_id} style={cardBodyTextStyle}>
-                        {entry.target_name} / {entry.target_kind} / {entry.source_lane} /{" "}
+                        {entry.compile_record_id} / {entry.target_name} / {entry.target_kind} / {entry.source_lane} /{" "}
                         {entry.speech_target} / {entry.display_facing}
                       </span>
                     ))}

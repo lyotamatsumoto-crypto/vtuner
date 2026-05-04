@@ -715,6 +715,9 @@ export function DetailedRulesPage({
                   <strong style={{ fontSize: "14px" }}>
                     compile 後 runtime 参照データ（確認版）
                   </strong>
+                  <span style={pageTextStyle}>
+                    この一覧は最新 compile 実行の結果です。過去履歴ごとの runtime entry 復元はまだ未対応です。
+                  </span>
                   {compiledRuntimeEntries.length > 0 ? (
                     <>
                       <span style={pageTextStyle}>
@@ -725,6 +728,9 @@ export function DetailedRulesPage({
                       </span>
                       {compiledRuntimeEntries.map((entry) => (
                         <div key={entry.adopted_change_id} style={subCardStyle}>
+                          <span style={pageTextStyle}>
+                            compile_record_id: {entry.compile_record_id}
+                          </span>
                           <span style={pageTextStyle}>
                             adopted_change_id: {entry.adopted_change_id}
                           </span>

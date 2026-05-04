@@ -99,6 +99,7 @@ export const initialAdoptedChanges: AdoptedChangeItem[] = [
 export const initialCompileHistory: CompileRecord[] = [];
 export const initialAiJsonImportQueue: AiJsonImportQueueItem[] = [];
 export interface CompiledRuntimeEntry {
+  compile_record_id: string;
   adopted_change_id: string;
   source_lane: AdoptedChangeItem["source_lane"];
   target_name: string;
@@ -222,6 +223,7 @@ export function runCompileFromAdoptedChanges(
     };
   }
 
+  const compileRecordId = `compile-${Date.now()}`;
   const precheckIds = new Set(
     compilePrecheckPlanItems.map((item) => item.adopted_change_id),
   );
@@ -235,6 +237,7 @@ export function runCompileFromAdoptedChanges(
     const sourceLane = adopted?.source_lane ?? "review_patch_queue";
 
     return {
+      compile_record_id: compileRecordId,
       adopted_change_id: item.adopted_change_id,
       source_lane: sourceLane,
       target_name: item.target_name,
@@ -257,7 +260,7 @@ export function runCompileFromAdoptedChanges(
         : item,
     ),
     compileRecord: {
-      id: `compile-${Date.now()}`,
+      id: compileRecordId,
       executed_at: new Date().toISOString(),
       target_count: compilePrecheckPlanItems.length,
       target_kinds: reflectedTo,
