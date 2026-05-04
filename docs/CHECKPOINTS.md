@@ -562,32 +562,40 @@
 ## Extension Phase 14 Checkpoints: Speech Target and Visual Direction（最小完了）
 
 ### Check items
+- `viewerTargetFacing` / `streamerTargetFacing` / `allTargetFacing` が Basic Settings の shared settings として設定できる
 - `sideImageFacing` が Basic Settings の shared settings として設定できる
 - `sideImageFacing=viewer` は「side画像が視聴者・コメント側向き」を意味する
 - `sideImageFacing=streamer` は「side画像が配信者側向き」を意味する
-- Preview / Test で `speech_target` に応じて `orientation` / `mirror` が切り替わる
-- `viewer` / `streamer` の変換ルールが helper で一貫している
+- Preview / Test で `speech_target -> targetFacing -> orientation / mirror` の順に表示向きが決まる
+- targetFacing が `front` の場合は `orientation=front` + `mirror=mirrorEnabled`
+- targetFacing が `side` の場合は `orientation=side`、`viewer` / `streamer` は `sideImageFacing` で mirror 判定する
+- targetFacing が `side` かつ `speech_target=all` の場合は `mirror=mirrorEnabled` を使う
 - `all` は helper 内の表示上の扱いに留め、runtime schema へ追加しない
 - `read_aloud` は `viewer` 扱いで向き変換される
 - `blocked` / `ignored` は表示方向を更新しない
 - Overlay へは反映しない
 
-### Verified snapshot（Phase 14 implementation patch 時点）
+### Verified snapshot（Phase 14 correction patch 時点）
+- `BasicPreviewBridgeSettings` に `viewerTargetFacing` / `streamerTargetFacing` / `allTargetFacing` を追加済み
 - `BasicPreviewBridgeSettings` に `sideImageFacing: "viewer" | "streamer"` を追加済み
 - Basic Settings の見た目設定に「横向き画像の向き」select を追加済み
+- Basic Settings の見た目設定に「視聴者向け / 配信者向け / 全体向けの表示向き」select を追加済み
 - `resolveVisualDirection.ts` を追加し、Preview / Test の向き変換を集約済み
 - 変換ルール:
-  - `viewer`: `orientation=side`、`mirror` は side画像の向きが viewer なら false / streamer なら true
-  - `streamer`: `orientation=side`、`mirror` は side画像の向きが streamer なら false / viewer なら true
-  - `all`: `orientation=front`, `mirror=mirrorEnabled`（helper 内表示用途）
+  - `speech_target` から targetFacing（viewer/streamer/all）を選ぶ
+  - targetFacing が `front`: `orientation=front`, `mirror=mirrorEnabled`
+  - targetFacing が `side` + `viewer`: side画像 viewer向きなら false / streamer向きなら true
+  - targetFacing が `side` + `streamer`: side画像 streamer向きなら false / viewer向きなら true
+  - targetFacing が `side` + `all`: `mirror=mirrorEnabled`
 - `blocked` / `ignored` は表示方向更新なしを維持
 - `CharacterStage` / `CharacterDisplay` の props は未変更
 - backend / schemas / compile / Overlay は未変更
 - `npm run check` passed
 
 ### Done criteria（Phase 14 最小完了）
-- Preview / Test で発話対象と向き変換の関係を確認できる
+- Preview / Test で発話対象と targetFacing 設定の関係を確認できる
 - side画像の向き解釈を Basic Settings から切り替えて挙動差を確認できる
+- front/side の向き方針を発話対象ごとに Basic Settings で変更できる
 - `all` を runtime schema へ追加せずに実装境界を維持できる
 - `blocked` / `ignored` の既存方針を崩していない
 - CharacterStage / CharacterDisplay の再利用方針を維持している

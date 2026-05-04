@@ -226,13 +226,16 @@
 * 音声合成本実装は未対応（表示確認のみ）
 
 実装現在地メモ（Extension Phase 14 implementation patch 時点）:
-* `sideImageFacing` は `BasicPreviewBridgeSettings` の shared settings として扱う
-* `sideImageFacing` は Basic Settings の見た目設定から指定する
+* `viewerTargetFacing` / `streamerTargetFacing` / `allTargetFacing` は `BasicPreviewBridgeSettings` の shared settings として扱う
+* `sideImageFacing` も `BasicPreviewBridgeSettings` の shared settings として維持する
+* targetFacing（viewer/streamer/all）を Basic Settings の見た目設定から指定する
+* `sideImageFacing` は side を使う場合の向き解釈に使う
 * `resolveVisualDirection()` は Preview / Test 専用 helper として実装する
 * 変換ルール:
-  * `viewer`: `orientation=side` + side画像が viewer 向きなら mirror なし、streamer 向きなら mirror 反転
-  * `streamer`: `orientation=side` + side画像が streamer 向きなら mirror なし、viewer 向きなら mirror 反転
-  * `all`: `orientation=front` + `mirror=mirrorEnabled`（runtime schema 追加なしの表示上扱い）
+  * `speech_target` から targetFacing（viewer/streamer/all）を先に選ぶ
+  * targetFacing が `front`: `orientation=front` + `mirror=mirrorEnabled`
+  * targetFacing が `side`: `orientation=side` + `viewer` / `streamer` は `sideImageFacing` で mirror 判定
+  * targetFacing が `side` かつ `all`: `mirror=mirrorEnabled`（runtime schema 追加なしの表示上扱い）
 * `read_aloud` は `viewer` 扱いで向き変換する
 * `blocked` は表示方向更新なし
 * `ignored` は表示方向更新なし

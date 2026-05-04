@@ -95,8 +95,9 @@ Preview / Test の Phase 13 現在地（最小）:
 
 Preview / Test の Phase 14 現在地（最小）:
 
+- Basic Settings で viewer / streamer / all 向けの表示向き（targetFacing）を選べる
 - Basic Settings で横向き画像の向き解釈（`sideImageFacing`）を選べる
-- Preview / Test で発話対象に応じた向き変化（`orientation` / `mirror`）を確認できる
+- Preview / Test で `speech_target -> targetFacing -> orientation / mirror` の向き変化を確認できる
 - `read_aloud` は `viewer` 扱いで向きを決める
 - `blocked` / `ignored` は向き更新なし
 - Overlay 反映と画像差し替え本実装は未対応
