@@ -388,7 +388,7 @@
 
 ---
 
-## Completion Roadmap C4 Checkpoints: Storage Safety（C4-1）
+## Completion Roadmap C4 Checkpoints: Storage Safety（最小完了）
 
 ### Check items
 - queue / compile の保存前 validation が最小強化されている
@@ -403,9 +403,15 @@
 - `StorageValidationError` を維持し、読込時の fail-close 方針を継続
 - `npm run check` passed
 
-### Done criteria（C4-1）
+### Verified snapshot（C4-2 close patch 時点）
+- data 保存場所（queues / compile history）を docs に明記
+- 壊れた JSON / 不正 shape は fail-close、missing file のみ空配列扱いを docs に明記
+- 手動 backup / snapshot 手順と復旧時の確認ポイントを docs に明記
+- retry / lock / 競合制御が未実装であることを docs に明記
+
+### Done criteria（C4 最小完了）
 - 状態不明データのまま進まない最低限の安全性がある
-- docs 上で fail-close と未対応範囲（backup/retry/競合制御）が説明できる
+- docs 上で fail-close、保存場所、手動復旧入口、未対応範囲（retry/競合制御）が説明できる
 
 ### Stop if
 - payload 変更や API path 変更が必要になる

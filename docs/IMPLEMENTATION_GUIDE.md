@@ -171,6 +171,29 @@
 * 自動修復・自動上書きは行わない
 * backup / snapshot / retry / 競合制御 / 復旧手順の本格整備は C4 後続で扱う
 
+実装現在地メモ（Completion Roadmap C4-2 close patch 時点）:
+* local JSON の保存場所:
+  * `data/queues/review-patch-queue.json`
+  * `data/queues/adopted-changes.json`
+  * `data/queues/ai-json-import-queue.json`
+  * `data/compile/history.json`
+* 読込方針:
+  * 壊れた JSON / 不正 shape は fail-close（`StorageValidationError`）
+  * missing file のみ空配列扱い
+  * 自動修復・自動上書きは行わない
+* 保存失敗時:
+  * frontend 表示は維持し、backend 未反映メッセージで確認する
+  * backend 応答と `data/` 配下ファイルを確認してから再操作する
+* 手動 backup / snapshot（運用手順）:
+  * 作業前に `data/` 全体を手動コピーする
+  * 大きな変更前に `data/queues` と `data/compile` を別フォルダへコピーする
+  * 復旧時は壊れたファイルを退避し、手動 backup から戻す
+  * 復旧後は `npm run check` と画面再読込で確認する
+* 未実装:
+  * retry 自動再試行
+  * lock file / 競合制御
+  * 複数プロセス・複数ユーザー同時編集対応
+
 build 確認:
 * `npm run build:schemas`
 * `npm run build:backend`
