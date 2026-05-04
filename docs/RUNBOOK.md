@@ -7,7 +7,7 @@
 ## Current Status
 
 - 現在地: Conditional MVP Complete+
-- Completion Roadmap: C1〜C5 は最小完了
+- Completion Roadmap: C1〜C6 は最小完了
 - Extension: Phase 12 local foundation（Character Profile の local state 基礎）、Phase 13（Read Aloud and Shared Blocking Rules）、Phase 14（Speech Target and Visual Direction）、Phase 15-1（Reaction Control Preview Foundation）、Phase 15-2（Reaction Frequency Runtime Gate）、Phase 15-3（Reply Template Length Selection Foundation）を最小完了
 - Full Completion は未達（後続課題あり）
 
@@ -106,8 +106,8 @@ Preview / Test の Phase 15-1 現在地（最小）:
 
 - Basic Settings で反応頻度、発話長、基本状態を選べる
 - Preview / Test で現在のキャラ状態と状態理由を確認できる
-- reactionFrequency の runtime 間引きは未対応
-- replyLength の返答文制御は未対応
+- Phase 15-1 時点では reactionFrequency の runtime 間引きは未対応だったが、Phase 15-2 で low gate を最小実装済み
+- Phase 15-1 時点では replyLength の返答文制御は未対応だったが、Phase 15-3 で short / long template selection を最小実装済み
 - 表示確認レイヤーの基礎段階として運用する
 
 Preview / Test の Phase 15-2 現在地（最小）:
@@ -116,7 +116,7 @@ Preview / Test の Phase 15-2 現在地（最小）:
 - Preview / Test で `gateApplied` / `gateReasonLabel` を確認できる
 - question / greeting / streamer / event / blocked / read_aloud は保護対象として gate しない
 - `normal` / `high` は現時点では既存挙動を維持する
-- replyLength 制御は未対応（後続）
+- Phase 15-2 時点の制限: replyLength 制御は後続扱い
 
 Preview / Test の Phase 15-3 現在地（最小）:
 
