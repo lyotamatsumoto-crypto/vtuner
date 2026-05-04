@@ -8,6 +8,7 @@ import {
 } from "../basicPreviewBridge";
 import { CharacterStage } from "../components/display";
 import { applyReactionFrequencyGate } from "../features/previewTest/applyReactionFrequencyGate";
+import { applyReplyLengthTemplate } from "../features/previewTest/applyReplyLengthTemplate";
 import { decidePreviewTestEvent } from "../features/previewTest/decidePreviewTestEvent";
 import type { PreviewOnlyReaction } from "../features/previewTest/previewOnlyCommentRuntime";
 import { resolveCharacterStateLabel } from "../features/previewTest/resolveCharacterStateLabel";
@@ -156,6 +157,14 @@ export function PreviewTestPage({
   const [gateReasonLabel, setGateReasonLabel] = useState(
     "gate未実行: runtime コメント判定後に確認します。",
   );
+  const [templateApplied, setTemplateApplied] = useState(false);
+  const [templateCategory, setTemplateCategory] = useState("n/a");
+  const [templateLength, setTemplateLength] = useState<"short" | "normal" | "long">(
+    "normal",
+  );
+  const [templateReasonLabel, setTemplateReasonLabel] = useState(
+    "template未実行: runtime reply 判定後に確認します。",
+  );
   const [directionReasonLabel, setDirectionReasonLabel] = useState(
     "未実行: 発話対象に応じた向き変換はまだ行っていません。",
   );
@@ -200,6 +209,10 @@ export function PreviewTestPage({
       setCurrentExecutionKind("blocked");
       setGateApplied(false);
       setGateReasonLabel("gate未適用: blocked は runtime 未実行");
+      setTemplateApplied(false);
+      setTemplateCategory("n/a");
+      setTemplateLength(sharedSettings.replyLengthMode);
+      setTemplateReasonLabel("template未適用: blocked は runtime 未実行");
       setDirectionReasonLabel("blocked: NG一致のため表示方向は更新していません。");
       appendHistory([
         {
@@ -228,6 +241,10 @@ export function PreviewTestPage({
       setCurrentExecutionKind("read_aloud");
       setGateApplied(false);
       setGateReasonLabel("gate未適用: read_aloud は runtime 未実行");
+      setTemplateApplied(false);
+      setTemplateCategory("n/a");
+      setTemplateLength(sharedSettings.replyLengthMode);
+      setTemplateReasonLabel("template未適用: read_aloud は runtime 未実行");
       setOrientation(resolvedDirection.orientation);
       setMirror(resolvedDirection.mirror);
       setDirectionReasonLabel(`read_aloud: ${resolvedDirection.reasonLabel}`);
@@ -266,14 +283,22 @@ export function PreviewTestPage({
       runtimeDecision,
       reactionFrequencyMode: sharedSettings.reactionFrequencyMode,
     });
-    const gatedDecision = gateResult.gatedDecision;
-    const nextResult = mapRuntimeDecisionToPreviewReaction(gatedDecision, sharedSettings);
+    const templateResult = applyReplyLengthTemplate({
+      runtimeDecision: gateResult.gatedDecision,
+      replyLengthMode: sharedSettings.replyLengthMode,
+    });
+    const processedDecision = templateResult.templatedDecision;
+    const nextResult = mapRuntimeDecisionToPreviewReaction(processedDecision, sharedSettings);
     const executionKind: PreviewExecutionKind =
-      gatedDecision.kind === "ignore" ? "ignored" : "runtime";
+      processedDecision.kind === "ignore" ? "ignored" : "runtime";
     setGateApplied(gateResult.gateApplied);
     setGateReasonLabel(gateResult.gateReasonLabel);
+    setTemplateApplied(templateResult.templateApplied);
+    setTemplateCategory(templateResult.templateCategory);
+    setTemplateLength(templateResult.templateLength);
+    setTemplateReasonLabel(templateResult.templateReasonLabel);
 
-    if (gatedDecision.kind === "ignore") {
+    if (processedDecision.kind === "ignore") {
       setDirectionReasonLabel(
         gateResult.gateApplied
           ? "ignored: low gate により ignored へ変換したため表示方向は更新していません。"
@@ -281,7 +306,7 @@ export function PreviewTestPage({
       );
     } else {
       const speechTarget =
-        gatedDecision.kind === "reply" ? gatedDecision.speech_target : "viewer";
+        processedDecision.kind === "reply" ? processedDecision.speech_target : "viewer";
       const resolvedDirection = resolveVisualDirection({
         speechTarget,
         sideImageFacing: sharedSettings.sideImageFacing,
@@ -296,7 +321,7 @@ export function PreviewTestPage({
       nextResult.orientation = resolvedDirection.orientation;
     }
 
-    setLastRuntimeDecision(gatedDecision);
+    setLastRuntimeDecision(processedDecision);
     setCurrentExecutionKind(executionKind);
     setPreviewResult(nextResult);
     appendHistory([
@@ -308,10 +333,12 @@ export function PreviewTestPage({
         name: authorName,
         text: commentText,
         detail: buildRuntimeHistoryDetail(
-          gatedDecision,
+          processedDecision,
           nextResult,
           gateResult.gateApplied,
           gateResult.gateReasonLabel,
+          templateResult.templateApplied,
+          templateResult.templateReasonLabel,
         ),
       },
       {
@@ -320,7 +347,7 @@ export function PreviewTestPage({
         executionKind,
         label: "VTuner返答",
         text: nextResult.bubble_text,
-        detail: buildReplyHistoryDetail(gatedDecision, nextResult),
+        detail: buildReplyHistoryDetail(processedDecision, nextResult),
       },
     ]);
   }
@@ -337,6 +364,10 @@ export function PreviewTestPage({
     const nextResult = mapRuntimeDecisionToPreviewReaction(runtimeDecision, sharedSettings);
     setGateApplied(false);
     setGateReasonLabel("gate未適用: test_event_input は保護対象");
+    setTemplateApplied(false);
+    setTemplateCategory("n/a");
+    setTemplateLength(sharedSettings.replyLengthMode);
+    setTemplateReasonLabel("template未適用: test_event_input は保護対象");
 
     if (runtimeDecision.kind === "ignore") {
       setDirectionReasonLabel("ignored: runtime ignore 結果のため表示方向は更新していません。");
@@ -607,6 +638,26 @@ export function PreviewTestPage({
                 <div style={resultCardStyle}>
                   <span style={resultLabelStyle}>gateReasonLabel</span>
                   <strong>{gateReasonLabel}</strong>
+                </div>
+                <div style={resultCardStyle}>
+                  <span style={resultLabelStyle}>replyLengthMode</span>
+                  <strong>{sharedSettings.replyLengthMode}</strong>
+                </div>
+                <div style={resultCardStyle}>
+                  <span style={resultLabelStyle}>templateApplied</span>
+                  <strong>{templateApplied ? "true" : "false"}</strong>
+                </div>
+                <div style={resultCardStyle}>
+                  <span style={resultLabelStyle}>templateCategory</span>
+                  <strong>{templateCategory}</strong>
+                </div>
+                <div style={resultCardStyle}>
+                  <span style={resultLabelStyle}>templateLength</span>
+                  <strong>{templateLength}</strong>
+                </div>
+                <div style={resultCardStyle}>
+                  <span style={resultLabelStyle}>templateReasonLabel</span>
+                  <strong>{templateReasonLabel}</strong>
                 </div>
                 <div style={resultCardStyle}>
                   <span style={resultLabelStyle}>Runtime entry</span>
@@ -944,9 +995,19 @@ function buildRuntimeHistoryDetail(
   previewResult: PreviewOnlyReaction,
   gateApplied = false,
   gateReasonLabel?: string,
+  templateApplied = false,
+  templateReasonLabel?: string,
 ) {
+  const extraDetails: string[] = [];
   if (gateApplied && gateReasonLabel) {
-    return `${describeRuntimeEntry(decision)} / ${decision.kind} / ${decision.source} / ${previewResult.reason_label} / ${gateReasonLabel}`;
+    extraDetails.push(gateReasonLabel);
+  }
+  if (templateApplied && templateReasonLabel) {
+    extraDetails.push(templateReasonLabel);
+  }
+
+  if (extraDetails.length > 0) {
+    return `${describeRuntimeEntry(decision)} / ${decision.kind} / ${decision.source} / ${previewResult.reason_label} / ${extraDetails.join(" / ")}`;
   }
 
   return `${describeRuntimeEntry(decision)} / ${decision.kind} / ${decision.source} / ${previewResult.reason_label}`;
