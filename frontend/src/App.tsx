@@ -439,6 +439,7 @@ export function App() {
           adoptedChanges={adoptedChanges}
           compilePrecheckItems={compilePrecheckPlanItems}
           compileHistory={compileHistory}
+          compiledRuntimeEntries={compiledRuntimeEntries}
           onSetReviewPatchStatus={handleSetReviewPatchStatus}
           onRunCompile={handleRunCompile}
           storageReadStatus={storageReadStatus}

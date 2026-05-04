@@ -100,6 +100,7 @@ export const initialCompileHistory: CompileRecord[] = [];
 export const initialAiJsonImportQueue: AiJsonImportQueueItem[] = [];
 export interface CompiledRuntimeEntry {
   adopted_change_id: string;
+  source_lane: AdoptedChangeItem["source_lane"];
   target_name: string;
   target_kind: CompileTargetKind;
   speech_target: SpeechTarget;
@@ -228,19 +229,26 @@ export function runCompileFromAdoptedChanges(
     new Set(compilePrecheckPlanItems.map((item) => item.target_kind)),
   );
 
-  const compiledRuntimeEntries = compilePrecheckPlanItems.map((item) => ({
-    adopted_change_id: item.adopted_change_id,
-    target_name: item.target_name,
-    target_kind: item.target_kind,
-    speech_target:
-      item.target_kind === "formal_rules"
-        ? ("viewer" as const)
-        : ("streamer" as const),
-    display_facing:
-      item.target_kind === "formal_rules"
-        ? ("front" as const)
-        : ("side" as const),
-  }));
+  const adoptedById = new Map(adoptedChanges.map((item) => [item.id, item] as const));
+  const compiledRuntimeEntries = compilePrecheckPlanItems.map((item) => {
+    const adopted = adoptedById.get(item.adopted_change_id);
+    const sourceLane = adopted?.source_lane ?? "review_patch_queue";
+
+    return {
+      adopted_change_id: item.adopted_change_id,
+      source_lane: sourceLane,
+      target_name: item.target_name,
+      target_kind: item.target_kind,
+      speech_target:
+        item.target_kind === "formal_rules"
+          ? ("viewer" as const)
+          : ("streamer" as const),
+      display_facing:
+        item.target_kind === "formal_rules"
+          ? ("front" as const)
+          : ("side" as const),
+    };
+  });
 
   return {
     nextAdoptedChanges: adoptedChanges.map((item) =>

@@ -453,8 +453,8 @@ export function PreviewTestPage({
                   <div style={{ display: "grid", gap: "6px" }}>
                     {compiledRuntimeEntries.slice(0, 5).map((entry) => (
                       <span key={entry.adopted_change_id} style={cardBodyTextStyle}>
-                        {entry.target_name} / {entry.target_kind} / {entry.speech_target} /{" "}
-                        {entry.display_facing}
+                        {entry.target_name} / {entry.target_kind} / {entry.source_lane} /{" "}
+                        {entry.speech_target} / {entry.display_facing}
                       </span>
                     ))}
                   </div>

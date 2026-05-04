@@ -7,6 +7,7 @@ import type {
   CompilePlanItem,
   CompileRecord,
 } from "../../../schemas";
+import type { CompiledRuntimeEntry } from "../reviewCompileBridge";
 
 type EntryKind = "rule" | "definition";
 type RuleSource = "初期プリセット" | "手動追加" | "Review由来" | "AI採用済み" | "派生編集";
@@ -147,6 +148,7 @@ export function DetailedRulesPage({
   adoptedChanges,
   compilePrecheckItems,
   compileHistory,
+  compiledRuntimeEntries,
   onSetReviewPatchStatus,
   onRunCompile,
   storageReadStatus,
@@ -158,6 +160,7 @@ export function DetailedRulesPage({
   adoptedChanges: AdoptedChangeItem[];
   compilePrecheckItems: CompilePlanItem[];
   compileHistory: CompileRecord[];
+  compiledRuntimeEntries: CompiledRuntimeEntry[];
   onSetReviewPatchStatus: (
     patchId: string,
     status: ReviewPatchQueueItem["status"],
@@ -705,6 +708,41 @@ export function DetailedRulesPage({
                   ) : (
                     <div style={subCardStyle}>
                       <span style={pageTextStyle}>まだ compile 履歴はありません。確認版 compile の実行後にここへ追加されます。</span>
+                    </div>
+                  )}
+                </div>
+                <div style={{ display: "grid", gap: "8px" }}>
+                  <strong style={{ fontSize: "14px" }}>
+                    compile 後 runtime 参照データ（確認版）
+                  </strong>
+                  {compiledRuntimeEntries.length > 0 ? (
+                    <>
+                      <span style={pageTextStyle}>
+                        最新 compile:{" "}
+                        {compileHistory[0]
+                          ? new Date(compileHistory[0].executed_at).toLocaleString("ja-JP")
+                          : "未実行"}
+                      </span>
+                      {compiledRuntimeEntries.map((entry) => (
+                        <div key={entry.adopted_change_id} style={subCardStyle}>
+                          <span style={pageTextStyle}>
+                            adopted_change_id: {entry.adopted_change_id}
+                          </span>
+                          <span style={pageTextStyle}>source_lane: {entry.source_lane}</span>
+                          <span style={pageTextStyle}>target_kind: {entry.target_kind}</span>
+                          <span style={pageTextStyle}>target_name: {entry.target_name}</span>
+                          <span style={{ ...pageTextStyle, fontSize: "12px" }}>
+                            speech_target: {entry.speech_target} / display_facing:{" "}
+                            {entry.display_facing}
+                          </span>
+                        </div>
+                      ))}
+                    </>
+                  ) : (
+                    <div style={subCardStyle}>
+                      <span style={pageTextStyle}>
+                        まだ compile 後 runtime 参照データはありません。compile 実行後にここへ表示されます。
+                      </span>
                     </div>
                   )}
                 </div>

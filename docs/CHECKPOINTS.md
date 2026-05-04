@@ -328,6 +328,33 @@
 
 ---
 
+## Completion Roadmap C2 Checkpoints: AI JSON Import Queue and Validation Flow
+
+### Check items
+- 人格 JSON の validation 成功 / 失敗が AI / JSON Studio 上で判別できる
+- validation 成功時に AI JSON Import Queue へ登録できる
+- AI JSON Import Queue と Review Patch Queue が separate に扱われる
+- validated item を Adopted Changes へ採用できる
+- validation_failed item は採用不可である
+- adopted / discarded item の再操作を最小制御できる
+- 採用時に Adopted Changes と AI JSON Import Queue の backend 保存が維持される
+
+### Verified snapshot（C2 close patch 時点）
+- C2-1: validation 表示（`validation_ok`, `error_messages`）と queue 可視化を整理済み
+- C2-2: AI JSON Import Queue から Adopted Changes への最小採用導線を実装済み
+- Review Patch Queue 側の導線と保存挙動には変更なし
+- `npm run check` passed
+
+### Done criteria
+- AI / JSON Studio 上で validation / queue / 採用前段を説明できる
+- C3（compile production path）へ進む前提が揃っている
+
+### Stop if
+- AI / JSON Studio が Detailed Rules の正式編集責務を持ち始める
+- queue 導線が混線してどちら由来の採用か説明できなくなる
+
+---
+
 ## Phase 12+ Checkpoints: Extension Roadmap
 
 ### Check items

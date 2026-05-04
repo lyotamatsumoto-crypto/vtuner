@@ -150,6 +150,13 @@
 * backend build output は backend 本体中心で、`backend/dist/schemas` を生成しない
 * Windows sandbox で `clean:backend` が `EPERM` になる場合は、dev server や出力ファイルを掴んでいるプロセスを止めて再実行する
 
+実装現在地メモ（Completion Roadmap C2 close patch 時点）:
+* 人格 JSON の validation 成功 / 失敗は AI / JSON Studio で明示表示できる
+* AI JSON Import Queue は backend 永続化を含む最小 read/write 導線がある
+* validated item を Adopted Changes へ採用できる最小導線がある
+* validation_failed item は採用不可、adopted / discarded item は再操作不可の最小制御がある
+* この段階は採用前段の接続までであり、compile 本処理整理は C3 で扱う
+
 build 確認:
 * `npm run build:schemas`
 * `npm run build:backend`
