@@ -1,4 +1,5 @@
 import type {
+  AdoptedReplyTemplatesItem,
   AdoptedChangeItem,
   AiJsonImportQueueItem,
   AiJsonImportStatus,
@@ -98,6 +99,7 @@ export const initialAdoptedChanges: AdoptedChangeItem[] = [
 
 export const initialCompileHistory: CompileRecord[] = [];
 export const initialAiJsonImportQueue: AiJsonImportQueueItem[] = [];
+export const initialAdoptedReplyTemplates: AdoptedReplyTemplatesItem[] = [];
 export interface CompiledRuntimeEntry {
   compile_record_id: string;
   adopted_change_id: string;
@@ -190,6 +192,21 @@ export function createAdoptedChangeFromAiJsonImportQueueItem(
     // Keep compile target in existing CompileTargetKind set.
     target_kind: "runtime_data",
     compile_wait_status: "pending",
+  };
+}
+
+export function createAdoptedReplyTemplatesItemFromAiJsonImportQueueItem(input: {
+  queueItem: AiJsonImportQueueItem;
+  replyTemplates: AdoptedReplyTemplatesItem["reply_templates"];
+}): AdoptedReplyTemplatesItem {
+  return {
+    id: `adopted-reply-templates-${input.queueItem.id}`,
+    source_queue_item_id: input.queueItem.id,
+    generation_target: "reply_templates",
+    name: `replyTemplates / ${input.queueItem.id}`,
+    adopted_at: new Date().toISOString(),
+    status: "active",
+    reply_templates: input.replyTemplates,
   };
 }
 

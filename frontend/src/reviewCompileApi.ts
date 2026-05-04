@@ -1,4 +1,5 @@
 import type {
+  AdoptedReplyTemplatesItem,
   AdoptedChangeItem,
   AiJsonImportQueueItem,
   ReviewPatchQueueItem,
@@ -10,6 +11,7 @@ const DEFAULT_BACKEND_ORIGIN = "http://localhost:3001";
 export interface ReviewCompileReadModel {
   reviewPatchQueue: ReviewPatchQueueItem[];
   adoptedChanges: AdoptedChangeItem[];
+  adoptedReplyTemplates: AdoptedReplyTemplatesItem[];
   aiJsonImportQueue: AiJsonImportQueueItem[];
   compileHistory: CompileRecord[];
   backendOrigin: string;
@@ -87,14 +89,44 @@ export async function saveAiJsonImportQueue(
   }
 }
 
+export async function saveAdoptedReplyTemplates(
+  backendOrigin: string,
+  adoptedReplyTemplates: AdoptedReplyTemplatesItem[],
+): Promise<void> {
+  const response = await fetch(`${backendOrigin}/adopted-reply-templates`, {
+    method: "PUT",
+    mode: "cors",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(adoptedReplyTemplates),
+  });
+
+  if (!response.ok) {
+    throw new Error(
+      `Request failed: /adopted-reply-templates (${response.status})`,
+    );
+  }
+}
+
 export async function loadReviewCompileReadModel(): Promise<ReviewCompileReadModel> {
   const backendOrigin =
     (import.meta.env.VITE_BACKEND_ORIGIN as string | undefined) ??
     DEFAULT_BACKEND_ORIGIN;
 
-  const [reviewPatchQueue, adoptedChanges, aiJsonImportQueue, compileHistory] = await Promise.all([
+  const [
+    reviewPatchQueue,
+    adoptedChanges,
+    adoptedReplyTemplates,
+    aiJsonImportQueue,
+    compileHistory,
+  ] = await Promise.all([
     fetchJsonArray<ReviewPatchQueueItem>(backendOrigin, "/review-patch-queue"),
     fetchJsonArray<AdoptedChangeItem>(backendOrigin, "/adopted-changes"),
+    fetchJsonArray<AdoptedReplyTemplatesItem>(
+      backendOrigin,
+      "/adopted-reply-templates",
+    ),
     fetchJsonArray<AiJsonImportQueueItem>(backendOrigin, "/ai-json-import-queue"),
     fetchJsonArray<CompileRecord>(backendOrigin, "/compile-history"),
   ]);
@@ -102,6 +134,7 @@ export async function loadReviewCompileReadModel(): Promise<ReviewCompileReadMod
   return {
     reviewPatchQueue,
     adoptedChanges,
+    adoptedReplyTemplates,
     aiJsonImportQueue,
     compileHistory,
     backendOrigin,

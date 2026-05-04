@@ -6,10 +6,12 @@ import {
   type BasicPreviewBridgeSettings,
 } from "./basicPreviewBridge";
 import type {
+  AdoptedReplyTemplatesItem,
   AdoptedChangeItem,
   AiJsonImportQueueItem,
   ReviewPatchQueueItem,
 } from "../../schemas";
+import { validateReplyTemplatesJson } from "../../schemas";
 import type {
   CompilePlanItem,
   CompileRecord,
@@ -24,9 +26,11 @@ import {
   buildCompilePrecheckPlanItems,
   type CompiledRuntimeEntry,
   createAiJsonImportQueueItem,
+  createAdoptedReplyTemplatesItemFromAiJsonImportQueueItem,
   createAdoptedChangeFromAiJsonImportQueueItem,
   createAdoptedChangeFromReviewPatch,
   createReviewPatchQueueItem,
+  initialAdoptedReplyTemplates,
   initialAdoptedChanges,
   initialAiJsonImportQueue,
   initialCompileHistory,
@@ -37,6 +41,7 @@ import {
 } from "./reviewCompileBridge";
 import {
   loadReviewCompileReadModel,
+  saveAdoptedReplyTemplates,
   saveAdoptedChanges,
   saveAiJsonImportQueue,
   saveCompileHistory,
@@ -86,6 +91,9 @@ export function App() {
     useState<ReviewPatchQueueItem[]>(initialReviewPatchQueue);
   const [adoptedChanges, setAdoptedChanges] =
     useState<AdoptedChangeItem[]>(initialAdoptedChanges);
+  const [adoptedReplyTemplates, setAdoptedReplyTemplates] = useState<
+    AdoptedReplyTemplatesItem[]
+  >(initialAdoptedReplyTemplates);
   const [compileHistory, setCompileHistory] =
     useState<CompileRecord[]>(initialCompileHistory);
   const [storageReadStatus, setStorageReadStatus] =
@@ -100,6 +108,10 @@ export function App() {
   const [adoptedChangesWriteMessage, setAdoptedChangesWriteMessage] = useState(
     "Adopted Changes の backend 保存は未実行です（frontend 確認版の採用表示のみ）。",
   );
+  const [adoptedReplyTemplatesWriteMessage, setAdoptedReplyTemplatesWriteMessage] =
+    useState(
+      "Adopted Reply Templates の backend 保存は未実行です（frontend 確認版の採用表示のみ）。",
+    );
   const [compileHistoryWriteMessage, setCompileHistoryWriteMessage] = useState(
     "compile history の backend 保存は未実行です（frontend 確認版の履歴表示のみ）。",
   );
@@ -130,7 +142,7 @@ export function App() {
 
     setStorageReadStatus("loading");
     setStorageReadMessage(
-      "backend 読込中です: Review Patch Queue / Adopted Changes / compile 履歴",
+      "backend 読込中です: Review Patch Queue / Adopted Changes / Adopted Reply Templates / compile 履歴",
     );
 
     loadReviewCompileReadModel()
@@ -155,20 +167,28 @@ export function App() {
           result.aiJsonImportQueue.length > 0
             ? result.aiJsonImportQueue
             : initialAiJsonImportQueue;
+        const nextAdoptedReplyTemplates =
+          result.adoptedReplyTemplates.length > 0
+            ? result.adoptedReplyTemplates
+            : initialAdoptedReplyTemplates;
         const emptySources = [
           result.reviewPatchQueue.length === 0 ? "Review Patch Queue" : null,
           result.adoptedChanges.length === 0 ? "Adopted Changes" : null,
+          result.adoptedReplyTemplates.length === 0
+            ? "Adopted Reply Templates"
+            : null,
           result.aiJsonImportQueue.length === 0 ? "AI JSON Import Queue" : null,
           result.compileHistory.length === 0 ? "compile 履歴" : null,
         ].filter((item): item is string => item !== null);
 
         setReviewPatchQueue(nextReviewPatchQueue);
         setAdoptedChanges(nextAdoptedChanges);
+        setAdoptedReplyTemplates(nextAdoptedReplyTemplates);
         setAiJsonImportQueue(nextAiJsonImportQueue);
         setCompileHistory(nextCompileHistory);
         setBackendOrigin(result.backendOrigin);
 
-        if (emptySources.length === 4) {
+        if (emptySources.length === 5) {
           setStorageReadStatus("backend_empty");
           setStorageReadMessage(
             `backend 読込は成功しましたが、backend 側は空配列でした。frontend 確認版 seed を維持しています。(${result.backendOrigin})`,
@@ -382,50 +402,131 @@ export function App() {
     return queueItem;
   }
 
-  function handleAdoptAiJsonImportQueueItem(queueItemId: string) {
+  async function handleAdoptAiJsonImportQueueItem(queueItemId: string) {
     const queueItem = aiJsonImportQueue.find((item) => item.id === queueItemId);
-    if (
-      !queueItem ||
-      queueItem.status === "adopted" ||
-      !queueItem.validation_ok ||
-      queueItem.generation_target !== "persona"
-    ) {
-      return;
+    if (!queueItem) {
+      return { ok: false, message: "対象の queue item が見つかりません。" };
     }
 
-    const adoptedId = `adopted-${queueItemId}`;
-    const alreadyAdopted = adoptedChanges.some(
-      (item) => item.id === adoptedId && item.source_lane === "ai_json_import_queue",
+    if (queueItem.status === "adopted" || queueItem.status === "discarded") {
+      return {
+        ok: false,
+        message: `id=${queueItem.id} は status=${queueItem.status} のため再採用できません。`,
+      };
+    }
+
+    if (!queueItem.validation_ok || queueItem.status !== "validated") {
+      return {
+        ok: false,
+        message:
+          "validation_ok=true かつ status=validated の item だけ採用できます。",
+      };
+    }
+
+    if (queueItem.generation_target === "persona") {
+      const adoptedId = `adopted-${queueItemId}`;
+      const alreadyAdopted = adoptedChanges.some(
+        (item) =>
+          item.id === adoptedId && item.source_lane === "ai_json_import_queue",
+      );
+      if (alreadyAdopted) {
+        return {
+          ok: false,
+          message: `id=${queueItem.id} はすでに Adopted Changes に採用済みです。`,
+        };
+      }
+
+      const nextQueue = aiJsonImportQueue.map((item) =>
+        item.id === queueItemId ? { ...item, status: "adopted" as const } : item,
+      );
+      const nextAdoptedChanges = [
+        createAdoptedChangeFromAiJsonImportQueueItem(queueItem),
+        ...adoptedChanges,
+      ];
+
+      setAiJsonImportQueue(nextQueue);
+      setAdoptedChanges(nextAdoptedChanges);
+
+      saveAiJsonImportQueue(backendOrigin, nextQueue).catch(() => {
+        // Keep frontend queue state even when backend is unavailable.
+      });
+      saveAdoptedChanges(backendOrigin, nextAdoptedChanges)
+        .then(() => {
+          setAdoptedChangesWriteMessage(
+            `Adopted Changes を backend へ保存しました。frontend 採用表示と backend 保存値は同期しています。(${backendOrigin})`,
+          );
+        })
+        .catch(() => {
+          setAdoptedChangesWriteMessage(
+            "Adopted Changes の backend 保存に失敗しました。frontend 採用表示は保持されています（backend 未反映）。",
+          );
+        });
+      return {
+        ok: true,
+        message: `id=${queueItem.id} を Adopted Changes へ採用しました。`,
+      };
+    }
+
+    if (queueItem.generation_target !== "reply_templates") {
+      return {
+        ok: false,
+        message: `id=${queueItem.id} は target=${queueItem.generation_target} のため採用対象外です。`,
+      };
+    }
+
+    const validation = validateReplyTemplatesJson(queueItem.returned_json);
+    if (!validation.ok || !validation.parsed) {
+      return {
+        ok: false,
+        message:
+          "返答テンプレートJSONの採用に失敗しました。validation error を確認してください。",
+      };
+    }
+
+    const alreadyAdopted = adoptedReplyTemplates.some(
+      (item) => item.source_queue_item_id === queueItem.id,
     );
     if (alreadyAdopted) {
-      return;
+      return {
+        ok: false,
+        message: `id=${queueItem.id} はすでに Adopted Reply Templates に採用済みです。`,
+      };
     }
 
+    const nextAdoptedReplyTemplates = [
+      createAdoptedReplyTemplatesItemFromAiJsonImportQueueItem({
+        queueItem,
+        replyTemplates: validation.parsed.reply_templates,
+      }),
+      ...adoptedReplyTemplates.map((item) =>
+        item.status === "active" ? { ...item, status: "archived" as const } : item,
+      ),
+    ];
     const nextQueue = aiJsonImportQueue.map((item) =>
       item.id === queueItemId ? { ...item, status: "adopted" as const } : item,
     );
-    const nextAdoptedChanges = [
-      createAdoptedChangeFromAiJsonImportQueueItem(queueItem),
-      ...adoptedChanges,
-    ];
 
+    try {
+      await saveAdoptedReplyTemplates(backendOrigin, nextAdoptedReplyTemplates);
+      await saveAiJsonImportQueue(backendOrigin, nextQueue);
+    } catch {
+      return {
+        ok: false,
+        message:
+          "返答テンプレートJSONの採用に失敗しました。validation error または保存エラーを確認してください。",
+      };
+    }
+
+    setAdoptedReplyTemplates(nextAdoptedReplyTemplates);
     setAiJsonImportQueue(nextQueue);
-    setAdoptedChanges(nextAdoptedChanges);
-
-    saveAiJsonImportQueue(backendOrigin, nextQueue).catch(() => {
-      // Keep frontend queue state even when backend is unavailable.
-    });
-    saveAdoptedChanges(backendOrigin, nextAdoptedChanges)
-      .then(() => {
-        setAdoptedChangesWriteMessage(
-          `Adopted Changes を backend へ保存しました。frontend 採用表示と backend 保存値は同期しています。(${backendOrigin})`,
-        );
-      })
-      .catch(() => {
-        setAdoptedChangesWriteMessage(
-          "Adopted Changes の backend 保存に失敗しました。frontend 採用表示は保持されています（backend 未反映）。",
-        );
-      });
+    setAdoptedReplyTemplatesWriteMessage(
+      `Adopted Reply Templates を backend へ保存しました。frontend 採用表示と backend 保存値は同期しています。(${backendOrigin})`,
+    );
+    return {
+      ok: true,
+      message:
+        "返答テンプレートJSONを Adopted Reply Templates に採用しました。",
+    };
   }
 
   function handleDiscardAiJsonImportQueueItem(queueItemId: string) {

@@ -192,7 +192,9 @@ export function AiJsonStudioPage({
   onRegisterAiJsonImportQueueDraft?: (
     input: RegisterAiJsonImportQueueDraftInput,
   ) => AiJsonImportQueueItem;
-  onAdoptImportQueueItem?: (queueItemId: string) => void;
+  onAdoptImportQueueItem?: (
+    queueItemId: string,
+  ) => Promise<{ ok: boolean; message: string }>;
   onDiscardImportQueueItem?: (queueItemId: string) => void;
   aiJsonImportQueueItems: AiJsonImportQueueItem[];
 }) {
@@ -953,16 +955,19 @@ export function AiJsonStudioPage({
                           <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
                             <button
                               style={primaryButtonStyle}
-                              onClick={() => {
+                              onClick={async () => {
                                 if (!onAdoptImportQueueItem) {
                                   setImportQueueMessage(
                                     "採用導線が未接続です。App 側の接続準備が必要です。",
                                   );
                                   return;
                                 }
-                                if (item.generation_target !== "persona") {
+                                if (
+                                  item.generation_target !== "persona" &&
+                                  item.generation_target !== "reply_templates"
+                                ) {
                                   setImportQueueMessage(
-                                    `id=${item.id} は target=${item.generation_target} のため、Phase 16-3 では採用しません。`,
+                                    `id=${item.id} は target=${item.generation_target} のため採用対象外です。`,
                                   );
                                   return;
                                 }
@@ -974,22 +979,30 @@ export function AiJsonStudioPage({
                                 }
                                 if (item.status === "adopted") {
                                   setImportQueueMessage(
-                                    `id=${item.id} はすでに Adopted Changes に採用済みです。`,
+                                    `id=${item.id} はすでに採用済みです。`,
                                   );
                                   return;
                                 }
-                                onAdoptImportQueueItem(item.id);
-                                setImportQueueMessage(
-                                  `id=${item.id} を Adopted Changes へ採用しました（AI JSON Import Queue は adopted に更新）。`,
-                                );
+                                if (item.status === "discarded") {
+                                  setImportQueueMessage(
+                                    `id=${item.id} は discarded のため再採用できません。`,
+                                  );
+                                  return;
+                                }
+                                const result = await onAdoptImportQueueItem(item.id);
+                                setImportQueueMessage(result.message);
                               }}
                               disabled={
                                 !item.validation_ok ||
                                 item.status === "adopted" ||
-                                item.generation_target !== "persona"
+                                item.status === "discarded" ||
+                                (item.generation_target !== "persona" &&
+                                  item.generation_target !== "reply_templates")
                               }
                             >
-                              Adopted Changes へ採用
+                              {item.generation_target === "reply_templates"
+                                ? "Adopted Reply Templates へ採用"
+                                : "Adopted Changes へ採用"}
                             </button>
                             <button
                               style={secondaryButtonStyle}
