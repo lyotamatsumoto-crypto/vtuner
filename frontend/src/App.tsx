@@ -24,6 +24,7 @@ import {
   buildCompilePrecheckPlanItems,
   type CompiledRuntimeEntry,
   createAiJsonImportQueueItem,
+  createAdoptedChangeFromAiJsonImportQueueItem,
   createAdoptedChangeFromReviewPatch,
   createReviewPatchQueueItem,
   initialAdoptedChanges,
@@ -342,6 +343,62 @@ export function App() {
     return queueItem;
   }
 
+  function handleAdoptAiJsonImportQueueItem(queueItemId: string) {
+    const queueItem = aiJsonImportQueue.find((item) => item.id === queueItemId);
+    if (!queueItem || queueItem.status === "adopted" || !queueItem.validation_ok) {
+      return;
+    }
+
+    const adoptedId = `adopted-${queueItemId}`;
+    const alreadyAdopted = adoptedChanges.some(
+      (item) => item.id === adoptedId && item.source_lane === "ai_json_import_queue",
+    );
+    if (alreadyAdopted) {
+      return;
+    }
+
+    const nextQueue = aiJsonImportQueue.map((item) =>
+      item.id === queueItemId ? { ...item, status: "adopted" as const } : item,
+    );
+    const nextAdoptedChanges = [
+      createAdoptedChangeFromAiJsonImportQueueItem(queueItem),
+      ...adoptedChanges,
+    ];
+
+    setAiJsonImportQueue(nextQueue);
+    setAdoptedChanges(nextAdoptedChanges);
+
+    saveAiJsonImportQueue(backendOrigin, nextQueue).catch(() => {
+      // Keep frontend queue state even when backend is unavailable.
+    });
+    saveAdoptedChanges(backendOrigin, nextAdoptedChanges)
+      .then(() => {
+        setAdoptedChangesWriteMessage(
+          `Adopted Changes を backend へ保存しました。frontend 採用表示と backend 保存値は同期しています。(${backendOrigin})`,
+        );
+      })
+      .catch(() => {
+        setAdoptedChangesWriteMessage(
+          "Adopted Changes の backend 保存に失敗しました。frontend 採用表示は保持されています（backend 未反映）。",
+        );
+      });
+  }
+
+  function handleDiscardAiJsonImportQueueItem(queueItemId: string) {
+    const queueItem = aiJsonImportQueue.find((item) => item.id === queueItemId);
+    if (!queueItem || queueItem.status === "adopted" || queueItem.status === "discarded") {
+      return;
+    }
+
+    const nextQueue = aiJsonImportQueue.map((item) =>
+      item.id === queueItemId ? { ...item, status: "discarded" as const } : item,
+    );
+    setAiJsonImportQueue(nextQueue);
+    saveAiJsonImportQueue(backendOrigin, nextQueue).catch(() => {
+      // Keep frontend queue state even when backend is unavailable.
+    });
+  }
+
   if (isOverlayCharacterRoute) {
     return (
       <OverlayCharacterPage
@@ -393,6 +450,8 @@ export function App() {
       {currentScreen === "ai_json_studio" ? (
         <AiJsonStudioPage
           onRegisterPersonaImportQueueDraft={handleRegisterPersonaImportQueueDraft}
+          onAdoptImportQueueItem={handleAdoptAiJsonImportQueueItem}
+          onDiscardImportQueueItem={handleDiscardAiJsonImportQueueItem}
           aiJsonImportQueueItems={aiJsonImportQueue}
         />
       ) : null}

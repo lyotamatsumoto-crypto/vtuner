@@ -176,6 +176,21 @@ export function createAdoptedChangeFromReviewPatch(
   };
 }
 
+export function createAdoptedChangeFromAiJsonImportQueueItem(
+  item: AiJsonImportQueueItem,
+): AdoptedChangeItem {
+  return {
+    id: `adopted-${item.id}`,
+    adopted_type: "persona_json",
+    source_lane: "ai_json_import_queue",
+    adopted_at: new Date().toISOString(),
+    target_name: `persona / ${item.id}`,
+    // Keep compile target in existing CompileTargetKind set.
+    target_kind: "runtime_data",
+    compile_wait_status: "pending",
+  };
+}
+
 export function buildCompilePrecheckPlanItems(
   adoptedChanges: AdoptedChangeItem[],
 ): CompilePlanItem[] {

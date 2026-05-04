@@ -173,11 +173,15 @@ const historyItems: HistoryItem[] = [
 
 export function AiJsonStudioPage({
   onRegisterPersonaImportQueueDraft,
+  onAdoptImportQueueItem,
+  onDiscardImportQueueItem,
   aiJsonImportQueueItems,
 }: {
   onRegisterPersonaImportQueueDraft?: (
     input: RegisterPersonaImportQueueDraftInput,
   ) => AiJsonImportQueueItem;
+  onAdoptImportQueueItem?: (queueItemId: string) => void;
+  onDiscardImportQueueItem?: (queueItemId: string) => void;
   aiJsonImportQueueItems: AiJsonImportQueueItem[];
 }) {
   const [activeTarget, setActiveTarget] = useState<TargetTab>("人格");
@@ -373,6 +377,10 @@ export function AiJsonStudioPage({
   }
 
   const validationOk = validatedPersona !== null && validationErrors.length === 0;
+  const validatedQueueCount = aiJsonImportQueueItems.filter(
+    (item) => item.validation_ok,
+  ).length;
+  const failedQueueCount = aiJsonImportQueueItems.length - validatedQueueCount;
 
   return (
     <main
@@ -631,6 +639,16 @@ export function AiJsonStudioPage({
                     <p style={{ ...pageTextStyle, fontSize: "12px" }}>不足や不整合があればここに出します。</p>
                   </div>
 
+                  <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                    <span style={pillStyle("#EAF7F7", "#357F91")}>対象: 人格 JSON</span>
+                    <span style={pillStyle("#F7FCFC", "#5F747A")}>
+                      validation_ok: {validationOk ? "true" : "false"}
+                    </span>
+                    <span style={pillStyle("#F7FCFC", "#5F747A")}>
+                      error_messages: {validationErrors.length}
+                    </span>
+                  </div>
+
                   {!validationOk ? (
                     <div style={{ display: "grid", gap: "10px" }}>
                       <div style={warningBoxStyle}>
@@ -716,8 +734,17 @@ export function AiJsonStudioPage({
                       AI JSON Import Queue（前段）
                     </h3>
                     <p style={{ ...pageTextStyle, fontSize: "12px" }}>
-                      ここは Adopted Changes 接続前の保管レーンです。Review Patch Queue とは別に扱います。
+                      ここは Adopted Changes 接続前の保管レーンです。Review Patch Queue とは別導線で、混ぜずに扱います。
                     </p>
+                  </div>
+                  <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                    <span style={pillStyle("#EAF7F7", "#357F91")}>AI JSON Import Queue</span>
+                    <span style={pillStyle("#FFF0D8", "#A96E22")}>
+                      validation_failed: {failedQueueCount}
+                    </span>
+                    <span style={pillStyle("#E4F5EC", "#3F8A63")}>
+                      validated: {validatedQueueCount}
+                    </span>
                   </div>
                   <div style={{ display: "grid", gap: "8px" }}>
                     {aiJsonImportQueueItems.length === 0 ? (
@@ -739,17 +766,98 @@ export function AiJsonStudioPage({
                             }}
                           >
                             <strong>{item.generation_target}</strong>
-                            <span style={pillStyle("#EAF7F7", "#357F91")}>
+                            <span style={queueStatusPillStyle(item)}>
                               {item.status}
+                            </span>
+                          </div>
+                          <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                            <span style={pillStyle("#F7FCFC", "#5F747A")}>
+                              validation_ok: {item.validation_ok ? "true" : "false"}
+                            </span>
+                            <span style={pillStyle("#F7FCFC", "#5F747A")}>
+                              error_messages: {item.error_messages.length}
                             </span>
                           </div>
                           <span style={{ ...pageTextStyle, fontSize: "12px" }}>
                             source: {item.source_natural_text.slice(0, 48)}
                             {item.source_natural_text.length > 48 ? "..." : ""}
                           </span>
-                          <span style={{ ...pageTextStyle, fontSize: "12px" }}>
-                            errors: {item.error_messages.length}
-                          </span>
+                          {item.error_messages.length > 0 ? (
+                            <div style={errorBoxStyle}>
+                              <strong style={{ fontSize: "12px" }}>
+                                validation failed の主な理由
+                              </strong>
+                              <div style={{ display: "grid", gap: "4px" }}>
+                                {item.error_messages.slice(0, 2).map((error) => (
+                                  <span key={`${item.id}-${error}`} style={{ ...pageTextStyle, fontSize: "12px" }}>
+                                    {error}
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                          ) : null}
+                          <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                            <button
+                              style={primaryButtonStyle}
+                              onClick={() => {
+                                if (!onAdoptImportQueueItem) {
+                                  setImportQueueMessage(
+                                    "採用導線が未接続です。App 側の接続準備が必要です。",
+                                  );
+                                  return;
+                                }
+                                if (!item.validation_ok) {
+                                  setImportQueueMessage(
+                                    `id=${item.id} は validation_failed のため採用できません。先に再修正してください。`,
+                                  );
+                                  return;
+                                }
+                                if (item.status === "adopted") {
+                                  setImportQueueMessage(
+                                    `id=${item.id} はすでに Adopted Changes に採用済みです。`,
+                                  );
+                                  return;
+                                }
+                                onAdoptImportQueueItem(item.id);
+                                setImportQueueMessage(
+                                  `id=${item.id} を Adopted Changes へ採用しました（AI JSON Import Queue は adopted に更新）。`,
+                                );
+                              }}
+                              disabled={!item.validation_ok || item.status === "adopted"}
+                            >
+                              Adopted Changes へ採用
+                            </button>
+                            <button
+                              style={secondaryButtonStyle}
+                              onClick={() => {
+                                if (!onDiscardImportQueueItem) {
+                                  setImportQueueMessage(
+                                    "discard 導線が未接続です。App 側の接続準備が必要です。",
+                                  );
+                                  return;
+                                }
+                                if (item.status === "adopted") {
+                                  setImportQueueMessage(
+                                    `id=${item.id} は採用済みのため discarded へ変更しません。`,
+                                  );
+                                  return;
+                                }
+                                if (item.status === "discarded") {
+                                  setImportQueueMessage(
+                                    `id=${item.id} はすでに discarded です。`,
+                                  );
+                                  return;
+                                }
+                                onDiscardImportQueueItem(item.id);
+                                setImportQueueMessage(
+                                  `id=${item.id} を discarded に更新しました。`,
+                                );
+                              }}
+                              disabled={item.status === "adopted" || item.status === "discarded"}
+                            >
+                              不採用（discarded）
+                            </button>
+                          </div>
                         </article>
                       ))
                     )}
@@ -1141,4 +1249,16 @@ function historyStatusStyle(status: HistoryItem["status"]) {
   }
 
   return pillStyle("#F7FCFC", "#5F747A");
+}
+
+function queueStatusPillStyle(item: AiJsonImportQueueItem) {
+  if (item.status === "validation_failed" || !item.validation_ok) {
+    return pillStyle("#FFF0D8", "#A96E22");
+  }
+
+  if (item.status === "validated") {
+    return pillStyle("#E4F5EC", "#3F8A63");
+  }
+
+  return pillStyle("#EAF7F7", "#357F91");
 }
