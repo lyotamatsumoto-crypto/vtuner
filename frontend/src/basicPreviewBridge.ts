@@ -13,6 +13,9 @@ export interface BasicPreviewBridgeSettings {
   endingStyle: string;
   bannedExpressions: string;
   sideImageFacing: SideImageFacingTarget;
+  viewerTargetFacing: SharedOrientation;
+  streamerTargetFacing: SharedOrientation;
+  allTargetFacing: SharedOrientation;
   defaultFacing: SharedOrientation;
   mirrorEnabled: boolean;
   displaySize: DisplaySizeOption;
@@ -31,6 +34,9 @@ export const defaultBasicPreviewBridgeSettings: BasicPreviewBridgeSettings = {
   endingStyle: "〜ですね / 〜ですよ",
   bannedExpressions: "暴言、差別的表現、過度に攻撃的な言い回し",
   sideImageFacing: "viewer",
+  viewerTargetFacing: "front",
+  streamerTargetFacing: "side",
+  allTargetFacing: "front",
   defaultFacing: "front",
   mirrorEnabled: true,
   displaySize: "標準",

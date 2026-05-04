@@ -201,7 +201,9 @@ export function PreviewTestPage({
       const resolvedDirection = resolveVisualDirection({
         speechTarget: "viewer",
         sideImageFacing: sharedSettings.sideImageFacing,
-        defaultFacing: sharedSettings.defaultFacing,
+        viewerTargetFacing: sharedSettings.viewerTargetFacing,
+        streamerTargetFacing: sharedSettings.streamerTargetFacing,
+        allTargetFacing: sharedSettings.allTargetFacing,
         mirrorEnabled: sharedSettings.mirrorEnabled,
       });
       setLastRuntimeDecision(null);
@@ -251,7 +253,9 @@ export function PreviewTestPage({
       const resolvedDirection = resolveVisualDirection({
         speechTarget,
         sideImageFacing: sharedSettings.sideImageFacing,
-        defaultFacing: sharedSettings.defaultFacing,
+        viewerTargetFacing: sharedSettings.viewerTargetFacing,
+        streamerTargetFacing: sharedSettings.streamerTargetFacing,
+        allTargetFacing: sharedSettings.allTargetFacing,
         mirrorEnabled: sharedSettings.mirrorEnabled,
       });
       setOrientation(resolvedDirection.orientation);
@@ -300,7 +304,9 @@ export function PreviewTestPage({
       const resolvedDirection = resolveVisualDirection({
         speechTarget: runtimeDecision.speech_target,
         sideImageFacing: sharedSettings.sideImageFacing,
-        defaultFacing: sharedSettings.defaultFacing,
+        viewerTargetFacing: sharedSettings.viewerTargetFacing,
+        streamerTargetFacing: sharedSettings.streamerTargetFacing,
+        allTargetFacing: sharedSettings.allTargetFacing,
         mirrorEnabled: sharedSettings.mirrorEnabled,
       });
       setOrientation(resolvedDirection.orientation);

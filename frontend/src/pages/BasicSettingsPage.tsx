@@ -87,6 +87,9 @@ export function BasicSettingsPage({
     endingStyle,
     bannedExpressions,
     sideImageFacing,
+    viewerTargetFacing,
+    streamerTargetFacing,
+    allTargetFacing,
     defaultFacing,
     mirrorEnabled,
     displaySize,
@@ -423,6 +426,48 @@ export function BasicSettingsPage({
                   >
                     <option value="viewer">視聴者・コメント側を向いている</option>
                     <option value="streamer">配信者側を向いている</option>
+                  </select>
+                </Field>
+                <Field label="視聴者向けの表示向き">
+                  <select
+                    style={inputStyle}
+                    value={viewerTargetFacing}
+                    onChange={(event) =>
+                      updateSharedSettings({
+                        viewerTargetFacing: event.target.value as "front" | "side",
+                      })
+                    }
+                  >
+                    <option value="front">front</option>
+                    <option value="side">side</option>
+                  </select>
+                </Field>
+                <Field label="配信者向けの表示向き">
+                  <select
+                    style={inputStyle}
+                    value={streamerTargetFacing}
+                    onChange={(event) =>
+                      updateSharedSettings({
+                        streamerTargetFacing: event.target.value as "front" | "side",
+                      })
+                    }
+                  >
+                    <option value="front">front</option>
+                    <option value="side">side</option>
+                  </select>
+                </Field>
+                <Field label="全体向けの表示向き">
+                  <select
+                    style={inputStyle}
+                    value={allTargetFacing}
+                    onChange={(event) =>
+                      updateSharedSettings({
+                        allTargetFacing: event.target.value as "front" | "side",
+                      })
+                    }
+                  >
+                    <option value="front">front</option>
+                    <option value="side">side</option>
                   </select>
                 </Field>
               </FieldGrid>

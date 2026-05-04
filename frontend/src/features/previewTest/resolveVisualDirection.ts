@@ -8,7 +8,9 @@ type VisualSpeechTarget = "viewer" | "streamer" | "all";
 interface ResolveVisualDirectionInput {
   speechTarget: VisualSpeechTarget;
   sideImageFacing: SideImageFacingTarget;
-  defaultFacing: SharedOrientation;
+  viewerTargetFacing: SharedOrientation;
+  streamerTargetFacing: SharedOrientation;
+  allTargetFacing: SharedOrientation;
   mirrorEnabled: boolean;
 }
 
@@ -21,9 +23,26 @@ interface ResolvedVisualDirection {
 export function resolveVisualDirection({
   speechTarget,
   sideImageFacing,
-  defaultFacing,
+  viewerTargetFacing,
+  streamerTargetFacing,
+  allTargetFacing,
   mirrorEnabled,
 }: ResolveVisualDirectionInput): ResolvedVisualDirection {
+  const targetFacing =
+    speechTarget === "viewer"
+      ? viewerTargetFacing
+      : speechTarget === "streamer"
+        ? streamerTargetFacing
+        : allTargetFacing;
+
+  if (targetFacing === "front") {
+    return {
+      orientation: "front",
+      mirror: mirrorEnabled,
+      reasonLabel: `${speechTarget}向け: targetFacing=front のため front表示（mirror=${mirrorEnabled ? "on" : "off"}）`,
+    };
+  }
+
   if (speechTarget === "viewer") {
     return {
       orientation: "side",
@@ -47,8 +66,8 @@ export function resolveVisualDirection({
   }
 
   return {
-    orientation: "front",
+    orientation: "side",
     mirror: mirrorEnabled,
-    reasonLabel: `all向け: front表示を採用（defaultFacing=${defaultFacing}, mirror=${mirrorEnabled ? "on" : "off"}）`,
+    reasonLabel: `all向け: targetFacing=side のため side表示（mirror=${mirrorEnabled ? "on" : "off"}）`,
   };
 }
