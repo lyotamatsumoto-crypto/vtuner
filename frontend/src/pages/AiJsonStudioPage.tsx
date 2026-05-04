@@ -38,7 +38,8 @@ interface HistoryItem {
   presetPromoted?: boolean;
 }
 
-interface RegisterPersonaImportQueueDraftInput {
+interface RegisterAiJsonImportQueueDraftInput {
+  generationTarget: AiJsonImportQueueItem["generation_target"];
   sourceNaturalText: string;
   promptText: string;
   returnedJson: unknown;
@@ -183,13 +184,13 @@ const historyItems: HistoryItem[] = [
 ];
 
 export function AiJsonStudioPage({
-  onRegisterPersonaImportQueueDraft,
+  onRegisterAiJsonImportQueueDraft,
   onAdoptImportQueueItem,
   onDiscardImportQueueItem,
   aiJsonImportQueueItems,
 }: {
-  onRegisterPersonaImportQueueDraft?: (
-    input: RegisterPersonaImportQueueDraftInput,
+  onRegisterAiJsonImportQueueDraft?: (
+    input: RegisterAiJsonImportQueueDraftInput,
   ) => AiJsonImportQueueItem;
   onAdoptImportQueueItem?: (queueItemId: string) => void;
   onDiscardImportQueueItem?: (queueItemId: string) => void;
@@ -425,14 +426,21 @@ export function AiJsonStudioPage({
   }
 
   function registerImportQueueDraft() {
-    if (activeTarget !== "人格") {
+    if (activeTarget !== "人格" && activeTarget !== "返答テンプレートJSON") {
       setImportQueueMessage(
-        "返答テンプレートJSON は Phase 16-2 では検証のみ対応です。Import Queue 登録は Phase 16-3 以降で扱います。",
+        "この target はまだ Import Queue 登録に対応していません。",
       );
       return;
     }
 
-    if (!onRegisterPersonaImportQueueDraft) {
+    if (!validationOk) {
+      setImportQueueMessage(
+        "validation_ok=true のときだけ Import Queue へ登録できます。先に検証結果を確認してください。",
+      );
+      return;
+    }
+
+    if (!onRegisterAiJsonImportQueueDraft) {
       setImportQueueMessage(
         "AI JSON Import Queue の登録先が未接続です。App 側の接続準備が必要です。",
       );
@@ -449,7 +457,11 @@ export function AiJsonStudioPage({
       return;
     }
 
-    const queued = onRegisterPersonaImportQueueDraft({
+    const queued = onRegisterAiJsonImportQueueDraft({
+      generationTarget:
+        activeTarget === "返答テンプレートJSON"
+          ? "reply_templates"
+          : "persona",
       sourceNaturalText: `${simpleInput}\n${detailInput}`,
       promptText,
       returnedJson: parsedJson,
@@ -725,7 +737,10 @@ export function AiJsonStudioPage({
                       <button
                         style={secondaryButtonStyle}
                         onClick={registerImportQueueDraft}
-                        disabled={activeTarget !== "人格"}
+                        disabled={
+                          activeTarget !== "人格" &&
+                          activeTarget !== "返答テンプレートJSON"
+                        }
                       >
                         Import Queue へ登録（準備）
                       </button>
@@ -904,7 +919,7 @@ export function AiJsonStudioPage({
                               flexWrap: "wrap",
                             }}
                           >
-                            <strong>{item.generation_target}</strong>
+                            <strong>{toGenerationTargetLabel(item.generation_target)}</strong>
                             <span style={queueStatusPillStyle(item)}>
                               {item.status}
                             </span>
@@ -945,6 +960,12 @@ export function AiJsonStudioPage({
                                   );
                                   return;
                                 }
+                                if (item.generation_target !== "persona") {
+                                  setImportQueueMessage(
+                                    `id=${item.id} は target=${item.generation_target} のため、Phase 16-3 では採用しません。`,
+                                  );
+                                  return;
+                                }
                                 if (!item.validation_ok) {
                                   setImportQueueMessage(
                                     `id=${item.id} は validation_failed のため採用できません。先に再修正してください。`,
@@ -962,7 +983,11 @@ export function AiJsonStudioPage({
                                   `id=${item.id} を Adopted Changes へ採用しました（AI JSON Import Queue は adopted に更新）。`,
                                 );
                               }}
-                              disabled={!item.validation_ok || item.status === "adopted"}
+                              disabled={
+                                !item.validation_ok ||
+                                item.status === "adopted" ||
+                                item.generation_target !== "persona"
+                              }
                             >
                               Adopted Changes へ採用
                             </button>
@@ -1400,4 +1425,16 @@ function queueStatusPillStyle(item: AiJsonImportQueueItem) {
   }
 
   return pillStyle("#EAF7F7", "#357F91");
+}
+
+function toGenerationTargetLabel(target: AiJsonImportQueueItem["generation_target"]) {
+  if (target === "persona") {
+    return "target: 人格JSON";
+  }
+
+  if (target === "reply_templates") {
+    return "target: 返答テンプレートJSON";
+  }
+
+  return `target: ${target}`;
 }

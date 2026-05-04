@@ -58,6 +58,7 @@ export interface ReviewPatchQueueItem {
 
 export const AI_JSON_GENERATION_TARGETS = [
   "persona",
+  "reply_templates",
   "response_category",
   "reply_collection",
   "condition_event",

@@ -356,14 +356,15 @@ export function App() {
       });
   }
 
-  function handleRegisterPersonaImportQueueDraft(input: {
+  function handleRegisterAiJsonImportQueueDraft(input: {
+    generationTarget: AiJsonImportQueueItem["generation_target"];
     sourceNaturalText: string;
     promptText: string;
     returnedJson: unknown;
     validationErrors: string[];
   }) {
     const queueItem = createAiJsonImportQueueItem({
-      generation_target: "persona",
+      generation_target: input.generationTarget,
       source_natural_text: input.sourceNaturalText,
       prompt_text: input.promptText,
       returned_json: input.returnedJson,
@@ -383,7 +384,12 @@ export function App() {
 
   function handleAdoptAiJsonImportQueueItem(queueItemId: string) {
     const queueItem = aiJsonImportQueue.find((item) => item.id === queueItemId);
-    if (!queueItem || queueItem.status === "adopted" || !queueItem.validation_ok) {
+    if (
+      !queueItem ||
+      queueItem.status === "adopted" ||
+      !queueItem.validation_ok ||
+      queueItem.generation_target !== "persona"
+    ) {
       return;
     }
 
@@ -546,7 +552,7 @@ export function App() {
       ) : null}
       {currentScreen === "ai_json_studio" ? (
         <AiJsonStudioPage
-          onRegisterPersonaImportQueueDraft={handleRegisterPersonaImportQueueDraft}
+          onRegisterAiJsonImportQueueDraft={handleRegisterAiJsonImportQueueDraft}
           onAdoptImportQueueItem={handleAdoptAiJsonImportQueueItem}
           onDiscardImportQueueItem={handleDiscardAiJsonImportQueueItem}
           aiJsonImportQueueItems={aiJsonImportQueue}
