@@ -1,9 +1,19 @@
 import { useMemo, useState } from "react";
-import type { AiJsonImportQueueItem, PersonaJsonV1Draft } from "../../../schemas";
-import { validatePersonaJsonV1Draft } from "../../../schemas";
+import type {
+  AiJsonImportQueueItem,
+  PersonaJsonV1Draft,
+  ReplyTemplatesJson,
+} from "../../../schemas";
+import {
+  validatePersonaJsonV1Draft,
+  validateReplyTemplatesJson,
+  validReplyTemplatesJsonSample,
+  invalidReplyTemplatesJsonSample,
+} from "../../../schemas";
 
 type TargetTab =
   | "人格"
+  | "返答テンプレートJSON"
   | "返答カテゴリ"
   | "返答集"
   | "条件イベント"
@@ -37,6 +47,7 @@ interface RegisterPersonaImportQueueDraftInput {
 
 const targetTabs: TargetTab[] = [
   "人格",
+  "返答テンプレートJSON",
   "返答カテゴリ",
   "返答集",
   "条件イベント",
@@ -114,7 +125,7 @@ const personaSampleObject = {
   },
 } as const;
 
-const provisionalJsonByTarget: Record<Exclude<TargetTab, "人格">, string> = {
+const provisionalJsonByTarget: Record<Exclude<TargetTab, "人格" | "返答テンプレートJSON">, string> = {
   "返答カテゴリ": `{
   "draft_note": "返答カテゴリの JSON 契約は暫定です",
   "category_name": "挨拶カテゴリ",
@@ -195,6 +206,8 @@ export function AiJsonStudioPage({
   const [jsonText, setJsonText] = useState(JSON.stringify(personaSampleObject, null, 2));
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
   const [validatedPersona, setValidatedPersona] = useState<PersonaJsonV1Draft | null>(null);
+  const [validatedReplyTemplates, setValidatedReplyTemplates] =
+    useState<ReplyTemplatesJson | null>(null);
   const [importQueueMessage, setImportQueueMessage] = useState(
     "AI JSON Import Queue への登録は未実行です。",
   );
@@ -203,6 +216,8 @@ export function AiJsonStudioPage({
     const header =
       activeTarget === "人格"
         ? "VTuner 用の人格定義 JSON を作ってください。"
+        : activeTarget === "返答テンプレートJSON"
+          ? "VTuner 用の replyTemplates JSON を作ってください。"
         : `${activeTarget} 用の JSON 草案を作ってください。`;
 
     const startSourceLine = `meta.created_from または作業開始元は ${workStartSource} を基準にしてください。`;
@@ -223,6 +238,20 @@ export function AiJsonStudioPage({
       ].join("\n");
     }
 
+    if (activeTarget === "返答テンプレートJSON") {
+      return [
+        header,
+        "",
+        "- ルートは reply_templates のみを使う",
+        "- category は greeting / compliment / question / empathy のみ使う",
+        "- category 内では short / normal / long をすべて含める",
+        "- 各 length は string array にする",
+        "- 空配列と空文字を入れない",
+        "- JSON 以外の説明文を含めない",
+        startSourceLine,
+      ].join("\n");
+    }
+
     return [
       header,
       "",
@@ -237,11 +266,23 @@ export function AiJsonStudioPage({
   const requiredItems =
     activeTarget === "人格"
       ? personaRequiredKeys
+      : activeTarget === "返答テンプレートJSON"
+        ? [
+            "reply_templates",
+            "greeting / compliment / question / empathy（部分定義可）",
+            "short / normal / long（category 内で全必須）",
+          ]
       : ["この生成対象の JSON 契約は暫定です", "必須キー表示は後続 Phase で強化"];
 
   const guideItems =
     activeTarget === "人格"
       ? personaGuideItems
+      : activeTarget === "返答テンプレートJSON"
+        ? [
+            "unknown key / unknown category / unknown length は拒否",
+            "string array のみ許可（non-array 不可）",
+            "trim 後空文字・長文制約・空配列制約を fail-close で検証",
+          ]
       : ["このタブは暫定対象", "人格以外の契約はまだ厳格確定していない", "UI 骨格としてのみ表示"];
 
   function insertSample() {
@@ -250,7 +291,20 @@ export function AiJsonStudioPage({
       return;
     }
 
+    if (activeTarget === "返答テンプレートJSON") {
+      setJsonText(JSON.stringify(validReplyTemplatesJsonSample, null, 2));
+      return;
+    }
+
     setJsonText(provisionalJsonByTarget[activeTarget]);
+  }
+
+  function insertInvalidReplyTemplatesSample() {
+    if (activeTarget !== "返答テンプレートJSON") {
+      return;
+    }
+
+    setJsonText(JSON.stringify(invalidReplyTemplatesJsonSample, null, 2));
   }
 
   function clearToIdealSchema() {
@@ -304,15 +358,21 @@ export function AiJsonStudioPage({
       return;
     }
 
+    if (activeTarget === "返答テンプレートJSON") {
+      setJsonText(JSON.stringify({ reply_templates: {} }, null, 2));
+      return;
+    }
+
     setJsonText(`{\n  "draft_note": "${activeTarget} の理想スキーマ骨格は後続で強化"\n}`);
   }
 
-  function runPersonaValidation() {
-    if (activeTarget !== "人格") {
+  function runValidation() {
+    if (activeTarget !== "人格" && activeTarget !== "返答テンプレートJSON") {
       setValidationErrors([
-        "人格 JSON 以外の厳格検証は後続 Phase で扱います。現在は人格 JSON を優先しています。",
+        "この生成対象の厳格検証は後続 Phase で扱います。現在は人格 JSON と返答テンプレート JSON を優先しています。",
       ]);
       setValidatedPersona(null);
+      setValidatedReplyTemplates(null);
       return;
     }
 
@@ -322,18 +382,36 @@ export function AiJsonStudioPage({
     } catch {
       setValidationErrors(["root: JSON parse failed"]);
       setValidatedPersona(null);
+      setValidatedReplyTemplates(null);
       return;
     }
 
-    const result = validatePersonaJsonV1Draft(parsedJson);
+    if (activeTarget === "人格") {
+      const result = validatePersonaJsonV1Draft(parsedJson);
+      if (!result.ok) {
+        setValidationErrors(result.errors);
+        setValidatedPersona(null);
+        setValidatedReplyTemplates(null);
+        return;
+      }
+
+      setValidationErrors([]);
+      setValidatedPersona(result.value);
+      setValidatedReplyTemplates(null);
+      return;
+    }
+
+    const result = validateReplyTemplatesJson(parsedJson);
     if (!result.ok) {
       setValidationErrors(result.errors);
       setValidatedPersona(null);
+      setValidatedReplyTemplates(null);
       return;
     }
 
     setValidationErrors([]);
-    setValidatedPersona(result.value);
+    setValidatedPersona(null);
+    setValidatedReplyTemplates(result.parsed ?? null);
   }
 
   function createRepairPrompt() {
@@ -347,6 +425,13 @@ export function AiJsonStudioPage({
   }
 
   function registerImportQueueDraft() {
+    if (activeTarget !== "人格") {
+      setImportQueueMessage(
+        "返答テンプレートJSON は Phase 16-2 では検証のみ対応です。Import Queue 登録は Phase 16-3 以降で扱います。",
+      );
+      return;
+    }
+
     if (!onRegisterPersonaImportQueueDraft) {
       setImportQueueMessage(
         "AI JSON Import Queue の登録先が未接続です。App 側の接続準備が必要です。",
@@ -376,7 +461,21 @@ export function AiJsonStudioPage({
     );
   }
 
-  const validationOk = validatedPersona !== null && validationErrors.length === 0;
+  const validationOk =
+    activeTarget === "人格"
+      ? validatedPersona !== null && validationErrors.length === 0
+      : activeTarget === "返答テンプレートJSON"
+        ? validatedReplyTemplates !== null && validationErrors.length === 0
+        : false;
+  const validationTargetLabel =
+    activeTarget === "人格"
+      ? "人格 JSON"
+      : activeTarget === "返答テンプレートJSON"
+        ? "返答テンプレート JSON"
+        : `${activeTarget}（暫定）`;
+  const parsedReplyTemplateCategories = validatedReplyTemplates
+    ? Object.keys(validatedReplyTemplates.reply_templates)
+    : [];
   const validatedQueueCount = aiJsonImportQueueItems.filter(
     (item) => item.validation_ok,
   ).length;
@@ -619,16 +718,29 @@ export function AiJsonStudioPage({
                       <button style={secondaryButtonStyle}>JSON を読み込む</button>
                       <button
                         style={coralButtonStyle}
-                        onClick={runPersonaValidation}
+                        onClick={runValidation}
                       >
                         検証する
                       </button>
-                      <button style={secondaryButtonStyle} onClick={registerImportQueueDraft}>
+                      <button
+                        style={secondaryButtonStyle}
+                        onClick={registerImportQueueDraft}
+                        disabled={activeTarget !== "人格"}
+                      >
                         Import Queue へ登録（準備）
                       </button>
+                      {activeTarget === "返答テンプレートJSON" ? (
+                        <button style={secondaryButtonStyle} onClick={insertInvalidReplyTemplatesSample}>
+                          invalid sample を入れる
+                        </button>
+                      ) : null}
                     </div>
                     <span style={{ ...pageTextStyle, fontSize: "12px" }}>
-                      手で直すより、まず検証して外部 AI へ再依頼する想定です。
+                      {activeTarget === "人格"
+                        ? "手で直すより、まず検証して外部 AI へ再依頼する想定です。"
+                        : activeTarget === "返答テンプレートJSON"
+                          ? "返答テンプレートJSON は検証のみ対応です（Queue 登録は後続）。"
+                          : "この対象は暫定表示です。厳格検証は後続 Phase で扱います。"}
                     </span>
                   </div>
                 </section>
@@ -640,7 +752,7 @@ export function AiJsonStudioPage({
                   </div>
 
                   <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
-                    <span style={pillStyle("#EAF7F7", "#357F91")}>対象: 人格 JSON</span>
+                    <span style={pillStyle("#EAF7F7", "#357F91")}>対象: {validationTargetLabel}</span>
                     <span style={pillStyle("#F7FCFC", "#5F747A")}>
                       validation_ok: {validationOk ? "true" : "false"}
                     </span>
@@ -657,7 +769,9 @@ export function AiJsonStudioPage({
                           <strong>人格 JSON に未整合があります</strong>
                         </div>
                         <span style={{ ...pageTextStyle, fontSize: "12px" }}>
-                          最小検証の結果、修正が必要な項目があります。
+                          {activeTarget === "返答テンプレートJSON"
+                            ? "replyTemplates JSON の許可構造に合わない項目があります。"
+                            : "最小検証の結果、修正が必要な項目があります。"}
                         </span>
                       </div>
                       {validationErrors.length > 0 ? (
@@ -674,22 +788,47 @@ export function AiJsonStudioPage({
                       <div style={infoBoxStyle}>
                         <div style={{ display: "flex", gap: "8px", alignItems: "center", flexWrap: "wrap" }}>
                           <span style={pillStyle("#DFF3F6", "#357F91")}>注意</span>
-                          <strong>schema_version は persona_json_v1_draft を使います</strong>
+                          <strong>
+                            {activeTarget === "返答テンプレートJSON"
+                              ? "reply_templates root と許可 category / length のみ使います"
+                              : "schema_version は persona_json_v1_draft を使います"}
+                          </strong>
                         </div>
                         <span style={{ ...pageTextStyle, fontSize: "12px" }}>
-                          人格タブでは top-level / nested ともに想定外キーを含めません。
+                          {activeTarget === "返答テンプレートJSON"
+                            ? "unknown key / unknown category / unknown length は fail-close で拒否します。"
+                            : "人格タブでは top-level / nested ともに想定外キーを含めません。"}
                         </span>
                       </div>
                     </div>
                   ) : (
-                    <div style={successBoxStyle}>
+                    <div style={{ ...successBoxStyle, gap: "10px" }}>
                       <div style={{ display: "flex", gap: "8px", alignItems: "center", flexWrap: "wrap" }}>
                         <span style={pillStyle("#E4F5EC", "#3F8A63")}>検証成功</span>
-                        <strong>人格 JSON Contract (v1 draft) に整合しています</strong>
+                        <strong>
+                          {activeTarget === "返答テンプレートJSON"
+                            ? "replyTemplates JSON Contract に整合しています"
+                            : "人格 JSON Contract (v1 draft) に整合しています"}
+                        </strong>
                       </div>
                       <span style={{ ...pageTextStyle, fontSize: "12px" }}>
-                        差分要約を確認してから Import Queue / 採用判断へ進める想定です。
+                        {activeTarget === "返答テンプレートJSON"
+                          ? "Phase 16-2 では検証のみ対応です。Import Queue / 採用導線は後続で扱います。"
+                          : "差分要約を確認してから Import Queue / 採用判断へ進める想定です。"}
                       </span>
+                      {activeTarget === "返答テンプレートJSON" ? (
+                        <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                          <span style={pillStyle("#F7FCFC", "#5F747A")}>
+                            parsed category count: {parsedReplyTemplateCategories.length}
+                          </span>
+                          <span style={pillStyle("#F7FCFC", "#5F747A")}>
+                            parsed categories:{" "}
+                            {parsedReplyTemplateCategories.length > 0
+                              ? parsedReplyTemplateCategories.join(", ")
+                              : "none"}
+                          </span>
+                        </div>
+                      ) : null}
                     </div>
                   )}
                   <div style={inlineNoticeStyle}>{importQueueMessage}</div>
