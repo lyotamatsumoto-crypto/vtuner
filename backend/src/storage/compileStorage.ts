@@ -3,6 +3,10 @@ import { dirname } from "node:path";
 
 import type { CompileRecord } from "../contracts/compile";
 import {
+  COMPILE_RUN_STATUSES,
+  COMPILE_TARGET_KINDS,
+} from "../contracts/compile";
+import {
   COMPILE_FILE_PATHS,
   resolveStoragePath,
 } from "./fileLayout";
@@ -99,9 +103,16 @@ function isCompileRecord(value: unknown): value is CompileRecord {
     typeof value.executed_at === "string" &&
     typeof value.target_count === "number" &&
     Array.isArray(value.target_kinds) &&
-    value.target_kinds.every((item) => typeof item === "string") &&
-    typeof value.status === "string" &&
+    value.target_kinds.every((item) => isOneOf(item, COMPILE_TARGET_KINDS)) &&
+    isOneOf(value.status, COMPILE_RUN_STATUSES) &&
     Array.isArray(value.reflected_to) &&
-    value.reflected_to.every((item) => typeof item === "string")
+    value.reflected_to.every((item) => isOneOf(item, COMPILE_TARGET_KINDS))
   );
+}
+
+function isOneOf<T extends string>(
+  value: unknown,
+  candidates: readonly T[],
+): value is T {
+  return typeof value === "string" && candidates.includes(value as T);
 }

@@ -388,6 +388,32 @@
 
 ---
 
+## Completion Roadmap C4 Checkpoints: Storage Safety（C4-1）
+
+### Check items
+- queue / compile の保存前 validation が最小強化されている
+- 壊れた JSON / 不正 shape は fail-close で扱う
+- missing file のみ空配列として扱う
+- 保存失敗時に frontend 表示維持 + backend 未反映が分かる
+- 自動修復 / 自動上書きを行わない
+
+### Verified snapshot（C4-1 close patch 時点）
+- `queueStorage.ts` で status / lane / type などの許容値チェックを追加
+- `compileStorage.ts` で compile status / target kinds の許容値チェックを追加
+- `StorageValidationError` を維持し、読込時の fail-close 方針を継続
+- `npm run check` passed
+
+### Done criteria（C4-1）
+- 状態不明データのまま進まない最低限の安全性がある
+- docs 上で fail-close と未対応範囲（backup/retry/競合制御）が説明できる
+
+### Stop if
+- payload 変更や API path 変更が必要になる
+- 自動修復や自動上書きを入れないと成立しない
+- DB 化や大規模 storage 再設計が必要になる
+
+---
+
 ## Phase 12+ Checkpoints: Extension Roadmap
 
 ### Check items

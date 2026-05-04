@@ -7,6 +7,17 @@ import type {
   ReviewPatchQueueItem,
 } from "../contracts/queue";
 import {
+  ADOPTED_CHANGE_SOURCE_LANES,
+  ADOPTED_CHANGE_TYPES,
+  AI_JSON_GENERATION_TARGETS,
+  AI_JSON_IMPORT_STATUSES,
+  COMPILE_WAIT_STATUSES,
+  REVIEW_COMMENT_STATES,
+  REVIEW_PATCH_ACTIONS,
+  REVIEW_PATCH_STATUSES,
+  REVIEW_PATCH_TYPES,
+} from "../contracts/queue";
+import {
   QUEUE_FILE_PATHS,
   resolveStoragePath,
 } from "./fileLayout";
@@ -130,14 +141,14 @@ function isReviewPatchQueueItem(value: unknown): value is ReviewPatchQueueItem {
 
   return (
     typeof value.id === "string" &&
-    typeof value.patch_type === "string" &&
-    typeof value.comment_state === "string" &&
+    isOneOf(value.patch_type, REVIEW_PATCH_TYPES) &&
+    isOneOf(value.comment_state, REVIEW_COMMENT_STATES) &&
     Array.isArray(value.inferred_category_candidates) &&
     value.inferred_category_candidates.every((item) => typeof item === "string") &&
-    typeof value.selected_action === "string" &&
+    isOneOf(value.selected_action, REVIEW_PATCH_ACTIONS) &&
     typeof value.proposal_summary === "string" &&
     typeof value.created_at === "string" &&
-    typeof value.status === "string" &&
+    isOneOf(value.status, REVIEW_PATCH_STATUSES) &&
     isRecord(value.source_ref)
   );
 }
@@ -149,12 +160,12 @@ function isAdoptedChangeItem(value: unknown): value is AdoptedChangeItem {
 
   return (
     typeof value.id === "string" &&
-    typeof value.adopted_type === "string" &&
-    typeof value.source_lane === "string" &&
+    isOneOf(value.adopted_type, ADOPTED_CHANGE_TYPES) &&
+    isOneOf(value.source_lane, ADOPTED_CHANGE_SOURCE_LANES) &&
     typeof value.adopted_at === "string" &&
     typeof value.target_name === "string" &&
     typeof value.target_kind === "string" &&
-    typeof value.compile_wait_status === "string"
+    isOneOf(value.compile_wait_status, COMPILE_WAIT_STATUSES)
   );
 }
 
@@ -167,14 +178,21 @@ function isAiJsonImportQueueItem(
 
   return (
     typeof value.id === "string" &&
-    typeof value.generation_target === "string" &&
+    isOneOf(value.generation_target, AI_JSON_GENERATION_TARGETS) &&
     typeof value.source_natural_text === "string" &&
     typeof value.prompt_text === "string" &&
     typeof value.validation_ok === "boolean" &&
-    typeof value.status === "string" &&
+    isOneOf(value.status, AI_JSON_IMPORT_STATUSES) &&
     Array.isArray(value.error_messages) &&
     value.error_messages.every((item) => typeof item === "string") &&
     typeof value.created_at === "string" &&
     "returned_json" in value
   );
+}
+
+function isOneOf<T extends string>(
+  value: unknown,
+  candidates: readonly T[],
+): value is T {
+  return typeof value === "string" && candidates.includes(value as T);
 }

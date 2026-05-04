@@ -164,6 +164,13 @@
 * 過去履歴ごとの runtime entry 復元と正式 runtime config 永続保存は未対応
 * backend compile API / backend compile 実行 / production compile engine 化は後続 Phase で扱う
 
+実装現在地メモ（Completion Roadmap C4-1 close patch 時点）:
+* queue / compile の local JSON 保存は、保存前の最小 validation を許容値チェック寄りに強化済み
+* 壊れた JSON / 不正 shape は fail-close（validation error）で止め、状態不明のまま進めない
+* missing file のみ空配列として扱う
+* 自動修復・自動上書きは行わない
+* backup / snapshot / retry / 競合制御 / 復旧手順の本格整備は C4 後続で扱う
+
 build 確認:
 * `npm run build:schemas`
 * `npm run build:backend`
